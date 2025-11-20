@@ -1,1 +1,7 @@
 project_id = "hmwunbhtulrgalqrcnbv"
+
+[functions.search-products]
+verify_jwt = false
+
+[functions.store-dashboard]
+verify_jwt = true
