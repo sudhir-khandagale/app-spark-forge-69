@@ -1,71 +1,77 @@
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader2, Locate } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BottomNav from '@/components/BottomNav';
 import GoogleMap from '@/components/GoogleMap';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useStores } from '@/hooks/useStores';
+import { useProductSearch } from '@/hooks/useProducts';
 
 const MapView = () => {
   const navigate = useNavigate();
-  const { latitude, longitude, loading, error } = useGeolocation();
+  const { latitude, longitude, loading: locationLoading, error, refresh: refreshLocation } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
+  const { stores, loading: storesLoading } = useStores(latitude || undefined, longitude || undefined);
+  const { results, loading: searchLoading, searchProducts } = useProductSearch();
+  const [selectedStore, setSelectedStore] = useState<any>(null);
 
-  // Mock store data - in production, this would come from your database
-  const mockStores = [
-    {
-      id: '1',
-      position: { lat: 40.7580, lng: -73.9855 },
-      title: 'Times Square Electronics',
-      storeName: 'Times Square Electronics',
-      price: '$349',
-      inStock: true,
-      productsAvailable: 23,
-      distance: '0.3 mi'
-    },
-    {
-      id: '2',
-      position: { lat: 40.7489, lng: -73.9680 },
-      title: 'Grand Central Tech',
-      storeName: 'Grand Central Tech',
-      price: '$359',
-      inStock: true,
-      productsAvailable: 15,
-      distance: '0.8 mi'
-    },
-    {
-      id: '3',
-      position: { lat: 40.7614, lng: -73.9776 },
-      title: 'Central Park Gadgets',
-      storeName: 'Central Park Gadgets',
-      price: '$345',
-      inStock: false,
-      productsAvailable: 8,
-      distance: '1.2 mi'
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim() && latitude && longitude) {
+      searchProducts(searchQuery, latitude, longitude);
     }
-  ];
+  };
 
-  const [selectedStore, setSelectedStore] = useState(mockStores[0]);
+  // Use search results if available, otherwise show all stores
+  const displayData = results.length > 0 ? results : stores;
+
+  useEffect(() => {
+    if (displayData.length > 0 && !selectedStore) {
+      setSelectedStore(displayData[0]);
+    }
+  }, [displayData, selectedStore]);
+
+  const markers = displayData
+    .filter(item => {
+      const lat = 'latitude' in item ? item.latitude : item.store_latitude;
+      const lng = 'longitude' in item ? item.longitude : item.store_longitude;
+      return lat && lng;
+    })
+    .map(item => {
+      const isStore = 'latitude' in item;
+      return {
+        position: {
+          lat: isStore ? item.latitude! : item.store_latitude!,
+          lng: isStore ? item.longitude! : item.store_longitude!
+        },
+        title: isStore ? item.name : item.name,
+        storeName: isStore ? item.name : item.store_name,
+        storeId: isStore ? item.id : item.store_id,
+        price: !isStore ? `$${item.price.toFixed(2)}` : undefined,
+        inStock: !isStore ? item.in_stock : true,
+        data: item
+      };
+    });
 
   const mapCenter = latitude && longitude 
     ? { lat: latitude, lng: longitude }
-    : { lat: 40.7580, lng: -73.9855 }; // Default to NYC
+    : { lat: 40.7580, lng: -73.9855 };
 
   const handleMarkerClick = (marker: any) => {
-    const store = mockStores.find(s => s.title === marker.title);
-    if (store) {
-      setSelectedStore(store);
-    }
+    setSelectedStore(marker.data);
   };
+
+  const isLoading = locationLoading || storesLoading || searchLoading;
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
       {/* Search Bar */}
       <div className="absolute top-4 left-4 right-4 z-10">
-        <div className="flex items-center gap-2 bg-background rounded-lg shadow-lg p-2">
+        <form onSubmit={handleSearch} className="flex items-center gap-2 bg-background rounded-lg shadow-lg p-2">
           <Link to="/">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" type="button">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
@@ -75,27 +81,43 @@ const MapView = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <Button size="icon" variant="ghost">
-            <MapPin className="w-5 h-5" />
+          <Button 
+            size="icon" 
+            variant="ghost"
+            onClick={refreshLocation}
+            disabled={locationLoading}
+            type="button"
+          >
+            <Locate className={`w-5 h-5 ${locationLoading ? 'animate-spin' : ''}`} />
           </Button>
-        </div>
+        </form>
       </div>
 
       {/* Map */}
       <div className="flex-1 relative">
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center h-full bg-muted">
             <div className="text-center">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Getting your location...</p>
+              <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Loading...</p>
             </div>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-full bg-muted">
             <div className="text-center p-6">
               <p className="text-destructive font-semibold mb-2">Location Error</p>
-              <p className="text-sm text-muted-foreground">{error}</p>
-              <p className="text-xs text-muted-foreground mt-2">Showing default location</p>
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button onClick={refreshLocation}>
+                <Locate className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </div>
+        ) : markers.length === 0 ? (
+          <div className="flex items-center justify-center h-full bg-muted">
+            <div className="text-center p-6">
+              <p className="text-muted-foreground mb-2">No stores found</p>
+              <p className="text-sm text-muted-foreground">Try searching or adjusting your location</p>
             </div>
           </div>
         ) : null}
@@ -103,7 +125,7 @@ const MapView = () => {
         <GoogleMap
           center={mapCenter}
           zoom={14}
-          markers={mockStores}
+          markers={markers}
           onMarkerClick={handleMarkerClick}
         />
       </div>
@@ -112,29 +134,47 @@ const MapView = () => {
       {selectedStore && (
         <div className="absolute bottom-20 left-4 right-4 z-10">
           <div className="bg-card rounded-lg shadow-lg p-4 border border-border">
-            <h3 className="font-semibold mb-1">{selectedStore.storeName}</h3>
-            <p className="text-sm text-muted-foreground mb-2">
-              {selectedStore.productsAvailable} products available
-            </p>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg font-semibold text-primary">{selectedStore.price}</span>
-              <span className={`text-sm ${selectedStore.inStock ? 'text-green-600' : 'text-red-600'}`}>
-                {selectedStore.inStock ? '✓ In Stock' : '✗ Out of Stock'}
-              </span>
-            </div>
+            <h3 className="font-semibold mb-1">
+              {'store_name' in selectedStore ? selectedStore.store_name : selectedStore.name}
+            </h3>
+            {'description' in selectedStore && selectedStore.description && (
+              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                {selectedStore.description}
+              </p>
+            )}
+            {selectedStore.price && (
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg font-semibold text-primary">${selectedStore.price}</span>
+                <span className={`text-sm ${selectedStore.in_stock ? 'text-accent' : 'text-destructive'}`}>
+                  {selectedStore.in_stock ? '✓ In Stock' : '✗ Out of Stock'}
+                </span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-primary">{selectedStore.distance} away</span>
-              <div className="flex gap-2">
+              {selectedStore.distance && (
+                <span className="text-sm text-primary">{selectedStore.distance.toFixed(1)} mi away</span>
+              )}
+              <div className="flex gap-2 ml-auto">
                 <Button 
                   size="sm" 
                   variant="outline"
-                  onClick={() => navigate(`/store/${selectedStore.id}`)}
+                  onClick={() => navigate(`/store/${'store_id' in selectedStore ? selectedStore.store_id : selectedStore.id}`)}
                 >
                   View Store
                 </Button>
-                <Button size="sm">
-                  Directions
-                </Button>
+                {((selectedStore.latitude || selectedStore.store_latitude) && 
+                  (selectedStore.longitude || selectedStore.store_longitude)) && (
+                  <Button 
+                    size="sm"
+                    onClick={() => {
+                      const lat = selectedStore.latitude || selectedStore.store_latitude;
+                      const lng = selectedStore.longitude || selectedStore.store_longitude;
+                      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+                    }}
+                  >
+                    Directions
+                  </Button>
+                )}
               </div>
             </div>
           </div>
