@@ -1,10 +1,27 @@
+import { useState } from 'react';
 import { Search, ScanBarcode, TrendingUp, MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BottomNav from '@/components/BottomNav';
+import { useStores } from '@/hooks/useStores';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 const Index = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+  const { stores } = useStores();
+  const { latitude, longitude } = useGeolocation();
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+    }
+  };
+
+  const trendingSearches = ['Wireless Headphones', 'Running Shoes', 'Coffee Maker', 'Laptop', 'Phone Case'];
+  const featuredStores = stores.slice(0, 3);
+
   return (
     <div className="flex flex-col min-h-screen pb-16">
       {/* Header */}
@@ -14,30 +31,31 @@ const Index = () => {
             <h1 className="text-2xl font-bold">AassPass</h1>
             <Button variant="ghost" size="sm" className="text-primary-foreground">
               <MapPin className="w-4 h-4 mr-2" />
-              Change Location
+              {latitude && longitude ? 'Location Set' : 'Enable Location'}
             </Button>
           </div>
 
           {/* Search Bar */}
           <div className="relative">
-            <Link to="/search">
-              <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-lg">
-                <Search className="w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search for products..."
-                  className="border-0 shadow-none flex-1 cursor-pointer"
-                  readOnly
-                />
-              </div>
-            </Link>
-            <Link to="/scanner">
-              <Button
-                size="icon"
-                className="absolute right-2 top-2"
-              >
-                <ScanBarcode className="w-5 h-5" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-lg">
+              <Search className="w-5 h-5 text-muted-foreground" />
+              <Input
+                placeholder="Search for products..."
+                className="border-0 shadow-none flex-1"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch(searchQuery);
+                  }
+                }}
+              />
+              <Link to="/scanner">
+                <Button size="icon" variant="ghost">
+                  <ScanBarcode className="w-5 h-5" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -52,58 +70,50 @@ const Index = () => {
               <h2 className="font-semibold">Trending Searches</h2>
             </div>
             <div className="flex flex-wrap gap-2">
-              {['Wireless Headphones', 'Running Shoes', 'Coffee Maker', 'Laptop', 'Phone Case'].map(
-                (term) => (
-                  <Link key={term} to="/search">
-                    <Button variant="outline" size="sm">
-                      {term}
-                    </Button>
-                  </Link>
-                )
-              )}
+              {trendingSearches.map((term) => (
+                <Button
+                  key={term}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSearch(term)}
+                >
+                  {term}
+                </Button>
+              ))}
             </div>
           </div>
 
           {/* Featured Stores */}
           <div>
-            <h2 className="font-semibold mb-3">Featured Stores</h2>
-            <div className="space-y-3">
-              {[
-                { name: 'Tech Store Downtown', distance: '0.5 mi', products: 150 },
-                { name: 'Sports & Outdoors', distance: '1.2 mi', products: 230 },
-                { name: 'Home Essentials', distance: '0.8 mi', products: 180 },
-              ].map((store, i) => (
-                <Link key={i} to={`/store/${i + 1}`}>
-                  <div className="p-4 bg-card border border-border rounded-lg">
-                    <h3 className="font-semibold mb-1">{store.name}</h3>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {store.products} products
-                      </span>
-                      <span className="text-primary">{store.distance}</span>
+            <h2 className="font-semibold mb-3">Featured Stores Near You</h2>
+            {featuredStores.length > 0 ? (
+              <div className="space-y-3">
+                {featuredStores.map((store) => (
+                  <Link key={store.id} to={`/store/${store.id}`}>
+                    <div className="p-4 bg-card border border-border rounded-lg hover:border-primary transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold">{store.name}</h3>
+                        {store.rating && (
+                          <span className="text-sm">⭐ {store.rating.toFixed(1)}</span>
+                        )}
+                      </div>
+                      {store.description && (
+                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                          {store.description}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{store.address}</span>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Searches */}
-          <div>
-            <h2 className="font-semibold mb-3">Recent Searches</h2>
-            <div className="space-y-2">
-              {['Bluetooth Speaker', 'Yoga Mat'].map((term, i) => (
-                <Link key={i} to="/search">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                  >
-                    <Search className="w-4 h-4 mr-3 text-muted-foreground" />
-                    {term}
-                  </Button>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 bg-card border border-border rounded-lg text-center">
+                <p className="text-muted-foreground">No stores available yet</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
