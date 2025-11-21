@@ -1,9 +1,39 @@
 import { Settings, Heart, History, HelpCircle, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: 'Signed Out',
+        description: 'You have been successfully signed out.'
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: 'Sign Out Failed',
+        description: 'Unable to sign out. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen pb-16">
       {/* Header */}
@@ -89,15 +119,15 @@ const Profile = () => {
           </Button>
 
           <div className="pt-4">
-            <Link to="/auth">
-              <Button
-                variant="outline"
-                className="w-full justify-start text-destructive hover:text-destructive"
-              >
-                <LogOut className="w-5 h-5 mr-3" />
-                Sign Out
-              </Button>
-            </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start text-destructive hover:text-destructive"
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
+            </Button>
           </div>
         </div>
       </main>
