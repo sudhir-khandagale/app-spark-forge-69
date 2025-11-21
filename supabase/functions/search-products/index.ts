@@ -6,20 +6,58 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation
+const validateSearchInput = (input: any) => {
+  const errors: string[] = [];
+  
+  if (!input.query || typeof input.query !== 'string') {
+    errors.push('Query is required and must be a string');
+  } else if (input.query.trim().length === 0) {
+    errors.push('Query cannot be empty');
+  } else if (input.query.length > 200) {
+    errors.push('Query must be less than 200 characters');
+  }
+  
+  if (input.latitude !== undefined) {
+    if (typeof input.latitude !== 'number' || input.latitude < -90 || input.latitude > 90) {
+      errors.push('Latitude must be a number between -90 and 90');
+    }
+  }
+  
+  if (input.longitude !== undefined) {
+    if (typeof input.longitude !== 'number' || input.longitude < -180 || input.longitude > 180) {
+      errors.push('Longitude must be a number between -180 and 180');
+    }
+  }
+  
+  if (input.maxDistance !== undefined) {
+    if (typeof input.maxDistance !== 'number' || input.maxDistance < 0 || input.maxDistance > 100) {
+      errors.push('MaxDistance must be a number between 0 and 100');
+    }
+  }
+  
+  return errors;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { query, latitude, longitude, maxDistance = 10 } = await req.json();
-
-    if (!query) {
+    const rawInput = await req.json();
+    
+    // Validate input
+    const validationErrors = validateSearchInput(rawInput);
+    if (validationErrors.length > 0) {
+      console.error('Validation errors:', validationErrors);
       return new Response(
-        JSON.stringify({ error: 'Query parameter is required' }),
+        JSON.stringify({ error: 'Invalid input', details: validationErrors }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    const { query, latitude, longitude, maxDistance = 10 } = rawInput;
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

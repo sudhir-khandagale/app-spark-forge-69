@@ -6,6 +6,69 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation helpers
+const validateStoreId = (storeId: any): string[] => {
+  const errors: string[] = [];
+  if (!storeId || typeof storeId !== 'string') {
+    errors.push('Store ID is required and must be a string');
+  }
+  return errors;
+};
+
+const validateInventoryUpdate = (data: any): string[] => {
+  const errors: string[] = [];
+  if (!data.inventoryId || typeof data.inventoryId !== 'string') {
+    errors.push('Inventory ID is required and must be a string');
+  }
+  if (data.quantity !== undefined && (typeof data.quantity !== 'number' || data.quantity < 0)) {
+    errors.push('Quantity must be a non-negative number');
+  }
+  if (data.price !== undefined && (typeof data.price !== 'number' || data.price < 0)) {
+    errors.push('Price must be a non-negative number');
+  }
+  return errors;
+};
+
+const validateBulkUpload = (data: any): string[] => {
+  const errors: string[] = [];
+  if (!data.storeId || typeof data.storeId !== 'string') {
+    errors.push('Store ID is required and must be a string');
+  }
+  if (!Array.isArray(data.products)) {
+    errors.push('Products must be an array');
+  } else if (data.products.length === 0) {
+    errors.push('Products array cannot be empty');
+  } else if (data.products.length > 1000) {
+    errors.push('Cannot upload more than 1000 products at once');
+  } else {
+    data.products.forEach((product: any, index: number) => {
+      if (!product.name || typeof product.name !== 'string' || product.name.length > 200) {
+        errors.push(`Product ${index}: name is required and must be less than 200 characters`);
+      }
+      if (product.quantity !== undefined && (typeof product.quantity !== 'number' || product.quantity < 0)) {
+        errors.push(`Product ${index}: quantity must be a non-negative number`);
+      }
+      if (product.price !== undefined && (typeof product.price !== 'number' || product.price < 0)) {
+        errors.push(`Product ${index}: price must be a non-negative number`);
+      }
+    });
+  }
+  return errors;
+};
+
+const validateReservation = (data: any): string[] => {
+  const errors: string[] = [];
+  if (!data.reservationId || typeof data.reservationId !== 'string') {
+    errors.push('Reservation ID is required and must be a string');
+  }
+  if (!data.status || typeof data.status !== 'string') {
+    errors.push('Status is required and must be a string');
+  } else if (!['pending', 'confirmed', 'completed', 'cancelled'].includes(data.status)) {
+    errors.push('Status must be one of: pending, confirmed, completed, cancelled');
+  }
+  return errors;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -38,10 +101,25 @@ serve(async (req) => {
       );
     }
 
-    const { action, data } = await req.json();
+    const rawInput = await req.json();
+    const { action, data } = rawInput;
+    
+    if (!action || typeof action !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Action is required and must be a string' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     switch (action) {
       case 'get_store_stats': {
+        const validationErrors = validateStoreId(data?.storeId);
+        if (validationErrors.length > 0) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: validationErrors }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         const { storeId } = data;
         
         // Get store details
@@ -92,6 +170,13 @@ serve(async (req) => {
       }
 
       case 'update_inventory': {
+        const validationErrors = validateInventoryUpdate(data);
+        if (validationErrors.length > 0) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: validationErrors }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         const { inventoryId, quantity, price } = data;
         
         // Verify ownership through store
@@ -130,6 +215,13 @@ serve(async (req) => {
       }
 
       case 'bulk_upload': {
+        const validationErrors = validateBulkUpload(data);
+        if (validationErrors.length > 0) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: validationErrors }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         const { storeId, products } = data;
 
         // Verify store ownership
@@ -223,6 +315,13 @@ serve(async (req) => {
       }
 
       case 'manage_reservation': {
+        const validationErrors = validateReservation(data);
+        if (validationErrors.length > 0) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: validationErrors }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         const { reservationId, status } = data;
 
         // Verify ownership through store
