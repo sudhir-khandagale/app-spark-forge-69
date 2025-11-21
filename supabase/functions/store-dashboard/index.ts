@@ -38,8 +38,8 @@ const validateBulkUpload = (data: any): string[] => {
     errors.push('Products must be an array');
   } else if (data.products.length === 0) {
     errors.push('Products array cannot be empty');
-  } else if (data.products.length > 1000) {
-    errors.push('Cannot upload more than 1000 products at once');
+  } else if (data.products.length > 100) {
+    errors.push('Bulk upload limited to 100 products per request. Please split into smaller batches.');
   } else {
     data.products.forEach((product: any, index: number) => {
       if (!product.name || typeof product.name !== 'string' || product.name.length > 200) {
