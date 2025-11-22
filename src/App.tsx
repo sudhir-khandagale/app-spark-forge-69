@@ -17,6 +17,8 @@ import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import Reserve from "./pages/Reserve";
 import NotFound from "./pages/NotFound";
+import MerchantOnboarding from "./pages/MerchantOnboarding";
+import StoreDashboard from "./pages/StoreDashboard";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,8 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/reserve/:id" element={<ProtectedRoute><Reserve /></ProtectedRoute>} />
+          <Route path="/onboarding/merchant" element={<ProtectedRoute><MerchantOnboarding /></ProtectedRoute>} />
+          <Route path="/dashboard/store/:storeId" element={<ProtectedRoute><StoreDashboard /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
