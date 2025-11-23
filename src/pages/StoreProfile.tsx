@@ -1,7 +1,8 @@
-import { ArrowLeft, Heart, Phone, Navigation, Clock, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, Phone, Navigation, Clock, Loader2, MapPin } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
+import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import { useStore, useStoreInventory } from '@/hooks/useStores';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -77,9 +78,7 @@ const StoreProfile = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <Button variant="ghost" size="icon">
-            <Heart className="w-5 h-5" />
-          </Button>
+          <FavoriteStoreButton storeId={id!} />
         </div>
       </header>
 

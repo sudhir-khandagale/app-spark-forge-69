@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Navigation, ShoppingCart, Store, TrendingUp, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Navigation, ShoppingCart, Store, TrendingUp, Loader2, Star } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import BottomNav from '@/components/BottomNav';
 import WishlistButton from '@/components/WishlistButton';
+import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useFavoriteStores } from '@/hooks/useFavoriteStores';
 
 interface StoreInventory {
   id: string;
@@ -40,10 +42,11 @@ const Compare = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [inventory, setInventory] = useState<StoreInventory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'price' | 'distance' | 'rating'>('price');
+  const [sortBy, setSortBy] = useState<'price' | 'distance' | 'rating' | 'favorite'>('favorite');
   const { latitude, longitude } = useGeolocation();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { favoriteStoreIds, isFavorite } = useFavoriteStores();
 
   useEffect(() => {
     fetchProductAndInventory();
@@ -148,7 +151,17 @@ const Compare = () => {
 
   const sortInventory = () => {
     const sorted = [...inventory].sort((a, b) => {
+      // Always prioritize favorite stores first
+      const aIsFavorite = isFavorite(a.store.id);
+      const bIsFavorite = isFavorite(b.store.id);
+      
+      if (aIsFavorite && !bIsFavorite) return -1;
+      if (!aIsFavorite && bIsFavorite) return 1;
+      
+      // Then sort by selected criteria
       switch (sortBy) {
+        case 'favorite':
+          return 0; // Already sorted by favorite above
         case 'price':
           return a.price - b.price;
         case 'distance':
@@ -329,6 +342,14 @@ const Compare = () => {
           <div className="flex items-center gap-2 overflow-x-auto">
             <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Sort by:</span>
             <Button
+              variant={sortBy === 'favorite' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSortBy('favorite')}
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Favorites
+            </Button>
+            <Button
               variant={sortBy === 'price' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy('price')}
@@ -374,6 +395,12 @@ const Compare = () => {
               </p>
               {inventory.map((item, index) => (
                 <Card key={item.id} className="p-4 relative">
+                  {isFavorite(item.store.id) && (
+                    <Badge className="absolute top-2 left-2 bg-yellow-500">
+                      <Star className="w-3 h-3 mr-1 fill-current" />
+                      Favorite Store
+                    </Badge>
+                  )}
                   {item.price === lowestPrice && (
                     <Badge className="absolute top-2 right-2 bg-accent">
                       Best Price
@@ -384,11 +411,14 @@ const Compare = () => {
                     {/* Store Info */}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <Link to={`/store/${item.store.id}`}>
-                          <h3 className="font-semibold text-lg hover:text-primary">
-                            {item.store.name}
-                          </h3>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link to={`/store/${item.store.id}`}>
+                            <h3 className="font-semibold text-lg hover:text-primary">
+                              {item.store.name}
+                            </h3>
+                          </Link>
+                          <FavoriteStoreButton storeId={item.store.id} size="sm" />
+                        </div>
                         <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                           <MapPin className="w-3 h-3" />
                           {item.store.address}
