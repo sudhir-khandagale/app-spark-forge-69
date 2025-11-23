@@ -50,6 +50,19 @@ export default function MerchantOnboarding() {
     }));
   };
 
+  const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
+    setStoreData(prev => ({
+      ...prev,
+      hours: {
+        ...prev.hours,
+        [day]: {
+          ...prev.hours[day as keyof typeof prev.hours],
+          [field]: value,
+        },
+      },
+    }));
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -205,14 +218,44 @@ export default function MerchantOnboarding() {
                   <Clock className="h-5 w-5" />
                   Business Hours
                 </CardTitle>
-                <CardDescription>Set your operating hours</CardDescription>
+                <CardDescription>Set your operating hours for each day</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Default hours have been set (Mon-Fri: 9am-5pm, Sat: 10am-2pm, Sun: Closed). You can customize these in your dashboard after registration.
-                </p>
+                {Object.keys(storeData.hours).map((day) => (
+                  <div key={day} className="flex items-center gap-4">
+                    <Label className="w-24 capitalize">{day}</Label>
+                    <div className="flex items-center gap-2 flex-1">
+                      <Input
+                        type="time"
+                        value={storeData.hours[day as keyof typeof storeData.hours].open}
+                        onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                        className="flex-1"
+                        disabled={storeData.hours[day as keyof typeof storeData.hours].open === 'closed'}
+                      />
+                      <span className="text-muted-foreground">to</span>
+                      <Input
+                        type="time"
+                        value={storeData.hours[day as keyof typeof storeData.hours].close}
+                        onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                        className="flex-1"
+                        disabled={storeData.hours[day as keyof typeof storeData.hours].close === 'closed'}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const isClosed = storeData.hours[day as keyof typeof storeData.hours].open === 'closed';
+                          handleHoursChange(day, 'open', isClosed ? '09:00' : 'closed');
+                          handleHoursChange(day, 'close', isClosed ? '17:00' : 'closed');
+                        }}
+                      >
+                        {storeData.hours[day as keyof typeof storeData.hours].open === 'closed' ? 'Open' : 'Closed'}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
 
-                <div className="space-y-4 pt-4">
+                <div className="space-y-4 pt-4 border-t">
                   <Button onClick={handleSubmit} disabled={loading || !storeData.name || !storeData.address} className="w-full">
                     {loading ? 'Creating Store...' : 'Complete Registration'}
                   </Button>
