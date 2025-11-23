@@ -58,6 +58,7 @@ export default function AdminDashboard() {
   const { isAdmin, loading: roleLoading } = useUserRole();
   const [loading, setLoading] = useState(true);
   const [pendingStores, setPendingStores] = useState<StoreDetails[]>([]);
+  const [rejectedStores, setRejectedStores] = useState<StoreDetails[]>([]);
   const [allStores, setAllStores] = useState<StoreDetails[]>([]);
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [products, setProducts] = useState<ProductWithStore[]>([]);
@@ -110,6 +111,34 @@ export default function AdminDashboard() {
       );
 
       setPendingStores(pendingWithOwners);
+
+      // Fetch rejected stores with owner details
+      const { data: rejected, error: rejectedError } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('status', 'rejected')
+        .order('created_at', { ascending: false });
+
+      if (rejectedError) throw rejectedError;
+
+      const rejectedWithOwners = await Promise.all(
+        (rejected || []).map(async (store) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, phone, email')
+            .eq('id', store.owner_id)
+            .single();
+
+          return {
+            ...store,
+            owner_name: profile?.display_name || null,
+            owner_email: profile?.email || null,
+            owner_phone: profile?.phone || null,
+          };
+        })
+      );
+
+      setRejectedStores(rejectedWithOwners);
 
       // Fetch all stores with owner details
       const { data: stores, error: storesError } = await supabase
@@ -215,8 +244,9 @@ export default function AdminDashboard() {
 
   const handleApproveStore = async (storeId: string) => {
     try {
-      // Immediately remove from pending list (optimistic update)
+      // Immediately remove from pending or rejected list (optimistic update)
       setPendingStores(prev => prev.filter(store => store.id !== storeId));
+      setRejectedStores(prev => prev.filter(store => store.id !== storeId));
       
       const { error } = await supabase
         .from('stores')
@@ -277,6 +307,10 @@ export default function AdminDashboard() {
 
   const handleDeleteStore = async (storeId: string) => {
     try {
+      // Immediately remove from rejected and all stores lists (optimistic update)
+      setRejectedStores(prev => prev.filter(store => store.id !== storeId));
+      setAllStores(prev => prev.filter(store => store.id !== storeId));
+      
       const { error } = await supabase
         .from('stores')
         .delete()
@@ -289,7 +323,7 @@ export default function AdminDashboard() {
         description: 'Store deleted successfully',
       });
 
-      fetchData();
+      await fetchData();
     } catch (error: any) {
       console.error('Error deleting store:', error);
       toast({
@@ -297,6 +331,7 @@ export default function AdminDashboard() {
         description: 'Failed to delete store',
         variant: 'destructive',
       });
+      await fetchData();
     }
   };
 
@@ -421,7 +456,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
@@ -429,6 +464,15 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{pendingStores.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Rejected Stores</CardTitle>
+              <XCircle className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{rejectedStores.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -463,6 +507,7 @@ export default function AdminDashboard() {
         <Tabs defaultValue="pending">
           <TabsList>
             <TabsTrigger value="pending">Pending Approvals</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected Stores</TabsTrigger>
             <TabsTrigger value="stores">All Stores</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
@@ -669,6 +714,256 @@ export default function AdminDashboard() {
                               >
                                 <XCircle className="h-4 w-4" />
                               </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="rejected" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Rejected Stores</CardTitle>
+                <CardDescription>Review previously rejected stores</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Store Name</TableHead>
+                      <TableHead>Vendor Name</TableHead>
+                      <TableHead>Address</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rejectedStores.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground">
+                          No rejected stores
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      rejectedStores.map((store) => (
+                        <TableRow key={store.id}>
+                          <TableCell className="font-medium">{store.name}</TableCell>
+                          <TableCell>{store.owner_name || 'N/A'}</TableCell>
+                          <TableCell className="max-w-xs truncate">{store.address}</TableCell>
+                          <TableCell>{new Date(store.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setSelectedStore(store)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                  {selectedStore && (
+                                    <div className="space-y-6">
+                                      <DialogHeader>
+                                        <DialogTitle className="text-2xl flex items-center gap-2">
+                                          <Store className="h-6 w-6" />
+                                          {selectedStore.name}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                          Complete store information
+                                        </DialogDescription>
+                                      </DialogHeader>
+
+                                      {/* Store Details */}
+                                      <div className="space-y-4">
+                                        <h3 className="text-lg font-semibold">Store Information</h3>
+                                        <div className="space-y-3 text-sm">
+                                          <div className="flex items-start gap-2">
+                                            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                            <span className="font-medium min-w-[120px]">Address:</span>
+                                            <span>{selectedStore.address}</span>
+                                          </div>
+                                          {selectedStore.owner_name && (
+                                            <div className="flex items-start gap-2">
+                                              <Users className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Owner Name:</span>
+                                              <span>{selectedStore.owner_name}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.owner_email && (
+                                            <div className="flex items-start gap-2">
+                                              <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Owner Email:</span>
+                                              <span>{selectedStore.owner_email}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.owner_phone && (
+                                            <div className="flex items-start gap-2">
+                                              <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Owner Phone:</span>
+                                              <span>{selectedStore.owner_phone}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.phone && (
+                                            <div className="flex items-start gap-2">
+                                              <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Store Phone:</span>
+                                              <span>{selectedStore.phone}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.email && (
+                                            <div className="flex items-start gap-2">
+                                              <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Store Email:</span>
+                                              <span>{selectedStore.email}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.description && (
+                                            <div className="flex items-start gap-2">
+                                              <span className="font-medium min-w-[120px]">Description:</span>
+                                              <span>{selectedStore.description}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.specialties && selectedStore.specialties.length > 0 && (
+                                            <div className="flex items-start gap-2">
+                                              <span className="font-medium min-w-[120px]">Specialties:</span>
+                                              <div className="flex flex-wrap gap-1">
+                                                {selectedStore.specialties.map((specialty, idx) => (
+                                                  <Badge key={idx} variant="secondary">{specialty}</Badge>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+                                          {(selectedStore.latitude && selectedStore.longitude) && (
+                                            <div className="flex items-start gap-2">
+                                              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Coordinates:</span>
+                                              <span>{selectedStore.latitude.toFixed(6)}, {selectedStore.longitude.toFixed(6)}</span>
+                                            </div>
+                                          )}
+                                          <div className="flex items-start gap-2">
+                                            <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                            <span className="font-medium min-w-[120px]">Registered:</span>
+                                            <span>{new Date(selectedStore.created_at).toLocaleString()}</span>
+                                          </div>
+                                          <div className="flex items-start gap-2">
+                                            <AlertCircle className="h-4 w-4 mt-0.5 text-red-500" />
+                                            <span className="font-medium min-w-[120px]">Status:</span>
+                                            <Badge className="bg-red-100 text-red-800">Rejected</Badge>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Store Photos */}
+                                      {selectedStore.photo_urls && selectedStore.photo_urls.length > 0 && (
+                                        <div className="space-y-3">
+                                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                                            <ImageIcon className="h-5 w-5" />
+                                            Store Photos
+                                          </h3>
+                                          <div className="grid grid-cols-2 gap-3">
+                                            {selectedStore.photo_urls.map((url, idx) => (
+                                              <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border">
+                                                <img 
+                                                  src={url} 
+                                                  alt={`Store photo ${idx + 1}`}
+                                                  className="object-cover w-full h-full"
+                                                />
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Action Buttons */}
+                                      <div className="flex gap-3 pt-4 border-t">
+                                        <Button
+                                          className="flex-1 bg-green-600 hover:bg-green-700"
+                                          onClick={() => {
+                                            handleApproveStore(selectedStore.id);
+                                            setSelectedStore(null);
+                                          }}
+                                        >
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Re-Approve Store
+                                        </Button>
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" className="flex-1">
+                                              <Trash2 className="h-4 w-4 mr-2" />
+                                              Delete Permanently
+                                            </Button>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                This will permanently delete the store and all associated data. This action cannot be undone.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() => {
+                                                  handleDeleteStore(selectedStore.id);
+                                                  setSelectedStore(null);
+                                                }}
+                                                className="bg-red-600 hover:bg-red-700"
+                                              >
+                                                Delete
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      </div>
+                                    </div>
+                                  )}
+                                </DialogContent>
+                              </Dialog>
+                              <Button
+                                size="sm"
+                                onClick={() => handleApproveStore(store.id)}
+                                className="bg-green-600 hover:bg-green-700"
+                                title="Re-approve store"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    title="Delete permanently"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Store?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete "{store.name}" and all associated data. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteStore(store.id)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </TableCell>
                         </TableRow>
