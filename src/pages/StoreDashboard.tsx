@@ -9,8 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet } from 'lucide-react';
+import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 
 interface Product {
   id: string;
@@ -44,6 +45,9 @@ export default function StoreDashboard() {
     price: '',
     quantity: '',
   });
+  const [productImage, setProductImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchStoreData();
@@ -98,10 +102,53 @@ export default function StoreDashboard() {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProductImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.price || !newProduct.quantity) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields (name, price, quantity)',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
+      let imageUrl = null;
+
+      // Upload image if provided
+      if (productImage) {
+        const fileExt = productImage.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, productImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      }
 
       // Create product
       const { data: product, error: productError } = await supabase
@@ -110,6 +157,7 @@ export default function StoreDashboard() {
           name: newProduct.name,
           description: newProduct.description,
           category: newProduct.category,
+          image_url: imageUrl,
         })
         .select()
         .single();
@@ -124,6 +172,7 @@ export default function StoreDashboard() {
           product_id: product.id,
           price: parseFloat(newProduct.price),
           quantity: parseInt(newProduct.quantity),
+          in_stock: parseInt(newProduct.quantity) > 0,
         });
 
       if (inventoryError) throw inventoryError;
@@ -135,6 +184,8 @@ export default function StoreDashboard() {
 
       setIsAddDialogOpen(false);
       setNewProduct({ name: '', description: '', category: '', price: '', quantity: '' });
+      setProductImage(null);
+      setImagePreview(null);
       fetchStoreData();
     } catch (error: any) {
       console.error('Error adding product:', error);
@@ -143,6 +194,8 @@ export default function StoreDashboard() {
         description: error.message || 'Failed to add product',
         variant: 'destructive',
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -314,24 +367,72 @@ export default function StoreDashboard() {
                             id="product-name"
                             value={newProduct.name}
                             onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
+                            placeholder="e.g., Wireless Headphones"
                           />
                         </div>
+
                         <div className="space-y-2">
                           <Label htmlFor="product-description">Description</Label>
-                          <Input
+                          <Textarea
                             id="product-description"
                             value={newProduct.description}
                             onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
+                            placeholder="Describe your product..."
+                            rows={3}
                           />
                         </div>
+
                         <div className="space-y-2">
                           <Label htmlFor="product-category">Category</Label>
                           <Input
                             id="product-category"
                             value={newProduct.category}
                             onChange={(e) => setNewProduct(prev => ({ ...prev, category: e.target.value }))}
+                            placeholder="e.g., Electronics"
                           />
                         </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="product-image">Product Image</Label>
+                          <div className="flex items-center gap-4">
+                            {imagePreview ? (
+                              <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
+                                <img 
+                                  src={imagePreview} 
+                                  alt="Preview" 
+                                  className="w-full h-full object-cover"
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="absolute top-1 right-1"
+                                  onClick={() => {
+                                    setProductImage(null);
+                                    setImagePreview(null);
+                                  }}
+                                >
+                                  ✕
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="w-24 h-24 border-2 border-dashed rounded-lg flex items-center justify-center bg-muted">
+                                <ImagePlus className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <Input
+                                id="product-image"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                PNG, JPG, WEBP up to 5MB
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="product-price">Price *</Label>
@@ -339,21 +440,27 @@ export default function StoreDashboard() {
                               id="product-price"
                               type="number"
                               step="0.01"
+                              min="0"
                               value={newProduct.price}
                               onChange={(e) => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
+                              placeholder="0.00"
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="product-quantity">Quantity *</Label>
+                            <Label htmlFor="product-quantity">Stock Quantity *</Label>
                             <Input
                               id="product-quantity"
                               type="number"
+                              min="0"
                               value={newProduct.quantity}
                               onChange={(e) => setNewProduct(prev => ({ ...prev, quantity: e.target.value }))}
+                              placeholder="0"
                             />
                           </div>
                         </div>
-                        <Button onClick={handleAddProduct} className="w-full">Add Product</Button>
+                        <Button onClick={handleAddProduct} className="w-full" disabled={uploading}>
+                          {uploading ? 'Adding Product...' : 'Add Product'}
+                        </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -375,11 +482,26 @@ export default function StoreDashboard() {
                     {inventory.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          <div>
-                            <div className="font-medium">{item.products.name}</div>
-                            {item.products.description && (
-                              <div className="text-sm text-muted-foreground">{item.products.description}</div>
+                          <div className="flex items-center gap-3">
+                            {item.products.image_url ? (
+                              <img 
+                                src={item.products.image_url} 
+                                alt={item.products.name}
+                                className="w-12 h-12 rounded object-cover"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
+                                <Package className="h-6 w-6 text-muted-foreground" />
+                              </div>
                             )}
+                            <div>
+                              <div className="font-medium">{item.products.name}</div>
+                              {item.products.description && (
+                                <div className="text-sm text-muted-foreground line-clamp-1">
+                                  {item.products.description}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>{item.products.category || '-'}</TableCell>
