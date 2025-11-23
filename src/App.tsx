@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import MerchantOnboarding from "./pages/MerchantOnboarding";
 import StoreDashboard from "./pages/StoreDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminSetup from "./pages/AdminSetup";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Compare from "./pages/Compare";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/onboarding/merchant" element={<ProtectedRoute><MerchantOnboarding /></ProtectedRoute>} />
             <Route path="/dashboard/store/:storeId" element={<ProtectedRoute><StoreDashboard /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin-setup" element={<AdminSetup />} />
             <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
             <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
             <Route path="/compare/:id" element={<Compare />} />
