@@ -157,12 +157,20 @@ const StoreProfile = () => {
                 Hours
               </h2>
               <div className="p-4 bg-card border border-border rounded-lg">
-                {Object.entries(store.hours as Record<string, string>).map(([day, hours]) => (
-                  <div key={day} className="flex justify-between text-sm py-1">
-                    <span className="capitalize">{day}</span>
-                    <span className="text-muted-foreground">{hours}</span>
-                  </div>
-                ))}
+                {Object.entries(store.hours as Record<string, any>).map(([day, hours]) => {
+                  const hoursText = typeof hours === 'string' 
+                    ? hours 
+                    : hours?.open && hours?.close 
+                      ? `${hours.open} - ${hours.close}` 
+                      : 'Closed';
+                  
+                  return (
+                    <div key={day} className="flex justify-between text-sm py-1">
+                      <span className="capitalize">{day}</span>
+                      <span className="text-muted-foreground">{hoursText}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
