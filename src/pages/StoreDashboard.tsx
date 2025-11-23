@@ -9,10 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft } from 'lucide-react';
+import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Product {
   id: string;
@@ -502,6 +503,49 @@ export default function StoreDashboard() {
             View Public Profile
           </Button>
         </div>
+
+        {/* Store Status Alert */}
+        {store.status === 'pending' && (
+          <Alert className="border-yellow-500/50 bg-yellow-500/10">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+              <strong>Store Pending Approval</strong> — Your store is awaiting admin approval. 
+              Products you add won't appear in customer searches until your store is approved.
+              <span className="block mt-1 text-sm">
+                Current products: <strong>{inventory.length}</strong>
+              </span>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {store.status === 'approved' && (
+          <Alert className="border-green-500/50 bg-green-500/10">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              <strong>Store Approved</strong> — Your store is live! Customers can now find your products in search.
+              <span className="block mt-1 text-sm">
+                Total products: <strong>{inventory.length}</strong> | In stock: <strong>{inventory.filter(i => i.in_stock).length}</strong>
+              </span>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {store.status === 'rejected' && (
+          <Alert className="border-red-500/50 bg-red-500/10">
+            <XCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800 dark:text-red-200">
+              <strong>Store Rejected</strong> — Your store application was not approved.
+              {store.rejection_reason && (
+                <span className="block mt-1 text-sm">
+                  Reason: {store.rejection_reason}
+                </span>
+              )}
+              <span className="block mt-1 text-sm">
+                Please update your store details and contact support for resubmission.
+              </span>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Tabs defaultValue="inventory">
           <TabsList className="grid w-full grid-cols-3">
