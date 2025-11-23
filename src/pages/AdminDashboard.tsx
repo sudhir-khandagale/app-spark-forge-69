@@ -96,16 +96,14 @@ export default function AdminDashboard() {
         (pending || []).map(async (store) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('display_name, phone')
+            .select('display_name, phone, email')
             .eq('id', store.owner_id)
             .single();
-
-          const { data: { user } } = await supabase.auth.admin.getUserById(store.owner_id);
 
           return {
             ...store,
             owner_name: profile?.display_name || null,
-            owner_email: user?.email || null,
+            owner_email: profile?.email || null,
             owner_phone: profile?.phone || null,
           };
         })
@@ -125,16 +123,14 @@ export default function AdminDashboard() {
         (stores || []).map(async (store) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('display_name, phone')
+            .select('display_name, phone, email')
             .eq('id', store.owner_id)
             .single();
-
-          const { data: { user } } = await supabase.auth.admin.getUserById(store.owner_id);
 
           return {
             ...store,
             owner_name: profile?.display_name || null,
-            owner_email: user?.email || null,
+            owner_email: profile?.email || null,
             owner_phone: profile?.phone || null,
           };
         })
@@ -142,27 +138,30 @@ export default function AdminDashboard() {
 
       setAllStores(allStoresWithOwners);
 
-      // Fetch users with roles
+      // Fetch users with roles and profile data
       const { data: usersData, error: usersError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('user_id, role, created_at');
 
       if (usersError) throw usersError;
 
-      // Get user details from auth
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) throw authError;
+      // Get user profiles
+      const usersWithRoles = await Promise.all(
+        (usersData || []).map(async (userRole) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, created_at')
+            .eq('id', userRole.user_id)
+            .single();
 
-      const usersWithRoles = authUsers.map(user => {
-        const roleData = usersData?.find(r => r.user_id === user.id);
-        return {
-          id: user.id,
-          email: user.email || '',
-          created_at: user.created_at,
-          role: roleData?.role || 'customer',
-        };
-      });
+          return {
+            id: userRole.user_id,
+            email: profile?.email || '',
+            created_at: profile?.created_at || userRole.created_at,
+            role: userRole.role,
+          };
+        })
+      );
 
       setUsers(usersWithRoles);
 
