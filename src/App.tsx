@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import Lists from "./pages/Lists";
 import ListDetails from "./pages/ListDetails";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Settings from "./pages/Settings";
 import Reserve from "./pages/Reserve";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/lists" element={<ProtectedRoute><Lists /></ProtectedRoute>} />
             <Route path="/lists/:id" element={<ProtectedRoute><ListDetails /></ProtectedRoute>} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/reserve/:id" element={<ProtectedRoute><Reserve /></ProtectedRoute>} />
             <Route path="/onboarding/merchant" element={<ProtectedRoute><MerchantOnboarding /></ProtectedRoute>} />
