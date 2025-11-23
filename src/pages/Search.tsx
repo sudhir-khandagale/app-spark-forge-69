@@ -54,32 +54,41 @@ const Search = () => {
       {/* Results */}
       <main className="flex-1 p-4">
         <div className="max-w-lg mx-auto">
+          {query && (
+            <div className="mb-4 p-3 bg-muted rounded-lg">
+              <p className="text-sm text-foreground">
+                <span className="text-muted-foreground">Searching for:</span>{' '}
+                <span className="font-semibold text-foreground">"{query}"</span>
+              </p>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : results.length > 0 ? (
             <>
-              <p className="text-sm text-muted-foreground mb-4">
-                Found {results.length} results near you
+              <p className="text-sm font-medium text-foreground mb-4">
+                Found {results.length} {results.length === 1 ? 'result' : 'results'} near you
               </p>
               <div className="space-y-3">
                 {results.map((result) => (
                   <Link key={`${result.id}-${result.store_id}`} to={`/product/${result.id}?store=${result.store_id}`}>
-                    <div className="p-4 bg-card border border-border rounded-lg hover:border-primary transition-colors">
+                    <div className="p-4 bg-background border-2 border-border rounded-lg hover:border-primary transition-colors shadow-sm hover:shadow-md">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold">{result.name}</h3>
-                        <span className="text-primary font-semibold">${result.price.toFixed(2)}</span>
+                        <h3 className="font-semibold text-foreground text-base">{result.name}</h3>
+                        <span className="text-primary font-bold text-base">${result.price.toFixed(2)}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {result.store_name}
+                      <p className="text-sm text-foreground/80 mb-2">
+                        📍 {result.store_name}
                       </p>
                       <div className="flex items-center justify-between text-sm">
-                        <span className={`font-medium ${result.in_stock ? 'text-accent' : 'text-destructive'}`}>
-                          {result.in_stock ? `In Stock (${result.quantity})` : 'Out of Stock'}
+                        <span className={`font-medium px-2 py-1 rounded ${result.in_stock ? 'bg-accent/20 text-accent' : 'bg-destructive/20 text-destructive'}`}>
+                          {result.in_stock ? `✓ In Stock (${result.quantity})` : '✗ Out of Stock'}
                         </span>
                         {result.distance && (
-                          <span className="text-muted-foreground">
+                          <span className="text-foreground/70 font-medium">
                             {result.distance.toFixed(1)} mi away
                           </span>
                         )}
@@ -91,7 +100,7 @@ const Search = () => {
             </>
           ) : query ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No products found for "{query}"</p>
+              <p className="text-foreground font-medium">No products found for "{query}"</p>
               <p className="text-sm text-muted-foreground mt-2">Try a different search term</p>
             </div>
           ) : (

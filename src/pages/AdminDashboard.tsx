@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface Store {
   id: string;
@@ -157,6 +158,56 @@ export default function AdminDashboard() {
       toast({
         title: 'Error',
         description: 'Failed to reject store',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteStore = async (storeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .delete()
+        .eq('id', storeId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Store deleted successfully',
+      });
+
+      fetchData();
+    } catch (error: any) {
+      console.error('Error deleting store:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete store',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleChangeStoreStatus = async (storeId: string, newStatus: 'pending' | 'approved' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .update({ status: newStatus })
+        .eq('id', storeId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Store status changed to ${newStatus}`,
+      });
+
+      fetchData();
+    } catch (error: any) {
+      console.error('Error changing status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to change store status',
         variant: 'destructive',
       });
     }
@@ -338,6 +389,7 @@ export default function AdminDashboard() {
                     <TableRow>
                       <TableHead>Store Name</TableHead>
                       <TableHead>Address</TableHead>
+                      <TableHead>Contact</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Actions</TableHead>
@@ -347,17 +399,66 @@ export default function AdminDashboard() {
                     {allStores.map((store) => (
                       <TableRow key={store.id}>
                         <TableCell className="font-medium">{store.name}</TableCell>
-                        <TableCell>{store.address}</TableCell>
-                        <TableCell>{getStatusBadge(store.status)}</TableCell>
+                        <TableCell className="max-w-xs truncate">{store.address}</TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {store.phone && <div>{store.phone}</div>}
+                            {store.email && <div className="text-xs text-muted-foreground truncate max-w-[150px]">{store.email}</div>}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={store.status}
+                            onValueChange={(value) => handleChangeStoreStatus(store.id, value as 'pending' | 'approved' | 'rejected')}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="approved">Approved</SelectItem>
+                              <SelectItem value="rejected">Rejected</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
                         <TableCell>{new Date(store.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => navigate(`/store/${store.id}`)}
-                          >
-                            View
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => navigate(`/store/${store.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Store?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete "{store.name}" and all associated data. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteStore(store.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
