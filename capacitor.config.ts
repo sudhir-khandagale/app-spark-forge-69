@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.871c9a98d02144e9a2e6d670157771eb',
-  appName: 'AassPass',
+  appName: 'Flowdux',
   webDir: 'dist',
   server: {
     url: 'https://871c9a98-d021-44e9-a2e6-d670157771eb.lovableproject.com?forceHideBadge=true',

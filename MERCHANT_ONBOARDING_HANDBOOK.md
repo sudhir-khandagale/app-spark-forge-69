@@ -1,8 +1,8 @@
-# AassPass Merchant Onboarding Handbook
+# Flowdux Merchant Onboarding Handbook
 
-## Welcome to AassPass!
+## Welcome to Flowdux!
 
-Thank you for joining AassPass and helping connect local shoppers with your inventory. This handbook will guide you through the onboarding process and help you get the most out of the platform.
+Thank you for joining Flowdux and helping connect local shoppers with your inventory. This handbook will guide you through the onboarding process and help you get the most out of the platform.
 
 ## Table of Contents
 
@@ -21,13 +21,13 @@ Thank you for joining AassPass and helping connect local shoppers with your inve
 ### Prerequisites
 
 Before you begin, make sure you have:
-- ✅ A registered AassPass account
+- ✅ A registered Flowdux account
 - ✅ Basic information about your store (address, contact info, hours)
 - ✅ Your product inventory data ready
 
 ### Account Setup
 
-1. **Sign up** at the AassPass app
+1. **Sign up** at the Flowdux app
 2. **Navigate** to "Merchant Onboarding" from your profile
 3. **Complete** the registration form with accurate store information
 
@@ -89,7 +89,7 @@ To add a product:
 
 ### Real-Time Updates
 
-**Important**: All inventory changes are reflected immediately to customers searching on AassPass. Keep your inventory accurate to provide the best customer experience.
+**Important**: All inventory changes are reflected immediately to customers searching on Flowdux. Keep your inventory accurate to provide the best customer experience.
 
 ---
 
@@ -215,7 +215,7 @@ Your inventory data is:
 ### Getting Help
 
 **Dashboard Issues**
-- Email: support@aasspass.com
+- Email: support@flowdux.com
 - In-app: Click "Help" in your dashboard
 
 **General Questions**
@@ -241,7 +241,7 @@ Track your store's performance:
 
 ### Marketing Your Store
 
-AassPass provides:
+Flowdux provides:
 - ✅ Store profile page with your branding
 - ✅ Inclusion in local search results
 - ✅ Map visibility for nearby shoppers
@@ -269,7 +269,7 @@ When customers find your products:
 ### Store Verification Steps
 
 1. **Submit Registration**: Complete onboarding form
-2. **Verification Review**: AassPass team reviews your information (1-2 business days)
+2. **Verification Review**: Flowdux team reviews your information (1-2 business days)
 3. **Confirmation**: Receive email confirmation when approved
 4. **Go Live**: Your store appears in customer searches
 
@@ -290,14 +290,14 @@ After completing onboarding:
 2. ✅ Set up accurate business hours
 3. ✅ Upload store photos (optional but recommended)
 4. ✅ Test your store profile from a customer perspective
-5. ✅ Share your AassPass store link with customers
+5. ✅ Share your Flowdux store link with customers
 
 ---
 
 ## Contact Information
 
-**AassPass Merchant Support**
-- Email: merchants@aasspass.com
+**Flowdux Merchant Support**
+- Email: merchants@flowdux.com
 - Phone: (555) 123-4567
 - Hours: Monday-Friday, 9 AM - 6 PM EST
 
@@ -315,6 +315,6 @@ Speed up your workflow with these shortcuts in the dashboard:
 
 ---
 
-**Welcome to the AassPass merchant community! We're excited to help you grow your business and connect with local shoppers.**
+**Welcome to the Flowdux merchant community! We're excited to help you grow your business and connect with local shoppers.**
 
 *Last Updated: 2025*

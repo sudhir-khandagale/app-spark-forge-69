@@ -28,7 +28,7 @@ const Index = () => {
       <header className="p-4 bg-primary text-primary-foreground">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">AassPass</h1>
+            <h1 className="text-2xl font-bold">Flowdux</h1>
             <Button variant="ghost" size="sm" className="text-primary-foreground">
               <MapPin className="w-4 h-4 mr-2" />
               {latitude && longitude ? 'Location Set' : 'Enable Location'}
