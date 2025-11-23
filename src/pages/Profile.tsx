@@ -1,4 +1,4 @@
-import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield } from 'lucide-react';
+import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -83,7 +83,12 @@ const Profile = () => {
     <div className="flex flex-col min-h-screen pb-16">
       <header className="p-4 border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Profile</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-2xl font-bold">Profile</h1>
+          </div>
           <Link to="/settings">
             <Button variant="ghost" size="icon">
               <SettingsIcon className="w-5 h-5" />

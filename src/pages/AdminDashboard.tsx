@@ -484,7 +484,7 @@ export default function AdminDashboard() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/profile')}
             className="shrink-0"
           >
             <ArrowLeft className="h-5 w-5" />

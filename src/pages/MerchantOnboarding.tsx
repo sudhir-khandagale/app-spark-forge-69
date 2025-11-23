@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Phone, Mail, Clock, ImagePlus, X } from 'lucide-react';
+import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft } from 'lucide-react';
 import LocationPicker from '@/components/LocationPicker';
 
 export default function MerchantOnboarding() {
@@ -184,6 +184,11 @@ export default function MerchantOnboarding() {
   return (
     <div className="min-h-screen bg-background p-4 pb-20">
       <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </div>
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Merchant Onboarding</h1>
           <p className="text-muted-foreground">Join AassPass and connect with local shoppers</p>
