@@ -19,6 +19,7 @@ export default function MerchantOnboarding() {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [useManualAddress, setUseManualAddress] = useState(false);
 
   const [storeData, setStoreData] = useState({
     name: '',
@@ -225,12 +226,39 @@ export default function MerchantOnboarding() {
                   />
                 </div>
 
-                <LocationPicker
-                  address={storeData.address}
-                  latitude={storeData.latitude}
-                  longitude={storeData.longitude}
-                  onLocationChange={handleLocationChange}
-                />
+                <div className="space-y-4 border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Location</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setUseManualAddress(!useManualAddress)}
+                    >
+                      {useManualAddress ? 'Use Map' : 'Enter Manually'}
+                    </Button>
+                  </div>
+
+                  {useManualAddress ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="manual-address">Address *</Label>
+                      <Textarea
+                        id="manual-address"
+                        placeholder="Enter your store address"
+                        value={storeData.address}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                  ) : (
+                    <LocationPicker
+                      address={storeData.address}
+                      latitude={storeData.latitude}
+                      longitude={storeData.longitude}
+                      onLocationChange={handleLocationChange}
+                    />
+                  )}
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="flex items-center gap-2">
@@ -364,7 +392,7 @@ export default function MerchantOnboarding() {
                 ))}
 
                 <div className="space-y-4 pt-4 border-t">
-                  <Button onClick={handleSubmit} disabled={loading || uploading || !storeData.name || !storeData.address} className="w-full">
+                  <Button onClick={handleSubmit} disabled={loading || uploading || !storeData.name.trim() || !storeData.address.trim()} className="w-full">
                     {loading ? 'Creating Store...' : uploading ? 'Uploading Photos...' : 'Complete Registration'}
                   </Button>
                   <Button variant="outline" onClick={() => setCurrentStep('store-info')} className="w-full">
