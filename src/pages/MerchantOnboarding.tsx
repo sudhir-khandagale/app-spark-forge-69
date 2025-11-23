@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Phone, Mail, Clock } from 'lucide-react';
+import { Store, Phone, Mail, Clock, ImagePlus, X } from 'lucide-react';
 import LocationPicker from '@/components/LocationPicker';
 
 export default function MerchantOnboarding() {
@@ -16,6 +16,9 @@ export default function MerchantOnboarding() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState('store-info');
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const [storeData, setStoreData] = useState({
     name: '',
@@ -63,11 +66,72 @@ export default function MerchantOnboarding() {
     }));
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Limit to 5 photos
+    const newFiles = [...photoFiles, ...files].slice(0, 5);
+    setPhotoFiles(newFiles);
+
+    // Create previews
+    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+    setPhotoPreviews(newPreviews);
+  };
+
+  const removePhoto = (index: number) => {
+    const newFiles = photoFiles.filter((_, i) => i !== index);
+    const newPreviews = photoPreviews.filter((_, i) => i !== index);
+    setPhotoFiles(newFiles);
+    setPhotoPreviews(newPreviews);
+  };
+
+  const uploadPhotos = async (): Promise<string[]> => {
+    if (photoFiles.length === 0) return [];
+
+    setUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of photoFiles) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `store-photos/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(publicUrl);
+      }
+    } catch (error) {
+      console.error('Error uploading photos:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to upload some photos',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+
+    return uploadedUrls;
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
+      // Upload photos first
+      const photoUrls = await uploadPhotos();
 
       // First, assign vendor role
       const { error: roleError } = await supabase
@@ -90,6 +154,7 @@ export default function MerchantOnboarding() {
           longitude: storeData.longitude ? parseFloat(storeData.longitude) : null,
           hours: storeData.hours,
           specialties: storeData.specialties.split(',').map(s => s.trim()).filter(Boolean),
+          photo_urls: photoUrls.length > 0 ? photoUrls : null,
           status: 'pending',
         })
         .select()
@@ -204,6 +269,49 @@ export default function MerchantOnboarding() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label>Store Photos (up to 5)</Label>
+                  <div className="space-y-3">
+                    {photoPreviews.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {photoPreviews.map((preview, index) => (
+                          <div key={index} className="relative aspect-square">
+                            <img
+                              src={preview}
+                              alt={`Store photo ${index + 1}`}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6"
+                              onClick={() => removePhoto(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="photos"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handlePhotoChange}
+                        disabled={photoFiles.length >= 5}
+                        className="flex-1"
+                      />
+                      <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {photoFiles.length}/5 photos uploaded
+                    </p>
+                  </div>
+                </div>
+
                 <Button onClick={() => setCurrentStep('business-hours')} className="w-full">
                   Next: Business Hours
                 </Button>
@@ -256,8 +364,8 @@ export default function MerchantOnboarding() {
                 ))}
 
                 <div className="space-y-4 pt-4 border-t">
-                  <Button onClick={handleSubmit} disabled={loading || !storeData.name || !storeData.address} className="w-full">
-                    {loading ? 'Creating Store...' : 'Complete Registration'}
+                  <Button onClick={handleSubmit} disabled={loading || uploading || !storeData.name || !storeData.address} className="w-full">
+                    {loading ? 'Creating Store...' : uploading ? 'Uploading Photos...' : 'Complete Registration'}
                   </Button>
                   <Button variant="outline" onClick={() => setCurrentStep('store-info')} className="w-full">
                     Back
