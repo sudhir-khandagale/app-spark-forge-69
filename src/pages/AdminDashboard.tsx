@@ -215,6 +215,9 @@ export default function AdminDashboard() {
 
   const handleApproveStore = async (storeId: string) => {
     try {
+      // Immediately remove from pending list (optimistic update)
+      setPendingStores(prev => prev.filter(store => store.id !== storeId));
+      
       const { error } = await supabase
         .from('stores')
         .update({ status: 'approved' })
@@ -227,7 +230,8 @@ export default function AdminDashboard() {
         description: 'Store approved successfully',
       });
 
-      fetchData();
+      // Refresh all data
+      await fetchData();
     } catch (error: any) {
       console.error('Error approving store:', error);
       toast({
@@ -235,11 +239,16 @@ export default function AdminDashboard() {
         description: 'Failed to approve store',
         variant: 'destructive',
       });
+      // Refetch on error to restore correct state
+      await fetchData();
     }
   };
 
   const handleRejectStore = async (storeId: string) => {
     try {
+      // Immediately remove from pending list (optimistic update)
+      setPendingStores(prev => prev.filter(store => store.id !== storeId));
+      
       const { error } = await supabase
         .from('stores')
         .update({ status: 'rejected' })
@@ -252,7 +261,8 @@ export default function AdminDashboard() {
         description: 'Store rejected',
       });
 
-      fetchData();
+      // Refresh all data
+      await fetchData();
     } catch (error: any) {
       console.error('Error rejecting store:', error);
       toast({
@@ -260,6 +270,8 @@ export default function AdminDashboard() {
         description: 'Failed to reject store',
         variant: 'destructive',
       });
+      // Refetch on error to restore correct state
+      await fetchData();
     }
   };
 
