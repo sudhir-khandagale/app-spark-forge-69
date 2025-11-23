@@ -39,6 +39,13 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
+      // Check if we have a valid session from the reset link
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("Invalid or expired reset link. Please request a new password reset.");
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -49,6 +56,9 @@ const ResetPassword = () => {
         title: "Password updated!",
         description: "Your password has been successfully reset. You can now login with your new password.",
       });
+
+      // Sign out to clear the temporary session
+      await supabase.auth.signOut();
 
       setTimeout(() => {
         navigate('/auth');
