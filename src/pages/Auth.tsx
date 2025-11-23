@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,19 +15,46 @@ const Auth = () => {
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [signupRole, setSignupRole] = useState<'customer' | 'vendor'>('customer');
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Helper function to redirect based on user role
+  const redirectByRole = async (userId: string) => {
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+    
+    if (roleData?.role === 'vendor') {
+      // Check if vendor already has a store
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', userId)
+        .maybeSingle();
+      
+      if (storeData) {
+        navigate(`/dashboard/store/${storeData.id}`);
+      } else {
+        navigate('/onboarding/merchant');
+      }
+    } else {
+      navigate('/');
+    }
+  };
+
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate('/');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await redirectByRole(session.user.id);
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate('/');
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        await redirectByRole(session.user.id);
       }
     });
 
@@ -45,7 +73,7 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword,
     });
@@ -56,8 +84,11 @@ const Auth = () => {
         description: error.message,
         variant: "destructive"
       });
+      setIsLoading(false);
+    } else if (data.user) {
+      // Redirect will be handled by onAuthStateChange
+      await redirectByRole(data.user.id);
     }
-    setIsLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -81,13 +112,14 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: signupEmail,
       password: signupPassword,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
         data: {
-          display_name: signupName
+          display_name: signupName,
+          role: signupRole
         }
       }
     });
@@ -98,13 +130,15 @@ const Auth = () => {
         description: error.message,
         variant: "destructive"
       });
-    } else {
+      setIsLoading(false);
+    } else if (data.user) {
       toast({
         title: "Success!",
-        description: "Account created successfully. You can now log in.",
+        description: "Account created successfully. Redirecting...",
       });
+      // Redirect based on role
+      await redirectByRole(data.user.id);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -187,6 +221,23 @@ const Auth = () => {
                     onChange={(e) => setSignupPassword(e.target.value)}
                     required
                   />
+                </div>
+                <div className="space-y-3">
+                  <Label>I am a:</Label>
+                  <RadioGroup value={signupRole} onValueChange={(value) => setSignupRole(value as 'customer' | 'vendor')}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="customer" id="customer" />
+                      <Label htmlFor="customer" className="font-normal cursor-pointer">
+                        Customer - Looking to find products in local stores
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="vendor" id="vendor" />
+                      <Label htmlFor="vendor" className="font-normal cursor-pointer">
+                        Vendor - I own a store and want to list my products
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Creating account...' : 'Create Account'}
