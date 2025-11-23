@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface StoreDetails {
   id: string;
@@ -31,6 +33,7 @@ interface StoreDetails {
   owner_name: string | null;
   owner_email: string | null;
   owner_phone: string | null;
+  rejection_reason: string | null;
 }
 
 interface UserWithRole {
@@ -63,6 +66,9 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [products, setProducts] = useState<ProductWithStore[]>([]);
   const [selectedStore, setSelectedStore] = useState<StoreDetails | null>(null);
+  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+  const [storeToReject, setStoreToReject] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -274,14 +280,26 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleRejectStore = async (storeId: string) => {
+  const handleRejectStore = async (storeId: string, reason: string) => {
     try {
+      if (!reason.trim()) {
+        toast({
+          title: 'Error',
+          description: 'Rejection reason is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Immediately remove from pending list (optimistic update)
       setPendingStores(prev => prev.filter(store => store.id !== storeId));
       
       const { error } = await supabase
         .from('stores')
-        .update({ status: 'rejected' })
+        .update({ 
+          status: 'rejected',
+          rejection_reason: reason 
+        })
         .eq('id', storeId);
 
       if (error) throw error;
@@ -290,6 +308,12 @@ export default function AdminDashboard() {
         title: 'Success',
         description: 'Store rejected',
       });
+
+      // Reset dialog state
+      setRejectionDialogOpen(false);
+      setStoreToReject(null);
+      setRejectionReason('');
+      setSelectedStore(null);
 
       // Refresh all data
       await fetchData();
@@ -303,6 +327,12 @@ export default function AdminDashboard() {
       // Refetch on error to restore correct state
       await fetchData();
     }
+  };
+
+  const openRejectionDialog = (storeId: string) => {
+    setStoreToReject(storeId);
+    setRejectionReason('');
+    setRejectionDialogOpen(true);
   };
 
   const handleDeleteStore = async (storeId: string) => {
@@ -688,8 +718,7 @@ export default function AdminDashboard() {
                                           variant="destructive"
                                           className="flex-1"
                                           onClick={() => {
-                                            handleRejectStore(selectedStore.id);
-                                            setSelectedStore(null);
+                                            openRejectionDialog(selectedStore.id);
                                           }}
                                         >
                                           <XCircle className="h-4 w-4 mr-2" />
@@ -710,7 +739,7 @@ export default function AdminDashboard() {
                               <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={() => handleRejectStore(store.id)}
+                                onClick={() => openRejectionDialog(store.id)}
                               >
                                 <XCircle className="h-4 w-4" />
                               </Button>
@@ -859,6 +888,15 @@ export default function AdminDashboard() {
                                             <span className="font-medium min-w-[120px]">Status:</span>
                                             <Badge className="bg-red-100 text-red-800">Rejected</Badge>
                                           </div>
+                                          {selectedStore.rejection_reason && (
+                                            <div className="flex items-start gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
+                                              <AlertCircle className="h-4 w-4 mt-0.5 text-red-500 flex-shrink-0" />
+                                              <div className="flex-1">
+                                                <span className="font-medium text-red-900 block mb-1">Rejection Reason:</span>
+                                                <span className="text-red-800">{selectedStore.rejection_reason}</span>
+                                              </div>
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
 
@@ -1207,6 +1245,55 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Rejection Reason Dialog */}
+        <Dialog open={rejectionDialogOpen} onOpenChange={setRejectionDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reject Store</DialogTitle>
+              <DialogDescription>
+                Please provide a reason for rejecting this store. This will be visible to the vendor.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="rejection-reason">Rejection Reason *</Label>
+                <Textarea
+                  id="rejection-reason"
+                  placeholder="Explain why this store application is being rejected..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRejectionDialogOpen(false);
+                  setStoreToReject(null);
+                  setRejectionReason('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (storeToReject) {
+                    handleRejectStore(storeToReject, rejectionReason);
+                  }
+                }}
+                disabled={!rejectionReason.trim()}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Reject Store
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
