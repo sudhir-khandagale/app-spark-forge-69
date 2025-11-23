@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus } from 'lucide-react';
+import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 
 interface Product {
   id: string;
@@ -48,10 +49,21 @@ export default function StoreDashboard() {
   const [productImage, setProductImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isEditStoreOpen, setIsEditStoreOpen] = useState(false);
+  const [editedStore, setEditedStore] = useState<any>(null);
+  const [storePhotoFiles, setStorePhotoFiles] = useState<File[]>([]);
+  const [storePreviews, setStorePreviews] = useState<string[]>([]);
 
   useEffect(() => {
     fetchStoreData();
   }, [storeId]);
+
+  useEffect(() => {
+    if (store) {
+      setEditedStore({ ...store });
+      setStorePreviews(store.photo_urls || []);
+    }
+  }, [store]);
 
   const fetchStoreData = async () => {
     try {
@@ -290,6 +302,123 @@ export default function StoreDashboard() {
     reader.readAsText(file);
   };
 
+  const handleStorePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const newFiles = [...storePhotoFiles, ...files].slice(0, 5);
+    setStorePhotoFiles(newFiles);
+
+    const newPreviews = [...storePreviews, ...newFiles.map(file => URL.createObjectURL(file))].slice(0, 5);
+    setStorePreviews(newPreviews);
+  };
+
+  const removeStorePhoto = (index: number) => {
+    const isExistingPhoto = index < (store?.photo_urls?.length || 0);
+    
+    if (isExistingPhoto) {
+      // Remove from existing photos
+      setEditedStore((prev: any) => ({
+        ...prev,
+        photo_urls: prev.photo_urls.filter((_: string, i: number) => i !== index)
+      }));
+    } else {
+      // Remove from new uploads
+      const fileIndex = index - (store?.photo_urls?.length || 0);
+      setStorePhotoFiles(storePhotoFiles.filter((_, i) => i !== fileIndex));
+    }
+    
+    setStorePreviews(storePreviews.filter((_, i) => i !== index));
+  };
+
+  const uploadStorePhotos = async (): Promise<string[]> => {
+    if (storePhotoFiles.length === 0) return [];
+
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of storePhotoFiles) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `store-photos/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        uploadedUrls.push(publicUrl);
+      }
+    } catch (error) {
+      console.error('Error uploading photos:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to upload some photos',
+        variant: 'destructive',
+      });
+    }
+
+    return uploadedUrls;
+  };
+
+  const handleUpdateStore = async () => {
+    if (!editedStore?.name?.trim() || !editedStore?.address?.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Store name and address are required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const newPhotoUrls = await uploadStorePhotos();
+      const allPhotoUrls = [...(editedStore.photo_urls || []), ...newPhotoUrls];
+
+      const { error } = await supabase
+        .from('stores')
+        .update({
+          name: editedStore.name,
+          description: editedStore.description,
+          address: editedStore.address,
+          phone: editedStore.phone,
+          email: editedStore.email,
+          hours: editedStore.hours,
+          specialties: typeof editedStore.specialties === 'string' 
+            ? editedStore.specialties.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : editedStore.specialties,
+          photo_urls: allPhotoUrls.length > 0 ? allPhotoUrls : null,
+        })
+        .eq('id', storeId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Store details updated successfully',
+      });
+
+      setIsEditStoreOpen(false);
+      setStorePhotoFiles([]);
+      fetchStoreData();
+    } catch (error: any) {
+      console.error('Error updating store:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update store',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-4 pb-20">
@@ -332,8 +461,9 @@ export default function StoreDashboard() {
         </div>
 
         <Tabs defaultValue="inventory">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="store-details">Store Details</TabsTrigger>
             <TabsTrigger value="import">Import Products</TabsTrigger>
           </TabsList>
 
@@ -535,6 +665,192 @@ export default function StoreDashboard() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="store-details" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Store className="h-5 w-5" />
+                  Edit Store Details
+                </CardTitle>
+                <CardDescription>Update your store information and photos</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {editedStore && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-name">Store Name *</Label>
+                      <Input
+                        id="edit-name"
+                        value={editedStore.name || ''}
+                        onChange={(e) => setEditedStore({ ...editedStore, name: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-description">Description</Label>
+                      <Textarea
+                        id="edit-description"
+                        value={editedStore.description || ''}
+                        onChange={(e) => setEditedStore({ ...editedStore, description: e.target.value })}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-address">Address *</Label>
+                      <Textarea
+                        id="edit-address"
+                        value={editedStore.address || ''}
+                        onChange={(e) => setEditedStore({ ...editedStore, address: e.target.value })}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-phone">Phone</Label>
+                        <Input
+                          id="edit-phone"
+                          value={editedStore.phone || ''}
+                          onChange={(e) => setEditedStore({ ...editedStore, phone: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-email">Email</Label>
+                        <Input
+                          id="edit-email"
+                          type="email"
+                          value={editedStore.email || ''}
+                          onChange={(e) => setEditedStore({ ...editedStore, email: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-specialties">Specialties (comma-separated)</Label>
+                      <Input
+                        id="edit-specialties"
+                        value={Array.isArray(editedStore.specialties) 
+                          ? editedStore.specialties.join(', ') 
+                          : editedStore.specialties || ''}
+                        onChange={(e) => setEditedStore({ ...editedStore, specialties: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Store Photos (up to 5)</Label>
+                      <div className="space-y-3">
+                        {storePreviews.length > 0 && (
+                          <div className="grid grid-cols-3 gap-2">
+                            {storePreviews.map((preview, index) => (
+                              <div key={index} className="relative aspect-square">
+                                <img
+                                  src={preview}
+                                  alt={`Store photo ${index + 1}`}
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute -top-2 -right-2 h-6 w-6"
+                                  onClick={() => removeStorePhoto(index)}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {storePreviews.length < 5 && (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={handleStorePhotoChange}
+                              disabled={storePreviews.length >= 5}
+                              className="flex-1"
+                            />
+                            <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {storePreviews.length}/5 photos
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="font-medium">Business Hours</h3>
+                      {editedStore.hours && Object.keys(editedStore.hours).map((day) => (
+                        <div key={day} className="flex items-center gap-4">
+                          <Label className="w-24 capitalize">{day}</Label>
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input
+                              type="time"
+                              value={editedStore.hours[day].open}
+                              onChange={(e) => setEditedStore({
+                                ...editedStore,
+                                hours: {
+                                  ...editedStore.hours,
+                                  [day]: { ...editedStore.hours[day], open: e.target.value }
+                                }
+                              })}
+                              disabled={editedStore.hours[day].open === 'closed'}
+                              className="flex-1"
+                            />
+                            <span className="text-muted-foreground">to</span>
+                            <Input
+                              type="time"
+                              value={editedStore.hours[day].close}
+                              onChange={(e) => setEditedStore({
+                                ...editedStore,
+                                hours: {
+                                  ...editedStore.hours,
+                                  [day]: { ...editedStore.hours[day], close: e.target.value }
+                                }
+                              })}
+                              disabled={editedStore.hours[day].close === 'closed'}
+                              className="flex-1"
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const isClosed = editedStore.hours[day].open === 'closed';
+                                setEditedStore({
+                                  ...editedStore,
+                                  hours: {
+                                    ...editedStore.hours,
+                                    [day]: {
+                                      open: isClosed ? '09:00' : 'closed',
+                                      close: isClosed ? '17:00' : 'closed'
+                                    }
+                                  }
+                                });
+                              }}
+                            >
+                              {editedStore.hours[day].open === 'closed' ? 'Open' : 'Closed'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button 
+                      onClick={handleUpdateStore} 
+                      disabled={uploading || !editedStore.name?.trim() || !editedStore.address?.trim()}
+                      className="w-full"
+                    >
+                      {uploading ? 'Updating...' : 'Save Changes'}
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
