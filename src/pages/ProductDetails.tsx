@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale } from 'lucide-react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
@@ -225,6 +225,14 @@ const ProductDetails = () => {
               <p className="text-sm text-muted-foreground mt-2">Category: {product.category}</p>
             )}
           </div>
+
+          {/* Compare Prices Button */}
+          <Link to={`/compare/${id}`}>
+            <Button variant="outline" className="w-full" size="lg">
+              <Scale className="w-4 h-4 mr-2" />
+              Compare Prices Across Stores
+            </Button>
+          </Link>
 
           {/* Store Availability */}
           {product.store_name && (

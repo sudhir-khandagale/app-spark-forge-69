@@ -22,6 +22,7 @@ import StoreDashboard from "./pages/StoreDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
+import Compare from "./pages/Compare";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
           <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+          <Route path="/compare/:id" element={<Compare />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
