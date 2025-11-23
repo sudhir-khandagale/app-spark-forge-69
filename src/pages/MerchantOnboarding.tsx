@@ -46,10 +46,10 @@ export default function MerchantOnboarding() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // First, assign store_owner role
+      // First, assign vendor role
       const { error: roleError } = await supabase
         .from('user_roles')
-        .insert({ user_id: user.id, role: 'store_owner' });
+        .insert({ user_id: user.id, role: 'vendor' });
 
       if (roleError && roleError.code !== '23505') throw roleError; // Ignore duplicate key errors
 
