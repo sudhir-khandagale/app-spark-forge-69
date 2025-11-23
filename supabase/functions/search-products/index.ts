@@ -125,24 +125,26 @@ serve(async (req) => {
       );
     }
 
-    // Get inventory for these products
+    // Get inventory for these products from approved stores
     const productIds = products.map(p => p.id);
     const { data: inventory, error: inventoryError } = await supabase
       .from('inventory')
       .select(`
         *,
-        store:stores(
+        store:stores!inner(
           id,
           name,
           address,
           latitude,
           longitude,
           rating,
-          phone
+          phone,
+          status
         )
       `)
       .in('product_id', productIds)
-      .gt('quantity', 0);
+      .eq('in_stock', true)
+      .eq('store.status', 'approved');
 
     if (inventoryError) {
       throw inventoryError;
@@ -168,12 +170,11 @@ serve(async (req) => {
       const product = products.find(p => p.id === inv.product_id);
 
       return {
-        inventory_id: inv.id,
-        product_id: inv.product_id,
-        product_name: product?.name,
-        product_description: product?.description,
-        product_category: product?.category,
-        product_image: product?.image_url,
+        id: inv.product_id,
+        name: product?.name,
+        description: product?.description,
+        category: product?.category,
+        image_url: product?.image_url,
         store_id: inv.store.id,
         store_name: inv.store.name,
         store_address: inv.store.address,
@@ -181,9 +182,10 @@ serve(async (req) => {
         store_phone: inv.store.phone,
         price: inv.price,
         quantity: inv.quantity,
+        in_stock: inv.in_stock,
         distance: distance,
-        latitude: inv.store.latitude,
-        longitude: inv.store.longitude
+        store_latitude: inv.store.latitude,
+        store_longitude: inv.store.longitude
       };
     }) || [];
 
