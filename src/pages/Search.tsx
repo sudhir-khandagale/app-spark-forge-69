@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BottomNav from '@/components/BottomNav';
+import WishlistButton from '@/components/WishlistButton';
 import { useProductSearch } from '@/hooks/useProducts';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
@@ -74,27 +75,32 @@ const Search = () => {
               </p>
               <div className="space-y-3">
                 {results.map((result) => (
-                  <Link key={`${result.id}-${result.store_id}`} to={`/product/${result.id}?store=${result.store_id}`}>
-                    <div className="p-4 bg-background border-2 border-border rounded-lg hover:border-primary transition-colors shadow-sm hover:shadow-md">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-foreground text-base">{result.name}</h3>
-                        <span className="text-primary font-bold text-base">${result.price.toFixed(2)}</span>
-                      </div>
-                      <p className="text-sm text-foreground/80 mb-2">
-                        📍 {result.store_name}
-                      </p>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className={`font-medium px-2 py-1 rounded ${result.in_stock ? 'bg-accent/20 text-accent' : 'bg-destructive/20 text-destructive'}`}>
-                          {result.in_stock ? `✓ In Stock (${result.quantity})` : '✗ Out of Stock'}
-                        </span>
-                        {result.distance && (
-                          <span className="text-foreground/70 font-medium">
-                            {result.distance.toFixed(1)} mi away
+                  <div key={`${result.id}-${result.store_id}`} className="relative">
+                    <Link to={`/product/${result.id}?store=${result.store_id}`}>
+                      <div className="p-4 bg-background border-2 border-border rounded-lg hover:border-primary transition-colors shadow-sm hover:shadow-md">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold text-foreground text-base pr-10">{result.name}</h3>
+                          <span className="text-primary font-bold text-base">${result.price.toFixed(2)}</span>
+                        </div>
+                        <p className="text-sm text-foreground/80 mb-2">
+                          📍 {result.store_name}
+                        </p>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className={`font-medium px-2 py-1 rounded ${result.in_stock ? 'bg-accent/20 text-accent' : 'bg-destructive/20 text-destructive'}`}>
+                            {result.in_stock ? `✓ In Stock (${result.quantity})` : '✗ Out of Stock'}
                           </span>
-                        )}
+                          {result.distance && (
+                            <span className="text-foreground/70 font-medium">
+                              {result.distance.toFixed(1)} mi away
+                            </span>
+                          )}
+                        </div>
                       </div>
+                    </Link>
+                    <div className="absolute top-2 right-2 z-10">
+                      <WishlistButton productId={result.id} />
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </>
