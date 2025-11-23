@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import BottomNav from '@/components/BottomNav';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Settings = () => {
   return (
@@ -86,10 +87,10 @@ const Settings = () => {
                 </select>
               </div>
               <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
-                <Label htmlFor="dark-mode" className="cursor-pointer">
-                  Dark Mode
+                <Label className="cursor-pointer">
+                  Theme
                 </Label>
-                <Switch id="dark-mode" />
+                <ThemeToggle />
               </div>
             </div>
           </div>
