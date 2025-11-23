@@ -13,7 +13,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginRole, setLoginRole] = useState<'customer' | 'vendor'>('customer');
+  const [loginRole, setLoginRole] = useState<'customer' | 'vendor' | 'admin'>('customer');
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
@@ -31,7 +31,9 @@ const Auth = () => {
       .eq('user_id', userId)
       .single();
     
-    if (roleData?.role === 'vendor') {
+    if (roleData?.role === 'admin') {
+      navigate('/admin');
+    } else if (roleData?.role === 'vendor') {
       // Check if vendor already has a store
       const { data: storeData } = await supabase
         .from('stores')
@@ -177,7 +179,7 @@ const Auth = () => {
         <div className="w-full max-w-md space-y-6">
           {/* Logo/Brand */}
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-primary mb-2">AassPass</h1>
+            <h1 className="text-3xl font-bold text-primary mb-2">Flowdux</h1>
             <p className="text-muted-foreground">
               Find products in local stores instantly
             </p>
@@ -194,7 +196,7 @@ const Auth = () => {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-3">
                   <Label>Logging in as:</Label>
-                  <RadioGroup value={loginRole} onValueChange={(value) => setLoginRole(value as 'customer' | 'vendor')}>
+                  <RadioGroup value={loginRole} onValueChange={(value) => setLoginRole(value as 'customer' | 'vendor' | 'admin')}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="customer" id="login-customer" />
                       <Label htmlFor="login-customer" className="font-normal cursor-pointer">
@@ -205,6 +207,12 @@ const Auth = () => {
                       <RadioGroupItem value="vendor" id="login-vendor" />
                       <Label htmlFor="login-vendor" className="font-normal cursor-pointer">
                         Vendor
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="admin" id="login-admin" />
+                      <Label htmlFor="login-admin" className="font-normal cursor-pointer">
+                        Admin
                       </Label>
                     </div>
                   </RadioGroup>
