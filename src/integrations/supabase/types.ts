@@ -14,6 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          cart_id: string
+          created_at: string | null
+          id: string
+          price: number
+          product_id: string
+          quantity: number
+          store_id: string
+        }
+        Insert: {
+          cart_id: string
+          created_at?: string | null
+          id?: string
+          price: number
+          product_id: string
+          quantity?: number
+          store_id: string
+        }
+        Update: {
+          cart_id?: string
+          created_at?: string | null
+          id?: string
+          price?: number
+          product_id?: string
+          quantity?: number
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carts: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory: {
         Row: {
           created_at: string | null
@@ -310,6 +412,7 @@ export type Database = {
           rating: number | null
           review_count: number | null
           specialties: string[] | null
+          status: string | null
           updated_at: string | null
         }
         Insert: {
@@ -328,6 +431,7 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           specialties?: string[] | null
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -346,6 +450,7 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           specialties?: string[] | null
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: []

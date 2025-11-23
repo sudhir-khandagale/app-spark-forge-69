@@ -1,18 +1,43 @@
-import { Settings, Heart, History, HelpCircle, LogOut } from 'lucide-react';
+import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import BottomNav from '@/components/BottomNav';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import BottomNav from '@/components/BottomNav';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useState, useEffect } from 'react';
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { user, role, isVendor, isAdmin } = useUserRole();
+  const [loading, setLoading] = useState(false);
+  const [stores, setStores] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user && isVendor) {
+      fetchVendorStores();
+    }
+  }, [user, isVendor]);
+
+  const fetchVendorStores = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stores')
+        .select('*')
+        .eq('owner_id', user?.id);
+
+      if (error) throw error;
+      setStores(data || []);
+    } catch (error) {
+      console.error('Error fetching stores:', error);
+    }
+  };
 
   const handleSignOut = async () => {
-    setIsSigningOut(true);
+    setLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -22,113 +47,141 @@ const Profile = () => {
         description: 'You have been successfully signed out.'
       });
       navigate('/auth');
-    } catch (error) {
-      console.error('Sign out error:', error);
+    } catch (error: any) {
       toast({
-        title: 'Sign Out Failed',
-        description: 'Unable to sign out. Please try again.',
+        title: 'Error',
+        description: error.message || 'Failed to sign out',
         variant: 'destructive'
       });
     } finally {
-      setIsSigningOut(false);
+      setLoading(false);
     }
   };
 
+  if (!user) {
+    return (
+      <div className="flex flex-col min-h-screen pb-16">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <CardTitle>Not Logged In</CardTitle>
+              <CardDescription>Please login to view your profile</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/auth">
+                <Button className="w-full">Go to Login</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen pb-16">
-      {/* Header */}
       <header className="p-4 border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold">Profile</h1>
           <Link to="/settings">
             <Button variant="ghost" size="icon">
-              <Settings className="w-5 h-5" />
+              <SettingsIcon className="w-5 h-5" />
             </Button>
           </Link>
         </div>
       </header>
 
-      {/* User Info */}
       <div className="p-6 border-b border-border">
         <div className="max-w-lg mx-auto flex items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-2xl font-semibold">
-            JD
-          </div>
+          <Avatar className="w-20 h-20">
+            <AvatarFallback className="text-2xl">
+              {user.email?.charAt(0).toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
           <div>
-            <h2 className="text-xl font-semibold">John Doe</h2>
-            <p className="text-muted-foreground">john.doe@example.com</p>
+            <h2 className="text-xl font-semibold">{user.email}</h2>
+            <p className="text-muted-foreground capitalize">{role} Account</p>
           </div>
         </div>
       </div>
 
-      {/* Menu Items */}
       <main className="flex-1 p-4">
-        <div className="max-w-lg mx-auto space-y-2">
-          <Link to="/lists">
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-auto py-4"
-            >
-              <History className="w-5 h-5 mr-3" />
-              <div className="text-left">
-                <p className="font-medium">Shopping Lists</p>
-                <p className="text-sm text-muted-foreground">
-                  Manage your shopping lists
-                </p>
-              </div>
-            </Button>
-          </Link>
+        <div className="max-w-lg mx-auto space-y-4">
+          {isVendor && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <StoreIcon className="w-5 h-5" />
+                  My Stores
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {stores.length === 0 ? (
+                  <Link to="/onboarding/merchant" className="w-full">
+                    <Button variant="outline" className="w-full justify-start">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Register Your Store
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    {stores.map((store) => (
+                      <Link key={store.id} to={`/dashboard/store/${store.id}`} className="w-full">
+                        <Button variant="outline" className="w-full justify-start">
+                          <StoreIcon className="w-4 h-4 mr-2" />
+                          {store.name}
+                        </Button>
+                      </Link>
+                    ))}
+                    <Link to="/onboarding/merchant" className="w-full">
+                      <Button variant="outline" className="w-full justify-start">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Another Store
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
-          <Button
-            variant="ghost"
-            className="w-full justify-start h-auto py-4"
-          >
-            <Heart className="w-5 h-5 mr-3" />
-            <div className="text-left">
-              <p className="font-medium">Favorite Stores</p>
-              <p className="text-sm text-muted-foreground">
-                3 stores saved
-              </p>
-            </div>
-          </Button>
+          <Card>
+            <CardContent className="pt-6 space-y-2">
+              <Link to="/lists" className="w-full">
+                <Button variant="outline" className="w-full justify-start">
+                  <List className="w-4 h-4 mr-2" />
+                  My Shopping Lists
+                </Button>
+              </Link>
 
-          <Button
-            variant="ghost"
-            className="w-full justify-start h-auto py-4"
-          >
-            <History className="w-5 h-5 mr-3" />
-            <div className="text-left">
-              <p className="font-medium">Search History</p>
-              <p className="text-sm text-muted-foreground">
-                View recent searches
-              </p>
-            </div>
-          </Button>
+              {isAdmin && (
+                <Link to="/admin" className="w-full">
+                  <Button variant="outline" className="w-full justify-start">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Admin Dashboard
+                  </Button>
+                </Link>
+              )}
 
-          <Button
-            variant="ghost"
-            className="w-full justify-start h-auto py-4"
-          >
-            <HelpCircle className="w-5 h-5 mr-3" />
-            <div className="text-left">
-              <p className="font-medium">Help & Support</p>
-              <p className="text-sm text-muted-foreground">
-                Get help with AassPass
-              </p>
-            </div>
-          </Button>
+              <Link to="/settings" className="w-full">
+                <Button variant="outline" className="w-full justify-start">
+                  <SettingsIcon className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+              </Link>
 
-          <div className="pt-4">
-            <Button
-              variant="outline"
-              className="w-full justify-start text-destructive hover:text-destructive"
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-            >
-              <LogOut className="w-5 h-5 mr-3" />
-              {isSigningOut ? 'Signing Out...' : 'Sign Out'}
-            </Button>
-          </div>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-destructive hover:text-destructive"
+                onClick={handleSignOut}
+                disabled={loading}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                {loading ? 'Signing Out...' : 'Sign Out'}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </main>
 

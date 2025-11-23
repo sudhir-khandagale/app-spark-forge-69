@@ -77,6 +77,7 @@ export default function MerchantOnboarding() {
           longitude: storeData.longitude ? parseFloat(storeData.longitude) : null,
           hours: storeData.hours,
           specialties: storeData.specialties.split(',').map(s => s.trim()).filter(Boolean),
+          status: 'pending',
         })
         .select()
         .single();

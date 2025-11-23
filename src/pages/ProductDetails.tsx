@@ -1,15 +1,183 @@
-import { ArrowLeft, Share2, Heart, MapPin, Phone, Navigation, Loader2 } from 'lucide-react';
+import { ArrowLeft, Share2, Heart, MapPin, Phone, Navigation, Loader2, ShoppingCart } from 'lucide-react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
 import { useProduct } from '@/hooks/useProducts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const storeId = searchParams.get('store');
   const { product, loading } = useProduct(id!, storeId || undefined);
+  const { toast } = useToast();
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<google.maps.Map | null>(null);
+
+  useEffect(() => {
+    checkFavoriteStatus();
+  }, [id]);
+
+  useEffect(() => {
+    if (product?.store_latitude && product?.store_longitude && mapRef.current && !googleMapRef.current) {
+      initializeMap();
+    }
+  }, [product]);
+
+  const checkFavoriteStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('product_id', id!)
+        .single();
+
+      setIsFavorite(!!data);
+    } catch (error) {
+      // Not favorite
+    }
+  };
+
+  const initializeMap = async () => {
+    try {
+      // Load Google Maps script
+      if (!window.google) {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
+        script.async = true;
+        document.head.appendChild(script);
+        
+        await new Promise((resolve) => {
+          script.onload = resolve;
+        });
+      }
+
+      if (!mapRef.current || !product || !window.google) return;
+
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: { lat: product.store_latitude!, lng: product.store_longitude! },
+        zoom: 15,
+      });
+
+      new window.google.maps.Marker({
+        position: { lat: product.store_latitude!, lng: product.store_longitude! },
+        map: map,
+        title: product.store_name,
+      });
+
+      googleMapRef.current = map;
+    } catch (error) {
+      console.error('Error loading map:', error);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please login to add favorites',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (isFavorite) {
+        await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', id!);
+        
+        setIsFavorite(false);
+        toast({ title: 'Removed from favorites' });
+      } else {
+        await supabase
+          .from('favorites')
+          .insert({ user_id: user.id, product_id: id! });
+        
+        setIsFavorite(true);
+        toast({ title: 'Added to favorites' });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAddToCart = async () => {
+    try {
+      setIsAddingToCart(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please login to add to cart',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Get or create cart
+      let { data: cart } = await supabase
+        .from('carts')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!cart) {
+        const { data: newCart, error: cartError } = await supabase
+          .from('carts')
+          .insert({ user_id: user.id })
+          .select('id')
+          .single();
+        
+        if (cartError) throw cartError;
+        cart = newCart;
+      }
+
+      // Add to cart
+      const { error } = await supabase
+        .from('cart_items')
+        .upsert({
+          cart_id: cart.id,
+          product_id: id!,
+          store_id: product!.store_id!,
+          price: product!.price,
+          quantity: 1,
+        }, {
+          onConflict: 'cart_id,product_id,store_id',
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Added to cart',
+        description: `${product?.name} added to your cart`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
 
   const handleGetDirections = () => {
     if (product?.store_latitude && product?.store_longitude) {
@@ -28,14 +196,19 @@ const ProductDetails = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon">
-                <Share2 className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Heart className="w-5 h-5" />
-              </Button>
-            </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon">
+              <Share2 className="w-5 h-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={handleToggleFavorite}
+              className={isFavorite ? 'text-red-500' : ''}
+            >
+              <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+            </Button>
+          </div>
           </div>
         </header>
 
@@ -149,9 +322,18 @@ const ProductDetails = () => {
 
                 <div className="flex gap-2">
                   {product.in_stock && (
-                    <Link to={`/reserve/${product.id}?store=${product.store_id}`} className="flex-1">
-                      <Button className="w-full">Reserve Item</Button>
-                    </Link>
+                    <Button 
+                      className="flex-1"
+                      onClick={handleAddToCart}
+                      disabled={isAddingToCart}
+                    >
+                      {isAddingToCart ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <ShoppingCart className="w-4 h-4 mr-2" />
+                      )}
+                      Add to Cart
+                    </Button>
                   )}
                   <Link to={`/store/${product.store_id}`} className="flex-1">
                     <Button variant="outline" className="w-full">View Store</Button>
@@ -159,14 +341,21 @@ const ProductDetails = () => {
                 </div>
 
                 {product.store_latitude && product.store_longitude && (
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={handleGetDirections}
-                  >
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Get Directions
-                  </Button>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleGetDirections}
+                    >
+                      <Navigation className="w-4 h-4 mr-2" />
+                      Get Directions
+                    </Button>
+
+                    <div className="mt-4">
+                      <h3 className="font-semibold mb-2">Store Location</h3>
+                      <div ref={mapRef} className="w-full h-64 rounded-lg border" />
+                    </div>
+                  </>
                 )}
               </div>
             </div>
