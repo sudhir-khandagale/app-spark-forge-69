@@ -93,6 +93,12 @@ serve(async (req) => {
       }
     );
 
+    // Service client for bypassing RLS (used after authorization checks)
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return new Response(
@@ -253,20 +259,20 @@ serve(async (req) => {
             let productId = null;
             
             if (product.barcode) {
-              const { data: existingProduct } = await supabase
+              const { data: existingProduct } = await serviceClient
                 .from('products')
                 .select('id')
                 .eq('barcode', product.barcode)
-                .single();
+                .maybeSingle();
               
               if (existingProduct) {
                 productId = existingProduct.id;
               }
             }
 
-            // If product doesn't exist, create it
+            // If product doesn't exist, create it using service client
             if (!productId) {
-              const { data: newProduct, error: productError } = await supabase
+              const { data: newProduct, error: productError } = await serviceClient
                 .from('products')
                 .insert({
                   name: product.name,
@@ -285,14 +291,15 @@ serve(async (req) => {
               productId = newProduct.id;
             }
 
-            // Upsert inventory
-            const { error: inventoryError } = await supabase
+            // Upsert inventory using service client
+            const { error: inventoryError } = await serviceClient
               .from('inventory')
               .upsert({
                 store_id: storeId,
                 product_id: productId,
                 quantity: product.quantity,
-                price: product.price
+                price: product.price,
+                in_stock: product.quantity > 0
               }, {
                 onConflict: 'store_id,product_id'
               });
@@ -310,6 +317,96 @@ serve(async (req) => {
 
         return new Response(
           JSON.stringify(results),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'create_product': {
+        // Validate input
+        if (!data.storeId || typeof data.storeId !== 'string') {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: ['Store ID is required'] }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (!data.name || typeof data.name !== 'string' || data.name.length === 0) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: ['Product name is required'] }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (typeof data.price !== 'number' || data.price < 0) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: ['Price must be a non-negative number'] }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (typeof data.quantity !== 'number' || data.quantity < 0) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid input', details: ['Quantity must be a non-negative number'] }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Verify store ownership
+        const { data: store, error: storeError } = await supabase
+          .from('stores')
+          .select('id, owner_id')
+          .eq('id', data.storeId)
+          .eq('owner_id', user.id)
+          .single();
+
+        if (storeError || !store) {
+          return new Response(
+            JSON.stringify({ error: 'Store not found or unauthorized' }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Create product using service client (bypasses RLS)
+        const { data: product, error: productError } = await serviceClient
+          .from('products')
+          .insert({
+            name: data.name,
+            description: data.description ?? null,
+            category: data.category ?? null,
+            barcode: data.barcode ?? null,
+            image_url: data.imageUrl ?? null,
+          })
+          .select()
+          .single();
+
+        if (productError) {
+          console.error('Product creation error:', productError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to create product', details: productError.message }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Create inventory entry using service client
+        const { data: inventory, error: inventoryError } = await serviceClient
+          .from('inventory')
+          .insert({
+            store_id: data.storeId,
+            product_id: product.id,
+            price: data.price,
+            quantity: data.quantity,
+            in_stock: data.quantity > 0,
+          })
+          .select()
+          .single();
+
+        if (inventoryError) {
+          console.error('Inventory creation error:', inventoryError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to create inventory', details: inventoryError.message }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({ product, inventory }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
