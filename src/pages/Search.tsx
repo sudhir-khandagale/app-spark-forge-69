@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, Loader2, Scale } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,8 +97,13 @@ const Search = () => {
                         </div>
                       </div>
                     </Link>
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-2 right-2 z-10 flex gap-1">
                       <WishlistButton productId={result.id} />
+                      <Link to={`/compare/${result.id}`} onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" title="Compare prices">
+                          <Scale className="w-5 h-5" />
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 ))}
