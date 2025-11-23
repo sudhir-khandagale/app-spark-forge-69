@@ -10,10 +10,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package } from 'lucide-react';
+import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-interface Store {
+interface StoreDetails {
   id: string;
   name: string;
   address: string;
@@ -22,6 +23,14 @@ interface Store {
   created_at: string;
   phone: string | null;
   email: string | null;
+  photo_urls: string[] | null;
+  specialties: string[] | null;
+  description: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  owner_name: string | null;
+  owner_email: string | null;
+  owner_phone: string | null;
 }
 
 interface UserWithRole {
@@ -48,10 +57,11 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const [loading, setLoading] = useState(true);
-  const [pendingStores, setPendingStores] = useState<Store[]>([]);
-  const [allStores, setAllStores] = useState<Store[]>([]);
+  const [pendingStores, setPendingStores] = useState<StoreDetails[]>([]);
+  const [allStores, setAllStores] = useState<StoreDetails[]>([]);
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [products, setProducts] = useState<ProductWithStore[]>([]);
+  const [selectedStore, setSelectedStore] = useState<StoreDetails | null>(null);
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -72,7 +82,7 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      // Fetch pending stores
+      // Fetch pending stores with owner details
       const { data: pending, error: pendingError } = await supabase
         .from('stores')
         .select('*')
@@ -80,16 +90,57 @@ export default function AdminDashboard() {
         .order('created_at', { ascending: false });
 
       if (pendingError) throw pendingError;
-      setPendingStores(pending || []);
 
-      // Fetch all stores
+      // Fetch owner details for pending stores
+      const pendingWithOwners = await Promise.all(
+        (pending || []).map(async (store) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, phone')
+            .eq('id', store.owner_id)
+            .single();
+
+          const { data: { user } } = await supabase.auth.admin.getUserById(store.owner_id);
+
+          return {
+            ...store,
+            owner_name: profile?.display_name || null,
+            owner_email: user?.email || null,
+            owner_phone: profile?.phone || null,
+          };
+        })
+      );
+
+      setPendingStores(pendingWithOwners);
+
+      // Fetch all stores with owner details
       const { data: stores, error: storesError } = await supabase
         .from('stores')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (storesError) throw storesError;
-      setAllStores(stores || []);
+
+      const allStoresWithOwners = await Promise.all(
+        (stores || []).map(async (store) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, phone')
+            .eq('id', store.owner_id)
+            .single();
+
+          const { data: { user } } = await supabase.auth.admin.getUserById(store.owner_id);
+
+          return {
+            ...store,
+            owner_name: profile?.display_name || null,
+            owner_email: user?.email || null,
+            owner_phone: profile?.phone || null,
+          };
+        })
+      );
+
+      setAllStores(allStoresWithOwners);
 
       // Fetch users with roles
       const { data: usersData, error: usersError } = await supabase
@@ -406,7 +457,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="pending" className="space-y-4">
+           <TabsContent value="pending" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Pending Vendor Approvals</CardTitle>
@@ -417,8 +468,8 @@ export default function AdminDashboard() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Store Name</TableHead>
+                      <TableHead>Vendor Name</TableHead>
                       <TableHead>Address</TableHead>
-                      <TableHead>Contact</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -434,31 +485,178 @@ export default function AdminDashboard() {
                       pendingStores.map((store) => (
                         <TableRow key={store.id}>
                           <TableCell className="font-medium">{store.name}</TableCell>
-                          <TableCell>{store.address}</TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              {store.phone && <div>{store.phone}</div>}
-                              {store.email && <div>{store.email}</div>}
-                            </div>
-                          </TableCell>
+                          <TableCell>{store.owner_name || 'N/A'}</TableCell>
+                          <TableCell className="max-w-xs truncate">{store.address}</TableCell>
                           <TableCell>{new Date(store.created_at).toLocaleDateString()}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setSelectedStore(store)}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View Details
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>Vendor & Store Details</DialogTitle>
+                                    <DialogDescription>
+                                      Complete information for verification
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  {selectedStore && (
+                                    <div className="space-y-6">
+                                      {/* Vendor Information */}
+                                      <div className="space-y-3">
+                                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                                          <Users className="h-5 w-5" />
+                                          Vendor Information
+                                        </h3>
+                                        <div className="grid gap-3 p-4 bg-muted/50 rounded-lg">
+                                          <div className="flex items-start gap-2">
+                                            <span className="font-medium min-w-[120px]">Name:</span>
+                                            <span>{selectedStore.owner_name || 'Not provided'}</span>
+                                          </div>
+                                          <div className="flex items-start gap-2">
+                                            <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                            <span className="font-medium min-w-[120px]">Email:</span>
+                                            <span>{selectedStore.owner_email || 'Not provided'}</span>
+                                          </div>
+                                          <div className="flex items-start gap-2">
+                                            <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                            <span className="font-medium min-w-[120px]">Phone:</span>
+                                            <span>{selectedStore.owner_phone || 'Not provided'}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Store Information */}
+                                      <div className="space-y-3">
+                                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                                          <Store className="h-5 w-5" />
+                                          Store Information
+                                        </h3>
+                                        <div className="grid gap-3 p-4 bg-muted/50 rounded-lg">
+                                          <div className="flex items-start gap-2">
+                                            <span className="font-medium min-w-[120px]">Store Name:</span>
+                                            <span className="font-semibold">{selectedStore.name}</span>
+                                          </div>
+                                          <div className="flex items-start gap-2">
+                                            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                            <span className="font-medium min-w-[120px]">Address:</span>
+                                            <span>{selectedStore.address}</span>
+                                          </div>
+                                          {selectedStore.phone && (
+                                            <div className="flex items-start gap-2">
+                                              <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Store Phone:</span>
+                                              <span>{selectedStore.phone}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.email && (
+                                            <div className="flex items-start gap-2">
+                                              <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Store Email:</span>
+                                              <span>{selectedStore.email}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.description && (
+                                            <div className="flex items-start gap-2">
+                                              <span className="font-medium min-w-[120px]">Description:</span>
+                                              <span>{selectedStore.description}</span>
+                                            </div>
+                                          )}
+                                          {selectedStore.specialties && selectedStore.specialties.length > 0 && (
+                                            <div className="flex items-start gap-2">
+                                              <span className="font-medium min-w-[120px]">Specialties:</span>
+                                              <div className="flex flex-wrap gap-1">
+                                                {selectedStore.specialties.map((specialty, idx) => (
+                                                  <Badge key={idx} variant="secondary">{specialty}</Badge>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+                                          {(selectedStore.latitude && selectedStore.longitude) && (
+                                            <div className="flex items-start gap-2">
+                                              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                              <span className="font-medium min-w-[120px]">Coordinates:</span>
+                                              <span>{selectedStore.latitude.toFixed(6)}, {selectedStore.longitude.toFixed(6)}</span>
+                                            </div>
+                                          )}
+                                          <div className="flex items-start gap-2">
+                                            <Calendar className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                                            <span className="font-medium min-w-[120px]">Registered:</span>
+                                            <span>{new Date(selectedStore.created_at).toLocaleString()}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Store Photos */}
+                                      {selectedStore.photo_urls && selectedStore.photo_urls.length > 0 && (
+                                        <div className="space-y-3">
+                                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                                            <ImageIcon className="h-5 w-5" />
+                                            Store Photos
+                                          </h3>
+                                          <div className="grid grid-cols-2 gap-3">
+                                            {selectedStore.photo_urls.map((url, idx) => (
+                                              <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border">
+                                                <img 
+                                                  src={url} 
+                                                  alt={`Store photo ${idx + 1}`}
+                                                  className="object-cover w-full h-full"
+                                                />
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Action Buttons */}
+                                      <div className="flex gap-3 pt-4 border-t">
+                                        <Button
+                                          className="flex-1 bg-green-600 hover:bg-green-700"
+                                          onClick={() => {
+                                            handleApproveStore(selectedStore.id);
+                                            setSelectedStore(null);
+                                          }}
+                                        >
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Approve Store
+                                        </Button>
+                                        <Button
+                                          variant="destructive"
+                                          className="flex-1"
+                                          onClick={() => {
+                                            handleRejectStore(selectedStore.id);
+                                            setSelectedStore(null);
+                                          }}
+                                        >
+                                          <XCircle className="h-4 w-4 mr-2" />
+                                          Reject Store
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </DialogContent>
+                              </Dialog>
                               <Button
                                 size="sm"
                                 onClick={() => handleApproveStore(store.id)}
                                 className="bg-green-600 hover:bg-green-700"
                               >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
+                                <CheckCircle className="h-4 w-4" />
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => handleRejectStore(store.id)}
                               >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Reject
+                                <XCircle className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
