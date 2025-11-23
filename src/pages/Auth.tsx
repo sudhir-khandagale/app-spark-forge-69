@@ -13,33 +13,15 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginRole, setLoginRole] = useState<'customer' | 'vendor' | 'admin'>('customer');
+  const [loginRole, setLoginRole] = useState<'customer' | 'vendor'>('customer');
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
-  const [signupRole, setSignupRole] = useState<'customer' | 'vendor' | 'admin'>('customer');
+  const [signupRole, setSignupRole] = useState<'customer' | 'vendor'>('customer');
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
-  const [adminExists, setAdminExists] = useState(true); // Default to true until checked
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Check if any admin exists on component mount
-  useEffect(() => {
-    const checkAdminExists = async () => {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('id')
-        .eq('role', 'admin')
-        .limit(1);
-      
-      if (!error) {
-        setAdminExists(data && data.length > 0);
-      }
-    };
-    
-    checkAdminExists();
-  }, []);
 
   // Helper function to redirect based on user role
   const redirectByRole = async (userId: string) => {
@@ -214,7 +196,7 @@ const Auth = () => {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-3">
                   <Label>Logging in as:</Label>
-                  <RadioGroup value={loginRole} onValueChange={(value) => setLoginRole(value as 'customer' | 'vendor' | 'admin')}>
+                  <RadioGroup value={loginRole} onValueChange={(value) => setLoginRole(value as 'customer' | 'vendor')}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="customer" id="login-customer" />
                       <Label htmlFor="login-customer" className="font-normal cursor-pointer">
@@ -225,12 +207,6 @@ const Auth = () => {
                       <RadioGroupItem value="vendor" id="login-vendor" />
                       <Label htmlFor="login-vendor" className="font-normal cursor-pointer">
                         Vendor
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="admin" id="login-admin" />
-                      <Label htmlFor="login-admin" className="font-normal cursor-pointer">
-                        Admin
                       </Label>
                     </div>
                   </RadioGroup>
@@ -297,7 +273,7 @@ const Auth = () => {
                 </div>
                 <div className="space-y-3">
                   <Label>I am a:</Label>
-                  <RadioGroup value={signupRole} onValueChange={(value) => setSignupRole(value as 'customer' | 'vendor' | 'admin')}>
+                  <RadioGroup value={signupRole} onValueChange={(value) => setSignupRole(value as 'customer' | 'vendor')}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="customer" id="customer" />
                       <Label htmlFor="customer" className="font-normal cursor-pointer">
@@ -310,14 +286,6 @@ const Auth = () => {
                         Vendor - I own a store and want to list my products
                       </Label>
                     </div>
-                    {!adminExists && (
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="admin" id="admin" />
-                        <Label htmlFor="admin" className="font-normal cursor-pointer">
-                          Admin - First time setup (this option will disappear after first admin)
-                        </Label>
-                      </div>
-                    )}
                   </RadioGroup>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
