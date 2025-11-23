@@ -317,8 +317,7 @@ serve(async (req) => {
                 store_id: storeId,
                 product_id: productId,
                 quantity: product.quantity,
-                price: product.price,
-                in_stock: product.quantity > 0
+                price: product.price
               }, {
                 onConflict: 'store_id,product_id'
               });
@@ -410,8 +409,7 @@ serve(async (req) => {
             store_id: data.storeId,
             product_id: product.id,
             price: data.price,
-            quantity: data.quantity,
-            in_stock: data.quantity > 0,
+            quantity: data.quantity
           })
           .select()
           .single();
