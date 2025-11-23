@@ -13,7 +13,6 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [loginRole, setLoginRole] = useState<'customer' | 'vendor'>('customer');
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
@@ -194,23 +193,6 @@ const Auth = () => {
 
             <TabsContent value="login" className="space-y-4">
               <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-3">
-                  <Label>Logging in as:</Label>
-                  <RadioGroup value={loginRole} onValueChange={(value) => setLoginRole(value as 'customer' | 'vendor')}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="customer" id="login-customer" />
-                      <Label htmlFor="login-customer" className="font-normal cursor-pointer">
-                        Customer
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="vendor" id="login-vendor" />
-                      <Label htmlFor="login-vendor" className="font-normal cursor-pointer">
-                        Vendor
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
