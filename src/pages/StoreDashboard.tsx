@@ -198,7 +198,9 @@ export default function StoreDashboard() {
 
       toast({
         title: 'Success',
-        description: 'Product added to inventory',
+        description: store.status === 'pending' 
+          ? 'Product added! It will appear in search once your store is approved.' 
+          : 'Product added to inventory',
       });
 
       setIsAddDialogOpen(false);
@@ -577,6 +579,25 @@ export default function StoreDashboard() {
                         <DialogTitle>Add New Product</DialogTitle>
                         <DialogDescription>Add a new product to your inventory</DialogDescription>
                       </DialogHeader>
+                      
+                      {store.status === 'pending' && (
+                        <Alert className="border-yellow-500/50 bg-yellow-500/10">
+                          <AlertCircle className="h-4 w-4 text-yellow-600" />
+                          <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-200">
+                            Your store is pending approval. This product will be added but won't appear in customer searches until your store is approved.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      
+                      {store.status === 'rejected' && (
+                        <Alert className="border-red-500/50 bg-red-500/10">
+                          <AlertCircle className="h-4 w-4 text-red-600" />
+                          <AlertDescription className="text-sm text-red-800 dark:text-red-200">
+                            Your store has been rejected. Please update your store details before adding products.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="product-name">Product Name *</Label>
@@ -943,6 +964,24 @@ export default function StoreDashboard() {
           </TabsContent>
 
           <TabsContent value="import" className="space-y-4">
+            {store.status === 'pending' && (
+              <Alert className="border-yellow-500/50 bg-yellow-500/10">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+                  <strong>Store Pending Approval</strong> — Products you import will be added to your inventory but won't appear in customer searches until your store is approved by an admin.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {store.status === 'rejected' && (
+              <Alert className="border-red-500/50 bg-red-500/10">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-800 dark:text-red-200">
+                  <strong>Store Rejected</strong> — Please update your store details and contact support before importing products.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft } from 'lucide-react';
+import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft, AlertCircle } from 'lucide-react';
 import LocationPicker from '@/components/LocationPicker';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function MerchantOnboarding() {
   const navigate = useNavigate();
@@ -193,6 +194,15 @@ export default function MerchantOnboarding() {
           <h1 className="text-3xl font-bold">Merchant Onboarding</h1>
           <p className="text-muted-foreground">Join AassPass and connect with local shoppers</p>
         </div>
+
+        <Alert className="border-blue-500/50 bg-blue-500/10">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800 dark:text-blue-200">
+            <strong>Approval Process</strong> — After submitting your store, an admin will review your application. 
+            Once approved, your store and products will be visible to customers in search. 
+            You can add products immediately, but they won't appear until your store is approved.
+          </AlertDescription>
+        </Alert>
 
         <Tabs value={currentStep} onValueChange={setCurrentStep}>
           <TabsList className="grid w-full grid-cols-2">
