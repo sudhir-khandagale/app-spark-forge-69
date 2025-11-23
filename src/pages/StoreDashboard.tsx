@@ -138,13 +138,16 @@ export default function StoreDashboard() {
 
     setUploading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
       let imageUrl = null;
 
       // Upload image if provided
       if (productImage) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
         const fileExt = productImage.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${user.id}/${fileName}`;
@@ -162,32 +165,35 @@ export default function StoreDashboard() {
         imageUrl = publicUrl;
       }
 
-      // Create product
-      const { data: product, error: productError } = await supabase
-        .from('products')
-        .insert({
-          name: newProduct.name,
-          description: newProduct.description,
-          category: newProduct.category,
-          image_url: imageUrl,
-        })
-        .select()
-        .single();
+      // Call backend to create product (bypasses RLS)
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-dashboard`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'create_product',
+            data: {
+              storeId,
+              name: newProduct.name,
+              description: newProduct.description || null,
+              category: newProduct.category || null,
+              price: parseFloat(newProduct.price),
+              quantity: parseInt(newProduct.quantity, 10),
+              imageUrl,
+            },
+          }),
+        }
+      );
 
-      if (productError) throw productError;
+      const result = await response.json();
 
-      // Add to inventory
-      const { error: inventoryError } = await supabase
-        .from('inventory')
-        .insert({
-          store_id: storeId,
-          product_id: product.id,
-          price: parseFloat(newProduct.price),
-          quantity: parseInt(newProduct.quantity),
-          in_stock: parseInt(newProduct.quantity) > 0,
-        });
-
-      if (inventoryError) throw inventoryError;
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add product');
+      }
 
       toast({
         title: 'Success',
@@ -200,7 +206,7 @@ export default function StoreDashboard() {
       setImagePreview(null);
       fetchStoreData();
     } catch (error: any) {
-      console.error('Error adding product:', error);
+      console.error('Error adding product:', error, JSON.stringify(error, null, 2));
       toast({
         title: 'Error',
         description: error.message || 'Failed to add product',
@@ -239,64 +245,96 @@ export default function StoreDashboard() {
     }
   };
 
-  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Not authenticated');
 
-      toast({
-        title: 'CSV Upload',
-        description: `Processing ${lines.length - 1} products...`,
-      });
+        const text = e.target?.result as string;
+        const lines = text.split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
 
-      // This is a basic implementation - you'd want more robust CSV parsing
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        
-        const values = lines[i].split(',').map(v => v.trim());
-        const row: any = {};
-        headers.forEach((header, index) => {
-          row[header.toLowerCase()] = values[index];
+        toast({
+          title: 'CSV Upload',
+          description: `Processing ${lines.length - 1} products...`,
         });
 
-        // Process each row (simplified - add better error handling)
-        if (row.name && row.price && row.quantity) {
-          try {
-            const { data: product } = await supabase
-              .from('products')
-              .insert({
-                name: row.name,
-                description: row.description || null,
-                category: row.category || null,
-              })
-              .select()
-              .single();
+        const productsForUpload: any[] = [];
 
-            if (product) {
-              await supabase.from('inventory').insert({
-                store_id: storeId,
-                product_id: product.id,
-                price: parseFloat(row.price),
-                quantity: parseInt(row.quantity),
-              });
-            }
-          } catch (err) {
-            console.error('Error processing row:', err);
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          
+          const values = lines[i].split(',').map(v => v.trim());
+          const row: any = {};
+          headers.forEach((header, index) => {
+            row[header.toLowerCase()] = values[index];
+          });
+
+          if (row.name && row.price && row.quantity) {
+            productsForUpload.push({
+              name: row.name,
+              description: row.description || null,
+              category: row.category || null,
+              price: parseFloat(row.price),
+              quantity: parseInt(row.quantity, 10),
+              barcode: row.barcode || null,
+            });
           }
         }
+
+        if (productsForUpload.length === 0) {
+          toast({
+            title: 'Error',
+            description: 'No valid products found in CSV',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Call backend to bulk upload
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-dashboard`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              action: 'bulk_upload',
+              data: {
+                storeId,
+                products: productsForUpload,
+              },
+            }),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Bulk upload failed');
+        }
+
+        toast({
+          title: 'CSV Import Complete',
+          description: `Imported ${result.success.length} products, ${result.failed.length} failed.`,
+        });
+
+        fetchStoreData();
+      } catch (err: any) {
+        console.error('Error processing CSV:', err, JSON.stringify(err, null, 2));
+        toast({
+          title: 'Error',
+          description: err.message || 'Failed to import CSV',
+          variant: 'destructive',
+        });
       }
-
-      toast({
-        title: 'Success',
-        description: 'CSV imported successfully',
-      });
-
-      fetchStoreData();
     };
 
     reader.readAsText(file);
