@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { Store, Phone, Mail, Clock } from 'lucide-react';
+import LocationPicker from '@/components/LocationPicker';
 
 export default function MerchantOnboarding() {
   const navigate = useNavigate();
@@ -38,6 +39,15 @@ export default function MerchantOnboarding() {
 
   const handleInputChange = (field: string, value: string) => {
     setStoreData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleLocationChange = (locationData: { address: string; latitude: string; longitude: string }) => {
+    setStoreData(prev => ({
+      ...prev,
+      address: locationData.address,
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+    }));
   };
 
   const handleSubmit = async () => {
@@ -136,39 +146,12 @@ export default function MerchantOnboarding() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Address *
-                  </Label>
-                  <Input
-                    id="address"
-                    placeholder="123 Main St, City, State 12345"
-                    value={storeData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="latitude">Latitude</Label>
-                    <Input
-                      id="latitude"
-                      placeholder="40.7128"
-                      value={storeData.latitude}
-                      onChange={(e) => handleInputChange('latitude', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="longitude">Longitude</Label>
-                    <Input
-                      id="longitude"
-                      placeholder="-74.0060"
-                      value={storeData.longitude}
-                      onChange={(e) => handleInputChange('longitude', e.target.value)}
-                    />
-                  </div>
-                </div>
+                <LocationPicker
+                  address={storeData.address}
+                  latitude={storeData.latitude}
+                  longitude={storeData.longitude}
+                  onLocationChange={handleLocationChange}
+                />
 
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="flex items-center gap-2">
