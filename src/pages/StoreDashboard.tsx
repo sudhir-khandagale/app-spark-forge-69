@@ -124,7 +124,6 @@ export default function StoreDashboard() {
           product_id: product.id,
           price: parseFloat(newProduct.price),
           quantity: parseInt(newProduct.quantity),
-          in_stock: parseInt(newProduct.quantity) > 0,
         });
 
       if (inventoryError) throw inventoryError;
@@ -153,7 +152,6 @@ export default function StoreDashboard() {
         .from('inventory')
         .update({
           quantity: newQuantity,
-          in_stock: newQuantity > 0,
           last_updated: new Date().toISOString(),
         })
         .eq('id', inventoryId);
@@ -220,7 +218,6 @@ export default function StoreDashboard() {
                 product_id: product.id,
                 price: parseFloat(row.price),
                 quantity: parseInt(row.quantity),
-                in_stock: parseInt(row.quantity) > 0,
               });
             }
           } catch (err) {
