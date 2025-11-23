@@ -1,7 +1,8 @@
-import { ArrowLeft, Share2, Heart, MapPin, Phone, Navigation, Loader2, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart } from 'lucide-react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
+import WishlistButton from '@/components/WishlistButton';
 import { useProduct } from '@/hooks/useProducts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState, useRef } from 'react';
@@ -16,39 +17,16 @@ const ProductDetails = () => {
   const storeId = searchParams.get('store');
   const { product, loading } = useProduct(id!, storeId || undefined);
   const { toast } = useToast();
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [reviewRefresh, setReviewRefresh] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
 
   useEffect(() => {
-    checkFavoriteStatus();
-  }, [id]);
-
-  useEffect(() => {
     if (product?.store_latitude && product?.store_longitude && mapRef.current && !googleMapRef.current) {
       initializeMap();
     }
   }, [product]);
-
-  const checkFavoriteStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('product_id', id!)
-        .single();
-
-      setIsFavorite(!!data);
-    } catch (error) {
-      // Not favorite
-    }
-  };
 
   const initializeMap = async () => {
     try {
@@ -80,44 +58,6 @@ const ProductDetails = () => {
       googleMapRef.current = map;
     } catch (error) {
       console.error('Error loading map:', error);
-    }
-  };
-
-  const handleToggleFavorite = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: 'Authentication Required',
-          description: 'Please login to add favorites',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      if (isFavorite) {
-        await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('product_id', id!);
-        
-        setIsFavorite(false);
-        toast({ title: 'Removed from favorites' });
-      } else {
-        await supabase
-          .from('favorites')
-          .insert({ user_id: user.id, product_id: id! });
-        
-        setIsFavorite(true);
-        toast({ title: 'Added to favorites' });
-      }
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
     }
   };
 
@@ -203,14 +143,7 @@ const ProductDetails = () => {
             <Button variant="ghost" size="icon">
               <Share2 className="w-5 h-5" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={handleToggleFavorite}
-              className={isFavorite ? 'text-red-500' : ''}
-            >
-              <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
-            </Button>
+            <WishlistButton productId={id!} />
           </div>
           </div>
         </header>
@@ -262,9 +195,7 @@ const ProductDetails = () => {
             <Button variant="ghost" size="icon">
               <Share2 className="w-5 h-5" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <Heart className="w-5 h-5" />
-            </Button>
+            <WishlistButton productId={id!} />
           </div>
         </div>
       </header>
