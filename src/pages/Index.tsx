@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, ScanBarcode, TrendingUp, MapPin } from 'lucide-react';
+import { Search, TrendingUp, MapPin } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,11 +50,14 @@ const Index = () => {
                   }
                 }}
               />
-              <Link to="/scanner">
-                <Button size="icon" variant="ghost">
-                  <ScanBarcode className="w-5 h-5" />
-                </Button>
-              </Link>
+              <Button 
+                size="icon" 
+                variant="ghost"
+                onClick={() => handleSearch(searchQuery)}
+                type="button"
+              >
+                <Search className="w-5 h-5 text-primary" />
+              </Button>
             </div>
           </div>
         </div>
