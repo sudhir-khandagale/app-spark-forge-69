@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import BottomNav from '@/components/BottomNav';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -84,11 +85,14 @@ const Profile = () => {
       <header className="p-4 border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold">Profile</h1>
-          <Link to="/settings">
-            <Button variant="ghost" size="icon">
-              <SettingsIcon className="w-5 h-5" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/settings">
+              <Button variant="ghost" size="icon">
+                <SettingsIcon className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
