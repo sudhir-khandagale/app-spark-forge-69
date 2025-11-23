@@ -19,6 +19,7 @@ import Reserve from "./pages/Reserve";
 import NotFound from "./pages/NotFound";
 import MerchantOnboarding from "./pages/MerchantOnboarding";
 import StoreDashboard from "./pages/StoreDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/reserve/:id" element={<ProtectedRoute><Reserve /></ProtectedRoute>} />
           <Route path="/onboarding/merchant" element={<ProtectedRoute><MerchantOnboarding /></ProtectedRoute>} />
           <Route path="/dashboard/store/:storeId" element={<ProtectedRoute><StoreDashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
