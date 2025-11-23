@@ -164,6 +164,57 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          photo_urls: string[] | null
+          product_id: string
+          rating: number
+          store_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          photo_urls?: string[] | null
+          product_id: string
+          rating: number
+          store_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          photo_urls?: string[] | null
+          product_id?: string
+          rating?: number
+          store_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_reviews_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           barcode: string | null
@@ -173,6 +224,8 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          rating: number | null
+          review_count: number | null
           updated_at: string | null
         }
         Insert: {
@@ -183,6 +236,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          rating?: number | null
+          review_count?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -193,6 +248,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          rating?: number | null
+          review_count?: number | null
           updated_at?: string | null
         }
         Relationships: []

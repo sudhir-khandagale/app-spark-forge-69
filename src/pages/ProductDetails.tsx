@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ProductReviewForm from '@/components/ProductReviewForm';
+import ProductReviews from '@/components/ProductReviews';
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +18,7 @@ const ProductDetails = () => {
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [reviewRefresh, setReviewRefresh] = useState(0);
   const mapRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
 
@@ -360,6 +363,21 @@ const ProductDetails = () => {
               </div>
             </div>
           )}
+
+          {/* Product Reviews */}
+          <div className="space-y-3">
+            <ProductReviews 
+              productId={id!} 
+              refreshTrigger={reviewRefresh}
+            />
+            {product.in_stock && storeId && (
+              <ProductReviewForm 
+                productId={id!}
+                storeId={storeId}
+                onReviewSubmitted={() => setReviewRefresh(prev => prev + 1)}
+              />
+            )}
+          </div>
         </div>
       </main>
 
