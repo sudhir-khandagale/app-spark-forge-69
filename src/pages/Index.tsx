@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { Search, TrendingUp, MapPin } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import BottomNav from '@/components/BottomNav';
-import { useStores } from '@/hooks/useStores';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  const { stores } = useStores();
   const { latitude, longitude } = useGeolocation();
 
   const handleSearch = (query: string) => {
@@ -20,7 +18,6 @@ const Index = () => {
   };
 
   const trendingSearches = ['Wireless Headphones', 'Running Shoes', 'Coffee Maker', 'Laptop', 'Phone Case'];
-  const featuredStores = stores.slice(0, 3);
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
@@ -84,39 +81,6 @@ const Index = () => {
                 </Button>
               ))}
             </div>
-          </div>
-
-          {/* Featured Stores */}
-          <div>
-            <h2 className="font-semibold mb-3">Featured Stores Near You</h2>
-            {featuredStores.length > 0 ? (
-              <div className="space-y-3">
-                {featuredStores.map((store) => (
-                  <Link key={store.id} to={`/store/${store.id}`}>
-                    <div className="p-4 bg-card border border-border rounded-lg hover:border-primary transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold">{store.name}</h3>
-                        {store.rating && (
-                          <span className="text-sm">⭐ {store.rating.toFixed(1)}</span>
-                        )}
-                      </div>
-                      {store.description && (
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          {store.description}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">{store.address}</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 bg-card border border-border rounded-lg text-center">
-                <p className="text-muted-foreground">No stores available yet</p>
-              </div>
-            )}
           </div>
         </div>
       </main>
