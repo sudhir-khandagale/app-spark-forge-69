@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle } from 'lucide-react';
+import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface Store {
@@ -31,6 +31,18 @@ interface UserWithRole {
   role: string;
 }
 
+interface ProductWithStore {
+  id: string;
+  name: string;
+  category: string | null;
+  created_at: string;
+  store_id: string;
+  store_name: string;
+  quantity: number;
+  price: number;
+  in_stock: boolean;
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -39,6 +51,7 @@ export default function AdminDashboard() {
   const [pendingStores, setPendingStores] = useState<Store[]>([]);
   const [allStores, setAllStores] = useState<Store[]>([]);
   const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [products, setProducts] = useState<ProductWithStore[]>([]);
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -101,6 +114,43 @@ export default function AdminDashboard() {
       });
 
       setUsers(usersWithRoles);
+
+      // Fetch products with store information
+      const { data: productsData, error: productsError } = await supabase
+        .from('inventory')
+        .select(`
+          id,
+          quantity,
+          price,
+          in_stock,
+          products (
+            id,
+            name,
+            category,
+            created_at
+          ),
+          stores (
+            id,
+            name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (productsError) throw productsError;
+
+      const formattedProducts = productsData?.map(item => ({
+        id: item.products.id,
+        name: item.products.name,
+        category: item.products.category,
+        created_at: item.products.created_at,
+        store_id: item.stores.id,
+        store_name: item.stores.name,
+        quantity: item.quantity,
+        price: item.price,
+        in_stock: item.in_stock || false,
+      })) || [];
+
+      setProducts(formattedProducts);
     } catch (error: any) {
       console.error('Error fetching data:', error);
       toast({
@@ -238,6 +288,40 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      // First delete from inventory
+      const { error: inventoryError } = await supabase
+        .from('inventory')
+        .delete()
+        .eq('product_id', productId);
+
+      if (inventoryError) throw inventoryError;
+
+      // Then delete the product
+      const { error: productError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (productError) throw productError;
+
+      toast({
+        title: 'Success',
+        description: 'Product deleted successfully',
+      });
+
+      fetchData();
+    } catch (error: any) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete product',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (roleLoading || loading) {
     return (
       <div className="min-h-screen bg-background p-4">
@@ -275,7 +359,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
@@ -296,6 +380,15 @@ export default function AdminDashboard() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{products.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -309,6 +402,7 @@ export default function AdminDashboard() {
           <TabsList>
             <TabsTrigger value="pending">Pending Approvals</TabsTrigger>
             <TabsTrigger value="stores">All Stores</TabsTrigger>
+            <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
@@ -462,6 +556,100 @@ export default function AdminDashboard() {
                         </TableCell>
                       </TableRow>
                     ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="products" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Management</CardTitle>
+                <CardDescription>View and manage all products across stores</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Store</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground">
+                          No products found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>
+                            {product.category ? (
+                              <Badge variant="outline">{product.category}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">Uncategorized</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{product.store_name}</TableCell>
+                          <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                          <TableCell>{product.quantity}</TableCell>
+                          <TableCell>
+                            {product.in_stock ? (
+                              <Badge className="bg-green-100 text-green-800">In Stock</Badge>
+                            ) : (
+                              <Badge className="bg-red-100 text-red-800">Out of Stock</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(`/product/${product.id}`)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Product?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete "{product.name}" from {product.store_name}. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteProduct(product.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
