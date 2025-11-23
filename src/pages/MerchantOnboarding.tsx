@@ -86,10 +86,10 @@ export default function MerchantOnboarding() {
 
       toast({
         title: 'Success!',
-        description: 'Your store has been registered successfully.',
+        description: 'Your store has been submitted for approval. You will be notified once it is reviewed by our admin team.',
       });
 
-      navigate(`/dashboard/store/${store.id}`);
+      navigate('/profile');
     } catch (error: any) {
       console.error('Error creating store:', error);
       toast({
