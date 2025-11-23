@@ -499,6 +499,7 @@ export type Database = {
           phone: string | null
           photo_urls: string[] | null
           rating: number | null
+          rejection_reason: string | null
           review_count: number | null
           specialties: string[] | null
           status: string | null
@@ -518,6 +519,7 @@ export type Database = {
           phone?: string | null
           photo_urls?: string[] | null
           rating?: number | null
+          rejection_reason?: string | null
           review_count?: number | null
           specialties?: string[] | null
           status?: string | null
@@ -537,6 +539,7 @@ export type Database = {
           phone?: string | null
           photo_urls?: string[] | null
           rating?: number | null
+          rejection_reason?: string | null
           review_count?: number | null
           specialties?: string[] | null
           status?: string | null
