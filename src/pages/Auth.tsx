@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { EmailVerification } from '@/components/EmailVerification';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +17,8 @@ const Auth = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupRole, setSignupRole] = useState<'customer' | 'vendor'>('customer');
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -132,14 +135,40 @@ const Auth = () => {
       });
       setIsLoading(false);
     } else if (data.user) {
-      toast({
-        title: "Success!",
-        description: "Account created successfully. Redirecting...",
-      });
-      // Redirect based on role
-      await redirectByRole(data.user.id);
+      // Check if email confirmation is required
+      if (data.user.identities && data.user.identities.length === 0) {
+        // Email confirmation required
+        setVerificationEmail(signupEmail);
+        setShowEmailVerification(true);
+        toast({
+          title: "Verify your email",
+          description: "Please check your email for the verification link.",
+        });
+      } else {
+        toast({
+          title: "Success!",
+          description: "Account created successfully. Redirecting...",
+        });
+        // Redirect based on role
+        await redirectByRole(data.user.id);
+      }
     }
   };
+
+  if (showEmailVerification) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <EmailVerification 
+              email={verificationEmail} 
+              onBackToLogin={() => setShowEmailVerification(false)}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
