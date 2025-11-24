@@ -66,6 +66,13 @@ export default function StoreDashboard() {
   const [selectedInventoryId, setSelectedInventoryId] = useState<string | null>(null);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  const [features, setFeatures] = useState<any>({
+    analytics: false,
+    flash_sales: false,
+    bulk_upload: false,
+    priority_support: false,
+    featured_listing: false
+  });
 
   useEffect(() => {
     fetchStoreData();
@@ -136,6 +143,23 @@ export default function StoreDashboard() {
 
       if (inventoryError) throw inventoryError;
       setInventory(inventoryData || []);
+
+      // Fetch subscription
+      const { data: subData } = await supabase
+        .from('vendor_subscriptions')
+        .select('*')
+        .eq('store_id', storeId)
+        .single();
+
+      setSubscription(subData);
+
+      // Get effective features using the database function
+      const { data: featuresData } = await supabase
+        .rpc('get_subscription_features', { p_store_id: storeId });
+
+      if (featuresData) {
+        setFeatures(featuresData);
+      }
     } catch (error: any) {
       console.error('Error fetching store data:', error);
       toast({
@@ -648,27 +672,33 @@ export default function StoreDashboard() {
           </Alert>
         )}
 
-        <Tabs defaultValue="analytics">
+        <Tabs defaultValue="inventory">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            {features.analytics && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="flash-sales">Flash Sales</TabsTrigger>
-            <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
+            {features.flash_sales && <TabsTrigger value="flash-sales">Flash Sales</TabsTrigger>}
+            {features.bulk_upload && <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>}
             <TabsTrigger value="store-details">Store Details</TabsTrigger>
             <TabsTrigger value="import">Import Products</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="analytics" className="space-y-4">
-            <VendorAnalyticsDashboard storeId={storeId!} />
-          </TabsContent>
+          {features.analytics && (
+            <TabsContent value="analytics" className="space-y-4">
+              <VendorAnalyticsDashboard storeId={storeId!} />
+            </TabsContent>
+          )}
 
-          <TabsContent value="flash-sales" className="space-y-4">
-            <FlashSalesManager storeId={storeId!} />
-          </TabsContent>
+          {features.flash_sales && (
+            <TabsContent value="flash-sales" className="space-y-4">
+              <FlashSalesManager storeId={storeId!} />
+            </TabsContent>
+          )}
 
-          <TabsContent value="bulk-upload" className="space-y-4">
-            <BulkInventoryUpload storeId={storeId!} onUploadComplete={fetchStoreData} />
-          </TabsContent>
+          {features.bulk_upload && (
+            <TabsContent value="bulk-upload" className="space-y-4">
+              <BulkInventoryUpload storeId={storeId!} onUploadComplete={fetchStoreData} />
+            </TabsContent>
+          )}
 
           <TabsContent value="inventory" className="space-y-4">
             <Card>

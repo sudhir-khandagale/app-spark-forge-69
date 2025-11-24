@@ -862,6 +862,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_subscription_features: { Args: { p_store_id: string }; Returns: Json }
       get_vendor_analytics: {
         Args: { p_days?: number; p_store_id: string }
         Returns: {
