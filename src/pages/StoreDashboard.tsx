@@ -11,6 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2 } from 'lucide-react';
 import { VendorNotifications } from '@/components/VendorNotifications';
+import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
+import BulkInventoryUpload from '@/components/BulkInventoryUpload';
+import FlashSalesManager from '@/components/FlashSalesManager';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -626,12 +629,27 @@ export default function StoreDashboard() {
           </Alert>
         )}
 
-        <Tabs defaultValue="inventory">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="analytics">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="flash-sales">Flash Sales</TabsTrigger>
+            <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
             <TabsTrigger value="store-details">Store Details</TabsTrigger>
             <TabsTrigger value="import">Import Products</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <VendorAnalyticsDashboard storeId={storeId!} />
+          </TabsContent>
+
+          <TabsContent value="flash-sales" className="space-y-4">
+            <FlashSalesManager storeId={storeId!} />
+          </TabsContent>
+
+          <TabsContent value="bulk-upload" className="space-y-4">
+            <BulkInventoryUpload storeId={storeId!} onUploadComplete={fetchStoreData} />
+          </TabsContent>
 
           <TabsContent value="inventory" className="space-y-4">
             <Card>

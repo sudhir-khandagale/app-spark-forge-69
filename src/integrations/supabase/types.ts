@@ -145,6 +145,69 @@ export type Database = {
           },
         ]
       }
+      flash_sales: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          discount_percentage: number | null
+          ends_at: string
+          id: string
+          max_quantity: number | null
+          original_price: number
+          product_id: string
+          sale_price: number
+          sold_quantity: number | null
+          starts_at: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          discount_percentage?: number | null
+          ends_at: string
+          id?: string
+          max_quantity?: number | null
+          original_price: number
+          product_id: string
+          sale_price: number
+          sold_quantity?: number | null
+          starts_at: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          discount_percentage?: number | null
+          ends_at?: string
+          id?: string
+          max_quantity?: number | null
+          original_price?: number
+          product_id?: string
+          sale_price?: number
+          sold_quantity?: number | null
+          starts_at?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flash_sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flash_sales_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory: {
         Row: {
           created_at: string | null
@@ -225,6 +288,51 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      product_analytics: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          product_id: string
+          store_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          product_id: string
+          store_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string
+          store_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_analytics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_analytics_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_reviews: {
         Row: {
@@ -685,6 +793,47 @@ export type Database = {
           },
         ]
       }
+      vendor_subscriptions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          features: Json | null
+          id: string
+          started_at: string | null
+          store_id: string
+          tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          features?: Json | null
+          id?: string
+          started_at?: string | null
+          store_id: string
+          tier?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          features?: Json | null
+          id?: string
+          started_at?: string | null
+          store_id?: string
+          tier?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_subscriptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -701,12 +850,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_vendor_analytics: {
+        Args: { p_days?: number; p_store_id: string }
+        Returns: {
+          top_products: Json
+          total_clicks: number
+          total_reservations: number
+          total_searches: number
+          total_views: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      track_product_view: {
+        Args: { p_product_id: string; p_store_id: string; p_user_id?: string }
+        Returns: undefined
       }
       user_has_purchased_product: {
         Args: { p_product_id: string; p_store_id: string; p_user_id: string }
