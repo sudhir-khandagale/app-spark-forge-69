@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Star, X, ImagePlus } from 'lucide-react';
+import { Star, X, ImagePlus, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { compressImage, formatFileSize } from '@/lib/imageCompression';
 
 interface ProductReviewFormProps {
   productId: string;
@@ -23,32 +24,64 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [compressing, setCompressing] = useState(false);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Validate file size (200KB = 200 * 1024 bytes)
-    const maxSize = 200 * 1024;
-    const validFiles = files.filter(file => {
-      if (file.size > maxSize) {
-        toast({
-          title: 'File Too Large',
-          description: `${file.name} exceeds 200KB limit`,
-          variant: 'destructive',
-        });
-        return false;
+    setCompressing(true);
+    try {
+      const maxSize = 200 * 1024; // 200KB
+      const compressedFiles: File[] = [];
+
+      for (const file of files) {
+        // Check if file is an image
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: 'Invalid File',
+            description: `${file.name} is not an image`,
+            variant: 'destructive',
+          });
+          continue;
+        }
+
+        const originalSize = formatFileSize(file.size);
+        
+        try {
+          // Compress the image
+          const compressedFile = await compressImage(file, 200);
+          const compressedSize = formatFileSize(compressedFile.size);
+          
+          compressedFiles.push(compressedFile);
+          
+          // Show compression info if size was reduced significantly
+          if (file.size > maxSize) {
+            toast({
+              title: 'Image Compressed',
+              description: `${file.name}: ${originalSize} → ${compressedSize}`,
+            });
+          }
+        } catch (error) {
+          console.error('Compression error:', error);
+          toast({
+            title: 'Compression Failed',
+            description: `Failed to compress ${file.name}`,
+            variant: 'destructive',
+          });
+        }
       }
-      return true;
-    });
 
-    if (validFiles.length === 0) return;
+      if (compressedFiles.length === 0) return;
 
-    const newFiles = [...photoFiles, ...validFiles].slice(0, 3);
-    setPhotoFiles(newFiles);
+      const newFiles = [...photoFiles, ...compressedFiles].slice(0, 3);
+      setPhotoFiles(newFiles);
 
-    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-    setPhotoPreviews(newPreviews);
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      setPhotoPreviews(newPreviews);
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const removePhoto = (index: number) => {
@@ -229,14 +262,18 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
                     accept="image/*"
                     multiple
                     onChange={handlePhotoChange}
-                    disabled={photoFiles.length >= 3}
+                    disabled={photoFiles.length >= 3 || compressing}
                     className="flex-1"
                   />
-                  <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                  {compressing ? (
+                    <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                  ) : (
+                    <ImagePlus className="h-5 w-5 text-muted-foreground" />
+                  )}
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                {photoFiles.length}/3 photos • Max 200KB per image
+                {photoFiles.length}/3 photos • Images auto-compressed to 200KB
               </p>
             </div>
           </div>
