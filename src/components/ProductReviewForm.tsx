@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Star, X, ImagePlus, Loader2, ShoppingBag } from 'lucide-react';
+import { Star, X, ImagePlus, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { compressImage, formatFileSize } from '@/lib/imageCompression';
 
 interface ProductReviewFormProps {
@@ -19,8 +18,6 @@ interface ProductReviewFormProps {
 export default function ProductReviewForm({ productId, storeId, onReviewSubmitted }: ProductReviewFormProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [hasPurchased, setHasPurchased] = useState<boolean | null>(null);
-  const [checkingPurchase, setCheckingPurchase] = useState(true);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -29,40 +26,6 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
   const [photoSizes, setPhotoSizes] = useState<{ original: number; compressed: number }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [compressing, setCompressing] = useState(false);
-
-  useEffect(() => {
-    checkPurchaseStatus();
-  }, [productId, storeId]);
-
-  const checkPurchaseStatus = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setHasPurchased(false);
-        setCheckingPurchase(false);
-        return;
-      }
-
-      // Check if user has purchased/reserved this product from this store
-      const { data, error } = await supabase
-        .from('reservations')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('product_id', productId)
-        .eq('store_id', storeId)
-        .in('status', ['completed', 'confirmed'])
-        .limit(1);
-
-      if (error) throw error;
-      
-      setHasPurchased(data && data.length > 0);
-    } catch (error) {
-      console.error('Error checking purchase status:', error);
-      setHasPurchased(false);
-    } finally {
-      setCheckingPurchase(false);
-    }
-  };
 
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -227,27 +190,6 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
       setSubmitting(false);
     }
   };
-
-  if (checkingPurchase) {
-    return (
-      <Button className="w-full" disabled>
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        Checking eligibility...
-      </Button>
-    );
-  }
-
-  if (!hasPurchased) {
-    return (
-      <Alert>
-        <ShoppingBag className="h-4 w-4" />
-        <AlertDescription>
-          You can only write a review after purchasing or reserving this product from this store.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
