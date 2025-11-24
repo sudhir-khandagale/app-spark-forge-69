@@ -272,7 +272,7 @@ export default function MerchantOnboarding() {
         </div>
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Merchant Onboarding</h1>
-          <p className="text-muted-foreground">Join AassPass and connect with local shoppers</p>
+          <p className="text-muted-foreground">Join Flowdux and connect with local shoppers</p>
         </div>
 
         <Alert className="border-blue-500/50 bg-blue-500/10">
