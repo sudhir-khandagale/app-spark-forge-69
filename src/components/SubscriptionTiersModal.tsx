@@ -130,12 +130,26 @@ export default function SubscriptionTiersModal({
 
       // Open Razorpay checkout for paid plans
       if (data.razorpay_key && data.subscription_id) {
+        console.log('Opening Razorpay checkout with:', { 
+          key: data.razorpay_key, 
+          subscription_id: data.subscription_id,
+          short_url: data.short_url 
+        });
+
+        // Use short_url if available (Razorpay hosted checkout page)
+        if (data.short_url) {
+          window.location.href = data.short_url;
+          return;
+        }
+
+        // Fallback to embedded checkout
         const options = {
           key: data.razorpay_key,
           subscription_id: data.subscription_id,
           name: 'AassPass',
           description: data.description,
           handler: function (response: any) {
+            console.log('Payment response:', response);
             toast({
               title: 'Payment Successful!',
               description: 'Your subscription has been activated.'
@@ -146,6 +160,7 @@ export default function SubscriptionTiersModal({
           },
           modal: {
             ondismiss: function() {
+              console.log('Payment modal dismissed');
               setUpgrading(false);
             }
           },
@@ -156,6 +171,9 @@ export default function SubscriptionTiersModal({
 
         const razorpay = new (window as any).Razorpay(options);
         razorpay.open();
+      } else {
+        console.error('Missing razorpay data:', data);
+        throw new Error('Invalid payment configuration');
       }
     } catch (error: any) {
       console.error('Upgrade error:', error);
