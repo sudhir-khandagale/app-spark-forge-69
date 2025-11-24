@@ -22,71 +22,97 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Handle GET requests from payment link callback
+  if (req.method === 'GET') {
+    const url = new URL(req.url);
+    const razorpay_payment_id = url.searchParams.get('razorpay_payment_id');
+    const razorpay_payment_link_id = url.searchParams.get('razorpay_payment_link_id');
+    const razorpay_payment_link_reference_id = url.searchParams.get('razorpay_payment_link_reference_id');
+    const razorpay_payment_link_status = url.searchParams.get('razorpay_payment_link_status');
+    const razorpay_signature = url.searchParams.get('razorpay_signature');
+
+    console.log('Payment callback received:', {
+      payment_id: razorpay_payment_id,
+      link_id: razorpay_payment_link_id,
+      status: razorpay_payment_link_status
+    });
+
+    if (razorpay_payment_link_status === 'paid') {
+      // Redirect to success page
+      const baseUrl = (Deno.env.get('SUPABASE_URL') || '').replace('/functions/v1/razorpay-webhook', '');
+      return Response.redirect(`${baseUrl}/payment-success?payment_id=${razorpay_payment_id}`, 302);
+    }
+
+    const baseUrl = (Deno.env.get('SUPABASE_URL') || '').replace('/functions/v1/razorpay-webhook', '');
+    return Response.redirect(`${baseUrl}/dashboard/store`, 302);
+  }
+
   try {
     const signature = req.headers.get('x-razorpay-signature');
     const body = await req.text();
     
-    // Verify webhook signature
-    if (!signature || !verifyWebhookSignature(body, signature)) {
+    // Verify webhook signature for POST requests
+    if (signature && !verifyWebhookSignature(body, signature)) {
       console.error('Invalid webhook signature');
       return new Response('Invalid signature', { status: 401 });
     }
 
     const payload = JSON.parse(body);
     const event = payload.event;
-    const subscriptionData = payload.payload.subscription.entity;
     
-    console.log('Webhook event:', event, subscriptionData);
+    console.log('Webhook event:', event);
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const storeId = subscriptionData.notes?.store_id;
-    const tier = subscriptionData.notes?.tier || 'free';
+    // Handle payment.captured event (for payment links)
+    if (event === 'payment.captured') {
+      const paymentData = payload.payload.payment.entity;
+      const notes = paymentData.notes;
+      
+      console.log('Payment captured:', paymentData.id, 'Notes:', notes);
 
-    if (!storeId) {
-      console.error('No store_id in subscription notes');
-      return new Response('Missing store_id', { status: 400 });
-    }
+      if (notes && notes.type === 'subscription' && notes.store_id && notes.tier) {
+        const storeId = notes.store_id;
+        const tier = notes.tier;
 
-    // Feature mapping based on tier
-    const features = {
-      free: {
-        analytics: false,
-        flash_sales: false,
-        bulk_upload: false,
-        priority_support: false,
-        featured_listing: false
-      },
-      pro: {
-        analytics: true,
-        flash_sales: true,
-        bulk_upload: true,
-        priority_support: false,
-        featured_listing: false
-      },
-      premium: {
-        analytics: true,
-        flash_sales: true,
-        bulk_upload: true,
-        priority_support: true,
-        featured_listing: true
-      }
-    };
+        // Feature mapping based on tier
+        const features = {
+          free: {
+            analytics: false,
+            flash_sales: false,
+            bulk_upload: false,
+            priority_support: false,
+            featured_listing: false
+          },
+          pro: {
+            analytics: true,
+            flash_sales: true,
+            bulk_upload: true,
+            priority_support: false,
+            featured_listing: false
+          },
+          premium: {
+            analytics: true,
+            flash_sales: true,
+            bulk_upload: true,
+            priority_support: true,
+            featured_listing: true
+          }
+        };
 
-    switch (event) {
-      case 'subscription.activated':
-      case 'subscription.charged': {
-        // Update subscription to active
+        // Calculate expiry (1 month from now)
+        const expiresAt = new Date();
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+
+        // Update subscription
         const { data: existing } = await supabaseAdmin
           .from('vendor_subscriptions')
           .select('id')
           .eq('store_id', storeId)
           .single();
-
-        const expiresAt = new Date(subscriptionData.current_end * 1000).toISOString();
 
         if (existing) {
           await supabaseAdmin
@@ -94,10 +120,10 @@ serve(async (req) => {
             .update({
               tier: tier,
               features: features[tier as keyof typeof features] || features.free,
-              razorpay_subscription_id: subscriptionData.id,
-              razorpay_plan_id: subscriptionData.plan_id,
+              razorpay_subscription_id: paymentData.id,
+              razorpay_plan_id: null,
               status: 'active',
-              expires_at: expiresAt
+              expires_at: expiresAt.toISOString()
             })
             .eq('store_id', storeId);
         } else {
@@ -107,46 +133,15 @@ serve(async (req) => {
               store_id: storeId,
               tier: tier,
               features: features[tier as keyof typeof features] || features.free,
-              razorpay_subscription_id: subscriptionData.id,
-              razorpay_plan_id: subscriptionData.plan_id,
+              razorpay_subscription_id: paymentData.id,
+              razorpay_plan_id: null,
               status: 'active',
-              expires_at: expiresAt
+              expires_at: expiresAt.toISOString()
             });
         }
 
-        console.log(`Subscription ${subscriptionData.id} activated for store ${storeId}`);
-        break;
+        console.log(`Subscription activated for store ${storeId} with tier ${tier}`);
       }
-
-      case 'subscription.cancelled':
-      case 'subscription.completed': {
-        // Update subscription status
-        await supabaseAdmin
-          .from('vendor_subscriptions')
-          .update({
-            status: 'cancelled',
-            tier: 'free',
-            features: features.free
-          })
-          .eq('razorpay_subscription_id', subscriptionData.id);
-
-        console.log(`Subscription ${subscriptionData.id} cancelled for store ${storeId}`);
-        break;
-      }
-
-      case 'subscription.halted': {
-        // Payment failed - update status
-        await supabaseAdmin
-          .from('vendor_subscriptions')
-          .update({ status: 'payment_failed' })
-          .eq('razorpay_subscription_id', subscriptionData.id);
-
-        console.log(`Subscription ${subscriptionData.id} payment failed for store ${storeId}`);
-        break;
-      }
-
-      default:
-        console.log('Unhandled event:', event);
     }
 
     return new Response(
