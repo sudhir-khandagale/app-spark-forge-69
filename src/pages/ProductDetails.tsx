@@ -354,10 +354,10 @@ const ProductDetails = () => {
               productId={id!} 
               refreshTrigger={reviewRefresh}
             />
-            {storeId && (
+            {(storeId || product?.store_id) && (
               <ProductReviewForm 
                 productId={id!}
-                storeId={storeId}
+                storeId={storeId || product?.store_id!}
                 onReviewSubmitted={() => setReviewRefresh(prev => prev + 1)}
               />
             )}
