@@ -432,6 +432,7 @@ export type Database = {
           email: string | null
           id: string
           phone: string | null
+          razorpay_customer_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -441,6 +442,7 @@ export type Database = {
           email?: string | null
           id: string
           phone?: string | null
+          razorpay_customer_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -450,6 +452,7 @@ export type Database = {
           email?: string | null
           id?: string
           phone?: string | null
+          razorpay_customer_id?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -799,7 +802,10 @@ export type Database = {
           expires_at: string | null
           features: Json | null
           id: string
+          razorpay_plan_id: string | null
+          razorpay_subscription_id: string | null
           started_at: string | null
+          status: string | null
           store_id: string
           tier: string
           updated_at: string | null
@@ -809,7 +815,10 @@ export type Database = {
           expires_at?: string | null
           features?: Json | null
           id?: string
+          razorpay_plan_id?: string | null
+          razorpay_subscription_id?: string | null
           started_at?: string | null
+          status?: string | null
           store_id: string
           tier?: string
           updated_at?: string | null
@@ -819,7 +828,10 @@ export type Database = {
           expires_at?: string | null
           features?: Json | null
           id?: string
+          razorpay_plan_id?: string | null
+          razorpay_subscription_id?: string | null
           started_at?: string | null
+          status?: string | null
           store_id?: string
           tier?: string
           updated_at?: string | null
