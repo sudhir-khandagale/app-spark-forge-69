@@ -9,11 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2 } from 'lucide-react';
+import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2, Crown } from 'lucide-react';
 import { VendorNotifications } from '@/components/VendorNotifications';
 import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
 import BulkInventoryUpload from '@/components/BulkInventoryUpload';
 import FlashSalesManager from '@/components/FlashSalesManager';
+import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -63,6 +64,8 @@ export default function StoreDashboard() {
   const [storePreviews, setStorePreviews] = useState<string[]>([]);
   const [updatingStock, setUpdatingStock] = useState<string | null>(null);
   const [selectedInventoryId, setSelectedInventoryId] = useState<string | null>(null);
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
     fetchStoreData();
@@ -579,12 +582,28 @@ export default function StoreDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setSubscriptionModalOpen(true)}
+              className="gap-2"
+            >
+              <Crown className="h-4 w-4" />
+              {subscription?.tier === 'premium' ? 'Premium' : subscription?.tier === 'pro' ? 'Pro Plan' : 'Upgrade'}
+            </Button>
             <VendorNotifications storeId={storeId || null} onNotificationClick={handleNotificationClick} />
             <Button variant="outline" onClick={() => navigate(`/store/${storeId}`)}>
               View Public Profile
             </Button>
           </div>
         </div>
+
+        <SubscriptionTiersModal
+          open={subscriptionModalOpen}
+          onOpenChange={setSubscriptionModalOpen}
+          storeId={storeId!}
+          currentTier={subscription?.tier || 'free'}
+          onUpgrade={fetchStoreData}
+        />
 
         {/* Store Status Alert */}
         {store.status === 'pending' && (
