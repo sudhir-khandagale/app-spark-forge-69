@@ -106,9 +106,9 @@ const Search = () => {
                               Favorite
                             </Badge>
                           )}
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-semibold text-foreground text-base pr-20">{result.name}</h3>
-                            <span className="text-primary font-bold text-base">{formatPrice(result.price)}</span>
+                          <div className="mb-2 pr-32">
+                            <h3 className="font-semibold text-foreground text-base mb-1">{result.name}</h3>
+                            <span className="text-primary font-bold text-lg">{formatPrice(result.price)}</span>
                           </div>
                           <p className="text-sm text-foreground/80 mb-2">
                             📍 {result.store_name}
