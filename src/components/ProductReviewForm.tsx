@@ -23,6 +23,7 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
   const [comment, setComment] = useState('');
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [photoSizes, setPhotoSizes] = useState<{ original: number; compressed: number }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [compressing, setCompressing] = useState(false);
 
@@ -34,6 +35,7 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
     try {
       const maxSize = 200 * 1024; // 200KB
       const compressedFiles: File[] = [];
+      const sizesInfo: { original: number; compressed: number }[] = [];
 
       for (const file of files) {
         // Check if file is an image
@@ -46,20 +48,22 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
           continue;
         }
 
-        const originalSize = formatFileSize(file.size);
+        const originalSize = file.size;
         
         try {
           // Compress the image
           const compressedFile = await compressImage(file, 200);
-          const compressedSize = formatFileSize(compressedFile.size);
+          const compressedSize = compressedFile.size;
           
           compressedFiles.push(compressedFile);
+          sizesInfo.push({ original: originalSize, compressed: compressedSize });
           
           // Show compression info if size was reduced significantly
-          if (file.size > maxSize) {
+          if (originalSize > maxSize) {
+            const savedPercent = Math.round(((originalSize - compressedSize) / originalSize) * 100);
             toast({
               title: 'Image Compressed',
-              description: `${file.name}: ${originalSize} → ${compressedSize}`,
+              description: `${file.name}: ${formatFileSize(originalSize)} → ${formatFileSize(compressedSize)} (${savedPercent}% smaller)`,
             });
           }
         } catch (error) {
@@ -75,7 +79,9 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
       if (compressedFiles.length === 0) return;
 
       const newFiles = [...photoFiles, ...compressedFiles].slice(0, 3);
+      const newSizes = [...photoSizes, ...sizesInfo].slice(0, 3);
       setPhotoFiles(newFiles);
+      setPhotoSizes(newSizes);
 
       const newPreviews = newFiles.map(file => URL.createObjectURL(file));
       setPhotoPreviews(newPreviews);
@@ -87,8 +93,10 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
   const removePhoto = (index: number) => {
     const newFiles = photoFiles.filter((_, i) => i !== index);
     const newPreviews = photoPreviews.filter((_, i) => i !== index);
+    const newSizes = photoSizes.filter((_, i) => i !== index);
     setPhotoFiles(newFiles);
     setPhotoPreviews(newPreviews);
+    setPhotoSizes(newSizes);
   };
 
   const uploadPhotos = async (): Promise<string[]> => {
@@ -169,6 +177,7 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
       setComment('');
       setPhotoFiles([]);
       setPhotoPreviews([]);
+      setPhotoSizes([]);
       onReviewSubmitted?.();
     } catch (error: any) {
       console.error('Error submitting review:', error);
@@ -235,24 +244,46 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
             <div className="space-y-3">
               {photoPreviews.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
-                  {photoPreviews.map((preview, index) => (
-                    <div key={index} className="relative aspect-square">
-                      <img
-                        src={preview}
-                        alt={`Review photo ${index + 1}`}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute -top-2 -right-2 h-6 w-6"
-                        onClick={() => removePhoto(index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
+                  {photoPreviews.map((preview, index) => {
+                    const sizeInfo = photoSizes[index];
+                    const wasCompressed = sizeInfo && sizeInfo.original > sizeInfo.compressed;
+                    const savedPercent = wasCompressed 
+                      ? Math.round(((sizeInfo.original - sizeInfo.compressed) / sizeInfo.original) * 100)
+                      : 0;
+                    
+                    return (
+                      <div key={index} className="relative">
+                        <div className="aspect-square">
+                          <img
+                            src={preview}
+                            alt={`Review photo ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6 z-10"
+                            onClick={() => removePhoto(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        {sizeInfo && (
+                          <div className="mt-1 space-y-0.5">
+                            <p className="text-xs text-muted-foreground">
+                              {formatFileSize(sizeInfo.compressed)}
+                            </p>
+                            {wasCompressed && (
+                              <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                                ↓ {savedPercent}% smaller
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               {photoFiles.length < 3 && (
@@ -273,7 +304,8 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                {photoFiles.length}/3 photos • Images auto-compressed to 200KB
+                {photoFiles.length}/3 photos • Auto-compressed to ≤200KB
+                {compressing && ' • Compressing...'}
               </p>
             </div>
           </div>
