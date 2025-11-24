@@ -8,8 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft, AlertCircle } from 'lucide-react';
-import LocationPicker from '@/components/LocationPicker';
+import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft, AlertCircle, Link as LinkIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function MerchantOnboarding() {
@@ -20,11 +19,11 @@ export default function MerchantOnboarding() {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [useManualAddress, setUseManualAddress] = useState(false);
 
   const [storeData, setStoreData] = useState({
     name: '',
     description: '',
+    mapsUrl: '',
     address: '',
     phone: '',
     email: '',
@@ -46,13 +45,47 @@ export default function MerchantOnboarding() {
     setStoreData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleLocationChange = (locationData: { address: string; latitude: string; longitude: string }) => {
-    setStoreData(prev => ({
-      ...prev,
-      address: locationData.address,
-      latitude: locationData.latitude,
-      longitude: locationData.longitude,
-    }));
+  const handleMapsUrlChange = (url: string) => {
+    setStoreData(prev => ({ ...prev, mapsUrl: url }));
+    
+    // Try to extract coordinates from Google Maps URL
+    try {
+      // Pattern 1: /@lat,lng,zoom
+      let match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+),/);
+      if (match) {
+        setStoreData(prev => ({
+          ...prev,
+          latitude: match![1],
+          longitude: match![2],
+          address: url,
+        }));
+        return;
+      }
+      
+      // Pattern 2: ?q=lat,lng
+      match = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match) {
+        setStoreData(prev => ({
+          ...prev,
+          latitude: match![1],
+          longitude: match![2],
+          address: url,
+        }));
+        return;
+      }
+      
+      // If no coordinates found, just store the URL
+      setStoreData(prev => ({
+        ...prev,
+        address: url,
+      }));
+    } catch (error) {
+      // If parsing fails, just store the URL
+      setStoreData(prev => ({
+        ...prev,
+        address: url,
+      }));
+    }
   };
 
   const handleHoursChange = (day: string, field: 'open' | 'close', value: string) => {
@@ -241,37 +274,38 @@ export default function MerchantOnboarding() {
                   />
                 </div>
 
-                <div className="space-y-4 border rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Location</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setUseManualAddress(!useManualAddress)}
-                    >
-                      {useManualAddress ? 'Use Map' : 'Enter Manually'}
-                    </Button>
+                <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4 text-primary" />
+                    <Label htmlFor="maps-url">Google Maps Location *</Label>
                   </div>
+                  
+                  <Alert className="bg-blue-500/10 border-blue-500/30">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-sm text-muted-foreground">
+                      <strong>How to get your location link:</strong>
+                      <ol className="mt-2 ml-4 space-y-1 list-decimal">
+                        <li>Open Google Maps and find your store location</li>
+                        <li>Click "Share" button</li>
+                        <li>Click "Copy link" </li>
+                        <li>Paste the link in the field below</li>
+                      </ol>
+                    </AlertDescription>
+                  </Alert>
 
-                  {useManualAddress ? (
-                    <div className="space-y-2">
-                      <Label htmlFor="manual-address">Address *</Label>
-                      <Textarea
-                        id="manual-address"
-                        placeholder="Enter your store address"
-                        value={storeData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                  ) : (
-                    <LocationPicker
-                      address={storeData.address}
-                      latitude={storeData.latitude}
-                      longitude={storeData.longitude}
-                      onLocationChange={handleLocationChange}
-                    />
+                  <Input
+                    id="maps-url"
+                    placeholder="https://maps.google.com/..."
+                    value={storeData.mapsUrl}
+                    onChange={(e) => handleMapsUrlChange(e.target.value)}
+                    required
+                    className="font-mono text-sm"
+                  />
+                  
+                  {storeData.latitude && storeData.longitude && (
+                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                      ✓ Coordinates detected: {parseFloat(storeData.latitude).toFixed(6)}, {parseFloat(storeData.longitude).toFixed(6)}
+                    </p>
                   )}
                 </div>
 
@@ -407,7 +441,7 @@ export default function MerchantOnboarding() {
                 ))}
 
                 <div className="space-y-4 pt-4 border-t">
-                  <Button onClick={handleSubmit} disabled={loading || uploading || !storeData.name.trim() || !storeData.address.trim()} className="w-full">
+                  <Button onClick={handleSubmit} disabled={loading || uploading || !storeData.name.trim() || !storeData.mapsUrl.trim()} className="w-full">
                     {loading ? 'Creating Store...' : uploading ? 'Uploading Photos...' : 'Complete Registration'}
                   </Button>
                   <Button variant="outline" onClick={() => setCurrentStep('store-info')} className="w-full">
