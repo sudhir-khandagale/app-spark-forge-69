@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale } from 'lucide-react';
+import { ArrowLeft, Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale, Map } from 'lucide-react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
@@ -125,6 +125,22 @@ const ProductDetails = () => {
   const handleGetDirections = () => {
     if (product?.store_latitude && product?.store_longitude) {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${product.store_latitude},${product.store_longitude}`;
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleOpenInMaps = () => {
+    if (product?.store_latitude && product?.store_longitude) {
+      // Use coordinates if available
+      const url = `https://www.google.com/maps/search/?api=1&query=${product.store_latitude},${product.store_longitude}`;
+      window.open(url, '_blank');
+    } else if (product?.store_address) {
+      // Fall back to searching by address
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.store_address)}`;
+      window.open(url, '_blank');
+    } else if (product?.store_name) {
+      // Last resort: search by store name
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.store_name)}`;
       window.open(url, '_blank');
     }
   };
@@ -262,22 +278,32 @@ const ProductDetails = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  {product.in_stock && (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    {product.in_stock && (
+                      <Button 
+                        className="flex-1"
+                        onClick={handleAddToCart}
+                        disabled={isAddingToCart}
+                      >
+                        {isAddingToCart ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                        )}
+                        Add to Cart
+                      </Button>
+                    )}
                     <Button 
-                      className="flex-1"
-                      onClick={handleAddToCart}
-                      disabled={isAddingToCart}
+                      variant="outline"
+                      className={product.in_stock ? "flex-1" : "w-full"}
+                      onClick={handleOpenInMaps}
                     >
-                      {isAddingToCart ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                      )}
-                      Add to Cart
+                      <Map className="w-4 h-4 mr-2" />
+                      Open in Maps
                     </Button>
-                  )}
-                  <Link to={`/store/${product.store_id}`} className="flex-1">
+                  </div>
+                  <Link to={`/store/${product.store_id}`}>
                     <Button variant="outline" className="w-full">View Store</Button>
                   </Link>
                 </div>
