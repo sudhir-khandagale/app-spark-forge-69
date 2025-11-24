@@ -98,11 +98,11 @@ export default function SubscriptionTiersModal({
   onUpgrade 
 }: SubscriptionTiersModalProps) {
   const { toast } = useToast();
-  const [upgrading, setUpgrading] = useState(false);
+  const [upgradingTier, setUpgradingTier] = useState<string | null>(null);
 
   const handleUpgrade = async (tier: string) => {
     try {
-      setUpgrading(true);
+      setUpgradingTier(tier);
       
       const selectedTier = tiers.find(t => t.id === tier);
       if (!selectedTier) return;
@@ -146,7 +146,7 @@ export default function SubscriptionTiersModal({
         variant: 'destructive'
       });
     } finally {
-      setUpgrading(false);
+      setUpgradingTier(null);
     }
   };
 
@@ -203,10 +203,10 @@ export default function SubscriptionTiersModal({
                   <Button
                     className="w-full"
                     variant={isCurrent ? 'outline' : 'default'}
-                    disabled={isCurrent || upgrading}
+                    disabled={isCurrent || upgradingTier !== null}
                     onClick={() => handleUpgrade(tier.id)}
                   >
-                    {isCurrent ? 'Current Plan' : upgrading ? 'Processing...' : tier.id === 'free' ? 'Downgrade' : 'Upgrade'}
+                    {isCurrent ? 'Current Plan' : upgradingTier === tier.id ? 'Processing...' : tier.id === 'free' ? 'Downgrade' : 'Upgrade'}
                   </Button>
                 </CardContent>
               </Card>
