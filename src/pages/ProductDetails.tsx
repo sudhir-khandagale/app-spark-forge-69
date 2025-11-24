@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ProductReviewForm from '@/components/ProductReviewForm';
 import ProductReviews from '@/components/ProductReviews';
+import { formatPrice } from '@/lib/utils';
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -271,7 +272,7 @@ const ProductDetails = () => {
                     )}
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-bold text-primary">${product.price.toFixed(2)}</span>
+                    <span className="text-2xl font-bold text-primary">{formatPrice(product.price)}</span>
                     <p className={`text-sm font-medium mt-1 ${product.in_stock ? 'text-accent' : 'text-destructive'}`}>
                       {product.in_stock ? `In Stock (${product.quantity})` : 'Out of Stock'}
                     </p>

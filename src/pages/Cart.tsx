@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import BottomNav from '@/components/BottomNav';
+import { formatPrice } from '@/lib/utils';
 
 interface CartItem {
   id: string;
@@ -225,7 +226,7 @@ const Cart = () => {
                           </p>
                         </Link>
                         <p className="text-lg font-bold text-primary">
-                          ${item.price.toFixed(2)}
+                          {formatPrice(item.price)}
                         </p>
 
                         {/* Quantity Controls */}
@@ -271,11 +272,11 @@ const Cart = () => {
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>{formatPrice(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                    <span className="text-primary">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
                 <Button className="w-full" size="lg">

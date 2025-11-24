@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useFavoriteStores } from '@/hooks/useFavoriteStores';
+import { formatPrice } from '@/lib/utils';
 
 interface StoreInventory {
   id: string;
@@ -321,15 +322,15 @@ const Compare = () => {
             <div className="mt-4 grid grid-cols-3 gap-3">
               <Card className="p-3">
                 <p className="text-xs text-muted-foreground mb-1">Lowest Price</p>
-                <p className="text-lg font-bold text-primary">${lowestPrice.toFixed(2)}</p>
+                <p className="text-lg font-bold text-primary">{formatPrice(lowestPrice)}</p>
               </Card>
               <Card className="p-3">
                 <p className="text-xs text-muted-foreground mb-1">Average Price</p>
-                <p className="text-lg font-bold">${avgPrice.toFixed(2)}</p>
+                <p className="text-lg font-bold">{formatPrice(avgPrice)}</p>
               </Card>
               <Card className="p-3">
                 <p className="text-xs text-muted-foreground mb-1">Highest Price</p>
-                <p className="text-lg font-bold">${highestPrice.toFixed(2)}</p>
+                <p className="text-lg font-bold">{formatPrice(highestPrice)}</p>
               </Card>
             </div>
           )}
@@ -438,7 +439,7 @@ const Compare = () => {
                       {/* Price & Stock */}
                       <div className="text-right">
                         <p className="text-2xl font-bold text-primary mb-1">
-                          ${item.price.toFixed(2)}
+                          {formatPrice(item.price)}
                         </p>
                         <p className="text-sm font-medium text-accent">
                           In Stock ({item.quantity})
@@ -472,7 +473,7 @@ const Compare = () => {
                     {/* Savings Indicator */}
                     {item.price > lowestPrice && (
                       <p className="text-xs text-muted-foreground text-center">
-                        ${(item.price - lowestPrice).toFixed(2)} more than lowest price
+                        {formatPrice(item.price - lowestPrice)} more than lowest price
                       </p>
                     )}
                   </div>

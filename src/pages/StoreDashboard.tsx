@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { formatPrice } from '@/lib/utils';
 
 interface Product {
   id: string;
@@ -694,7 +695,7 @@ export default function StoreDashboard() {
 
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="product-price">Price *</Label>
+                            <Label htmlFor="product-price">Price (₹) *</Label>
                             <Input
                               id="product-price"
                               type="number"
@@ -764,7 +765,7 @@ export default function StoreDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>{item.products.category || '-'}</TableCell>
-                        <TableCell>${item.price.toFixed(2)}</TableCell>
+                        <TableCell>{formatPrice(item.price)}</TableCell>
                         <TableCell>
                           <Input
                             type="number"

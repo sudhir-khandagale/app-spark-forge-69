@@ -10,6 +10,7 @@ import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import { useProductSearch } from '@/hooks/useProducts';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useFavoriteStores } from '@/hooks/useFavoriteStores';
+import { formatPrice } from '@/lib/utils';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -107,7 +108,7 @@ const Search = () => {
                           )}
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-semibold text-foreground text-base pr-20">{result.name}</h3>
-                            <span className="text-primary font-bold text-base">${result.price.toFixed(2)}</span>
+                            <span className="text-primary font-bold text-base">{formatPrice(result.price)}</span>
                           </div>
                           <p className="text-sm text-foreground/80 mb-2">
                             📍 {result.store_name}
