@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, TrendingUp, MapPin, Store as StoreIcon, Star } from 'lucide-react';
+import { Search, MapPin, Store as StoreIcon, Star } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,8 +20,6 @@ const Index = () => {
       navigate(`/search?q=${encodeURIComponent(query)}`);
     }
   };
-
-  const trendingSearches = ['Wireless Headphones', 'Running Shoes', 'Coffee Maker', 'Laptop', 'Phone Case'];
   
   // Get featured stores to showcase
   const featuredStores = stores.filter(store => (store as any).featured).slice(0, 5);
@@ -145,26 +143,6 @@ const Index = () => {
               </Carousel>
             </div>
           )}
-
-          {/* Popular Searches */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="font-semibold">Trending Searches</h2>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {trendingSearches.map((term) => (
-                <Button
-                  key={term}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSearch(term)}
-                >
-                  {term}
-                </Button>
-              ))}
-            </div>
-          </div>
         </div>
       </main>
 
