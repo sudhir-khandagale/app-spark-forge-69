@@ -215,14 +215,25 @@ export default function MerchantOnboarding() {
       // Upload photos first
       const photoUrls = await uploadPhotos();
 
-      // First, assign vendor role
-      const { error: roleError } = await supabase
+      // Check if user is already admin
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .insert({ user_id: user.id, role: 'vendor' });
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
-      if (roleError && roleError.code !== '23505') throw roleError; // Ignore duplicate key errors
+      const isAdmin = existingRole?.role === 'admin';
 
-      // Create store
+      // Only assign vendor role if user doesn't have admin role
+      if (!isAdmin) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: user.id, role: 'vendor' });
+
+        if (roleError && roleError.code !== '23505') throw roleError; // Ignore duplicate key errors
+      }
+
+      // Create store - admins get auto-approved
       const { data: store, error: storeError } = await supabase
         .from('stores')
         .insert({
@@ -237,7 +248,7 @@ export default function MerchantOnboarding() {
           hours: storeData.hours,
           specialties: storeData.specialties.split(',').map(s => s.trim()).filter(Boolean),
           photo_urls: photoUrls.length > 0 ? photoUrls : null,
-          status: 'pending',
+          status: isAdmin ? 'approved' : 'pending',
         })
         .select()
         .single();
@@ -246,7 +257,9 @@ export default function MerchantOnboarding() {
 
       toast({
         title: 'Success!',
-        description: 'Your store has been submitted for approval. You will be notified once it is reviewed by our admin team.',
+        description: isAdmin 
+          ? 'Your store has been created and approved successfully!' 
+          : 'Your store has been submitted for approval. You will be notified once it is reviewed by our admin team.',
       });
 
       navigate('/profile');

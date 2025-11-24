@@ -17,10 +17,10 @@ const Profile = () => {
   const [stores, setStores] = useState<any[]>([]);
 
   useEffect(() => {
-    if (user && isVendor) {
+    if (user && (isVendor || isAdmin)) {
       fetchVendorStores();
     }
-  }, [user, isVendor]);
+  }, [user, isVendor, isAdmin]);
 
   const fetchVendorStores = async () => {
     try {
@@ -113,7 +113,7 @@ const Profile = () => {
 
       <main className="flex-1 p-4">
         <div className="max-w-lg mx-auto space-y-4">
-          {isVendor && (
+          {(isVendor || isAdmin) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

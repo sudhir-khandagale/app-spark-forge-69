@@ -33,7 +33,18 @@ const Auth = () => {
       .single();
     
     if (roleData?.role === 'admin') {
-      navigate('/admin');
+      // Check if admin has a store, redirect to store dashboard if they do
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', userId)
+        .maybeSingle();
+      
+      if (storeData) {
+        navigate(`/dashboard/store/${storeData.id}`);
+      } else {
+        navigate('/admin');
+      }
     } else if (roleData?.role === 'vendor') {
       // Check if vendor already has a store
       const { data: storeData } = await supabase
