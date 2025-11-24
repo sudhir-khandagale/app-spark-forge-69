@@ -600,9 +600,28 @@ export default function StoreDashboard() {
             <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold">{store.name}</h1>
-              <p className="text-muted-foreground">{store.address}</p>
+            <div className="flex items-center gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold">{store.name}</h1>
+                  {subscription?.tier === 'premium' && (
+                    <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Premium
+                    </Badge>
+                  )}
+                  {subscription?.tier === 'pro' && (
+                    <Badge className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Pro
+                    </Badge>
+                  )}
+                  {(!subscription || subscription?.tier === 'free') && (
+                    <Badge variant="outline">Free</Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground">{store.address}</p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
