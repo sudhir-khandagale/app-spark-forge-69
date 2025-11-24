@@ -19,6 +19,7 @@ export default function MerchantOnboarding() {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [mapsUrlError, setMapsUrlError] = useState('');
 
   const [storeData, setStoreData] = useState({
     name: '',
@@ -45,8 +46,33 @@ export default function MerchantOnboarding() {
     setStoreData(prev => ({ ...prev, [field]: value }));
   };
 
+  const isValidGoogleMapsUrl = (url: string): boolean => {
+    if (!url.trim()) return false;
+    
+    // Check if it's a valid Google Maps URL
+    const googleMapsPatterns = [
+      /^https?:\/\/(www\.)?google\.[a-z]+\/maps/i,
+      /^https?:\/\/maps\.google\.[a-z]+/i,
+      /^https?:\/\/goo\.gl\/maps/i,
+      /^https?:\/\/maps\.app\.goo\.gl/i,
+    ];
+    
+    return googleMapsPatterns.some(pattern => pattern.test(url));
+  };
+
   const handleMapsUrlChange = (url: string) => {
     setStoreData(prev => ({ ...prev, mapsUrl: url }));
+    
+    // Clear error when user starts typing
+    if (mapsUrlError && url.trim()) {
+      setMapsUrlError('');
+    }
+    
+    // Validate URL format if not empty
+    if (url.trim() && !isValidGoogleMapsUrl(url)) {
+      setMapsUrlError('Please enter a valid Google Maps URL');
+      return;
+    }
     
     // Try to extract coordinates from Google Maps URL
     try {
@@ -59,6 +85,7 @@ export default function MerchantOnboarding() {
           longitude: match![2],
           address: url,
         }));
+        setMapsUrlError('');
         return;
       }
       
@@ -71,20 +98,40 @@ export default function MerchantOnboarding() {
           longitude: match![2],
           address: url,
         }));
+        setMapsUrlError('');
         return;
       }
       
-      // If no coordinates found, just store the URL
-      setStoreData(prev => ({
-        ...prev,
-        address: url,
-      }));
+      // Pattern 3: /place/ with coordinates
+      match = url.match(/\/place\/[^/]+\/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match) {
+        setStoreData(prev => ({
+          ...prev,
+          latitude: match![1],
+          longitude: match![2],
+          address: url,
+        }));
+        setMapsUrlError('');
+        return;
+      }
+      
+      // If valid URL but no coordinates found, just store the URL
+      if (isValidGoogleMapsUrl(url)) {
+        setStoreData(prev => ({
+          ...prev,
+          address: url,
+        }));
+        setMapsUrlError('');
+      }
     } catch (error) {
-      // If parsing fails, just store the URL
-      setStoreData(prev => ({
-        ...prev,
-        address: url,
-      }));
+      // If parsing fails but URL is valid, just store the URL
+      if (isValidGoogleMapsUrl(url)) {
+        setStoreData(prev => ({
+          ...prev,
+          address: url,
+        }));
+        setMapsUrlError('');
+      }
     }
   };
 
@@ -299,12 +346,24 @@ export default function MerchantOnboarding() {
                     value={storeData.mapsUrl}
                     onChange={(e) => handleMapsUrlChange(e.target.value)}
                     required
-                    className="font-mono text-sm"
+                    className={`font-mono text-sm ${mapsUrlError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                   />
                   
-                  {storeData.latitude && storeData.longitude && (
+                  {mapsUrlError && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      ✗ {mapsUrlError}
+                    </p>
+                  )}
+                  
+                  {!mapsUrlError && storeData.latitude && storeData.longitude && (
                     <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                       ✓ Coordinates detected: {parseFloat(storeData.latitude).toFixed(6)}, {parseFloat(storeData.longitude).toFixed(6)}
+                    </p>
+                  )}
+                  
+                  {!mapsUrlError && storeData.mapsUrl && !storeData.latitude && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                      ⚠ Valid URL but coordinates not detected. Your location will still be saved.
                     </p>
                   )}
                 </div>
@@ -441,7 +500,11 @@ export default function MerchantOnboarding() {
                 ))}
 
                 <div className="space-y-4 pt-4 border-t">
-                  <Button onClick={handleSubmit} disabled={loading || uploading || !storeData.name.trim() || !storeData.mapsUrl.trim()} className="w-full">
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={loading || uploading || !storeData.name.trim() || !storeData.mapsUrl.trim() || !!mapsUrlError} 
+                    className="w-full"
+                  >
                     {loading ? 'Creating Store...' : uploading ? 'Uploading Photos...' : 'Complete Registration'}
                   </Button>
                   <Button variant="outline" onClick={() => setCurrentStep('store-info')} className="w-full">
