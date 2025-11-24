@@ -490,6 +490,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           email: string | null
+          featured: boolean | null
           hours: Json | null
           id: string
           latitude: number | null
@@ -510,6 +511,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           email?: string | null
+          featured?: boolean | null
           hours?: Json | null
           id?: string
           latitude?: number | null
@@ -530,6 +532,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           email?: string | null
+          featured?: boolean | null
           hours?: Json | null
           id?: string
           latitude?: number | null

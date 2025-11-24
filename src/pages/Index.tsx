@@ -23,8 +23,8 @@ const Index = () => {
 
   const trendingSearches = ['Wireless Headphones', 'Running Shoes', 'Coffee Maker', 'Laptop', 'Phone Case'];
   
-  // Get first 5 approved stores to showcase
-  const newStores = stores.slice(0, 5);
+  // Get featured stores to showcase
+  const featuredStores = stores.filter(store => (store as any).featured).slice(0, 5);
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
@@ -70,16 +70,16 @@ const Index = () => {
       {/* Content */}
       <main className="flex-1 p-4">
         <div className="max-w-lg mx-auto space-y-6">
-          {/* New Stores Carousel */}
-          {!loading && newStores.length > 0 && (
+          {/* Featured Stores Carousel */}
+          {!loading && featuredStores.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <StoreIcon className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold">New Stores in Your Area</h2>
+                <h2 className="font-semibold">Featured Stores</h2>
               </div>
               <Carousel className="w-full">
                 <CarouselContent>
-                  {newStores.map((store) => (
+                  {featuredStores.map((store) => (
                     <CarouselItem key={store.id}>
                       <Link to={`/store/${store.id}`}>
                         <Card className="border-2 hover:border-primary transition-colors">
@@ -92,14 +92,14 @@ const Index = () => {
                                   className="w-full h-full object-cover rounded-t-lg"
                                 />
                                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
-                                  NEW
+                                  FEATURED
                                 </div>
                               </div>
                             ) : (
                               <div className="relative h-40 w-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center rounded-t-lg">
                                 <StoreIcon className="w-16 h-16 text-primary/40" />
                                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
-                                  NEW
+                                  FEATURED
                                 </div>
                               </div>
                             )}

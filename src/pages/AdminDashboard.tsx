@@ -10,11 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon, ArrowLeft, Star } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 interface StoreDetails {
   id: string;
@@ -34,6 +35,7 @@ interface StoreDetails {
   owner_email: string | null;
   owner_phone: string | null;
   rejection_reason: string | null;
+  featured: boolean;
 }
 
 interface UserWithRole {
@@ -444,6 +446,31 @@ export default function AdminDashboard() {
       toast({
         title: 'Error',
         description: 'Failed to delete product',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleToggleFeatured = async (storeId: string, currentFeatured: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .update({ featured: !currentFeatured })
+        .eq('id', storeId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Store ${!currentFeatured ? 'featured' : 'unfeatured'} successfully`,
+      });
+
+      fetchData();
+    } catch (error: any) {
+      console.error('Error toggling featured:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update featured status',
         variant: 'destructive',
       });
     }
@@ -1037,6 +1064,7 @@ export default function AdminDashboard() {
                       <TableHead>Address</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Featured</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -1066,6 +1094,16 @@ export default function AdminDashboard() {
                               <SelectItem value="rejected">Rejected</SelectItem>
                             </SelectContent>
                           </Select>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={store.featured}
+                              onCheckedChange={() => handleToggleFeatured(store.id, store.featured)}
+                              disabled={store.status !== 'approved'}
+                            />
+                            {store.featured && <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />}
+                          </div>
                         </TableCell>
                         <TableCell>{new Date(store.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>

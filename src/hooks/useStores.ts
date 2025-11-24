@@ -16,6 +16,7 @@ export interface Store {
   hours: any;
   photo_urls: string[] | null;
   specialties: string[] | null;
+  featured?: boolean;
 }
 
 export const useStores = (latitude?: number, longitude?: number) => {
@@ -29,6 +30,7 @@ export const useStores = (latitude?: number, longitude?: number) => {
         const { data, error } = await supabase
           .from('stores')
           .select('*')
+          .eq('status', 'approved')
           .order('rating', { ascending: false, nullsFirst: false });
 
         if (error) throw error;
