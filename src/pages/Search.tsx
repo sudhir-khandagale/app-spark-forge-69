@@ -7,9 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import BottomNav from '@/components/BottomNav';
 import WishlistButton from '@/components/WishlistButton';
 import FavoriteStoreButton from '@/components/FavoriteStoreButton';
+import FlashSaleBadge from '@/components/FlashSaleBadge';
 import { useProductSearch } from '@/hooks/useProducts';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useFavoriteStores } from '@/hooks/useFavoriteStores';
+import { useFlashSales } from '@/hooks/useFlashSales';
 import { formatPrice } from '@/lib/utils';
 
 const Search = () => {
@@ -18,6 +20,7 @@ const Search = () => {
   const { results, loading, searchProducts } = useProductSearch();
   const { latitude, longitude } = useGeolocation();
   const { isFavorite } = useFavoriteStores();
+  const { getFlashSale } = useFlashSales(results.map(r => r.id));
 
   // Sort results to prioritize favorite stores
   const sortedResults = [...results].sort((a, b) => {
@@ -96,20 +99,36 @@ const Search = () => {
               <div className="space-y-3">
                 {sortedResults.map((result) => {
                   const isStoreFavorite = isFavorite(result.store_id);
+                  const flashSale = getFlashSale(result.id);
+                  
                   return (
                     <div key={`${result.id}-${result.store_id}`} className="relative">
                       <Link to={`/product/${result.id}?store=${result.store_id}`}>
                         <div className="p-4 bg-background border-2 border-border rounded-lg hover:border-primary transition-colors shadow-sm hover:shadow-md">
                           {isStoreFavorite && (
-                            <Badge className="absolute top-2 left-2 bg-yellow-500 text-xs">
+                            <Badge className="absolute top-2 left-2 bg-yellow-500 text-xs z-10">
                               <Star className="w-3 h-3 mr-1 fill-current" />
                               Favorite
                             </Badge>
                           )}
-                          <div className="mb-2 pr-32">
-                            <h3 className="font-semibold text-foreground text-base mb-1">{result.name}</h3>
-                            <span className="text-primary font-bold text-lg">{formatPrice(result.price)}</span>
+                          
+                          <div className="mb-3 pr-32">
+                            <h3 className="font-semibold text-foreground text-base mb-2">{result.name}</h3>
+                            
+                            {flashSale ? (
+                              <FlashSaleBadge
+                                originalPrice={flashSale.original_price}
+                                salePrice={flashSale.sale_price}
+                                discountPercentage={flashSale.discount_percentage}
+                                endsAt={flashSale.ends_at}
+                                size="sm"
+                                showTimer={true}
+                              />
+                            ) : (
+                              <span className="text-primary font-bold text-lg">{formatPrice(result.price)}</span>
+                            )}
                           </div>
+                          
                           <p className="text-sm text-foreground/80 mb-2">
                             📍 {result.store_name}
                           </p>

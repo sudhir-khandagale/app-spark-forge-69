@@ -11,6 +11,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/lib/utils';
+import FlashSaleBadge from '@/components/FlashSaleBadge';
+import { useFlashSales } from '@/hooks/useFlashSales';
 
 interface TrendingProduct {
   id: string;
@@ -34,6 +36,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { latitude, longitude } = useGeolocation();
   const { stores, loading } = useStores();
+  const { getFlashSale } = useFlashSales(trendingProducts.map(p => p.id));
 
   useEffect(() => {
     fetchTrendingProducts();
@@ -157,42 +160,55 @@ const Index = () => {
               </div>
             ) : trendingProducts.length > 0 ? (
               <div className="grid grid-cols-2 gap-3">
-                {trendingProducts.slice(0, 4).map((product) => (
-                  <Link key={product.id} to={`/product/${product.id}`}>
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                      <CardContent className="p-3">
-                        {product.image_url ? (
-                          <div className="aspect-square w-full overflow-hidden rounded-md mb-2">
-                            <img
-                              src={product.image_url}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
+                {trendingProducts.slice(0, 4).map((product) => {
+                  const flashSale = getFlashSale(product.id);
+                  
+                  return (
+                    <Link key={product.id} to={`/product/${product.id}`}>
+                      <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                        <CardContent className="p-3">
+                          {product.image_url ? (
+                            <div className="aspect-square w-full overflow-hidden rounded-md mb-2">
+                              <img
+                                src={product.image_url}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="aspect-square w-full bg-muted rounded-md mb-2 flex items-center justify-center">
+                              <StoreIcon className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                          )}
+                          <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
+                          {product.rating && (
+                            <div className="flex items-center gap-1 mb-1">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              <span className="text-xs">{product.rating.toFixed(1)}</span>
+                              <span className="text-xs text-muted-foreground">
+                                ({product.review_count})
+                              </span>
+                            </div>
+                          )}
+                          {flashSale ? (
+                            <FlashSaleBadge
+                              originalPrice={flashSale.original_price}
+                              salePrice={flashSale.sale_price}
+                              discountPercentage={flashSale.discount_percentage}
+                              endsAt={flashSale.ends_at}
+                              size="sm"
+                              showTimer={false}
                             />
-                          </div>
-                        ) : (
-                          <div className="aspect-square w-full bg-muted rounded-md mb-2 flex items-center justify-center">
-                            <StoreIcon className="w-8 h-8 text-muted-foreground" />
-                          </div>
-                        )}
-                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
-                        {product.rating && (
-                          <div className="flex items-center gap-1 mb-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs">{product.rating.toFixed(1)}</span>
-                            <span className="text-xs text-muted-foreground">
-                              ({product.review_count})
-                            </span>
-                          </div>
-                        )}
-                        {product.stores.length > 0 && (
-                          <p className="text-sm font-semibold text-primary">
-                            {formatPrice(product.stores[0].price)}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                          ) : product.stores.length > 0 ? (
+                            <p className="text-sm font-semibold text-primary">
+                              {formatPrice(product.stores[0].price)}
+                            </p>
+                          ) : null}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <Card>
