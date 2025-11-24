@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useState, useEffect } from 'react';
+import RewardsDisplay from '@/components/RewardsDisplay';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -113,6 +114,9 @@ const Profile = () => {
 
       <main className="flex-1 p-4">
         <div className="max-w-lg mx-auto space-y-4">
+          {/* Rewards Section */}
+          <RewardsDisplay />
+
           {(isVendor || isAdmin) && (
             <Card>
               <CardHeader>
