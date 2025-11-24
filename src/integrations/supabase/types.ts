@@ -151,6 +151,7 @@ export type Database = {
           id: string
           in_stock: boolean | null
           last_updated: string | null
+          low_stock_threshold: number
           price: number
           product_id: string
           quantity: number
@@ -161,6 +162,7 @@ export type Database = {
           id?: string
           in_stock?: boolean | null
           last_updated?: string | null
+          low_stock_threshold?: number
           price: number
           product_id: string
           quantity?: number
@@ -171,6 +173,7 @@ export type Database = {
           id?: string
           in_stock?: boolean | null
           last_updated?: string | null
+          low_stock_threshold?: number
           price?: number
           product_id?: string
           quantity?: number
@@ -570,6 +573,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vendor_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          inventory_id: string
+          message: string
+          metadata: Json | null
+          read: boolean
+          store_id: string
+          title: string
+          type: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inventory_id: string
+          message: string
+          metadata?: Json | null
+          read?: boolean
+          store_id: string
+          title: string
+          type: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inventory_id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean
+          store_id?: string
+          title?: string
+          type?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_notifications_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -9,7 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2 } from 'lucide-react';
+import { VendorNotifications } from '@/components/VendorNotifications';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -30,6 +32,7 @@ interface InventoryItem {
   quantity: number;
   price: number;
   in_stock: boolean;
+  low_stock_threshold?: number;
   products: Product;
 }
 
@@ -55,6 +58,8 @@ export default function StoreDashboard() {
   const [editedStore, setEditedStore] = useState<any>(null);
   const [storePhotoFiles, setStorePhotoFiles] = useState<File[]>([]);
   const [storePreviews, setStorePreviews] = useState<string[]>([]);
+  const [updatingStock, setUpdatingStock] = useState<string | null>(null);
+  const [selectedInventoryId, setSelectedInventoryId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStoreData();
@@ -243,6 +248,17 @@ export default function StoreDashboard() {
   };
 
   const handleUpdateStock = async (inventoryId: string, newQuantity: number) => {
+    if (newQuantity < 0) {
+      toast({
+        title: 'Invalid quantity',
+        description: 'Stock quantity cannot be negative',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUpdatingStock(inventoryId);
+
     try {
       const { error } = await supabase
         .from('inventory')
@@ -267,7 +283,43 @@ export default function StoreDashboard() {
         description: 'Failed to update stock',
         variant: 'destructive',
       });
+    } finally {
+      setUpdatingStock(null);
     }
+  };
+
+  const handleQuickStockUpdate = async (
+    inventoryId: string,
+    currentQuantity: number,
+    change: number
+  ) => {
+    const newQuantity = Math.max(0, currentQuantity + change);
+    await handleUpdateStock(inventoryId, newQuantity);
+  };
+
+  const handleNotificationClick = (inventoryId: string) => {
+    setSelectedInventoryId(inventoryId);
+    setTimeout(() => setSelectedInventoryId(null), 3000);
+  };
+
+  const getStockStatusBadge = (quantity: number, threshold: number = 5) => {
+    if (quantity === 0)
+      return (
+        <Badge variant="destructive" className="text-xs">
+          Out of Stock
+        </Badge>
+      );
+    if (quantity <= threshold)
+      return (
+        <Badge variant="outline" className="text-xs border-yellow-600 text-yellow-600">
+          Low Stock
+        </Badge>
+      );
+    return (
+      <Badge variant="outline" className="text-xs border-green-600 text-green-600">
+        In Stock
+      </Badge>
+    );
   };
 
   const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,9 +575,12 @@ export default function StoreDashboard() {
               <p className="text-muted-foreground">{store.address}</p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => navigate(`/store/${storeId}`)}>
-            View Public Profile
-          </Button>
+          <div className="flex items-center gap-2">
+            <VendorNotifications storeId={storeId || null} onNotificationClick={handleNotificationClick} />
+            <Button variant="outline" onClick={() => navigate(`/store/${storeId}`)}>
+              View Public Profile
+            </Button>
+          </div>
         </div>
 
         {/* Store Status Alert */}
@@ -733,14 +788,20 @@ export default function StoreDashboard() {
                       <TableHead>Product</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>Stock Controls</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {inventory.map((item) => (
-                      <TableRow key={item.id}>
+                      <TableRow 
+                        key={item.id}
+                        className={
+                          selectedInventoryId === item.id
+                            ? "bg-muted/50 border-l-4 border-l-primary"
+                            : ""
+                        }
+                      >
                         <TableCell>
                           <div className="flex items-center gap-3">
                             {item.products.image_url ? (
@@ -761,25 +822,86 @@ export default function StoreDashboard() {
                                   {item.products.description}
                                 </div>
                               )}
+                              {getStockStatusBadge(item.quantity, item.low_stock_threshold || 5)}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>{item.products.category || '-'}</TableCell>
                         <TableCell>{formatPrice(item.price)}</TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => handleUpdateStock(item.id, parseInt(e.target.value))}
-                            className="w-20"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            item.in_stock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {item.in_stock ? 'In Stock' : 'Out of Stock'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleQuickStockUpdate(item.id, item.quantity, -5)}
+                                  disabled={updatingStock === item.id || item.quantity < 5}
+                                  className="h-7 w-8 p-0 text-xs"
+                                >
+                                  -5
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleQuickStockUpdate(item.id, item.quantity, -1)}
+                                  disabled={updatingStock === item.id || item.quantity < 1}
+                                  className="h-7 w-7 p-0"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                                <Input
+                                  type="number"
+                                  value={item.quantity}
+                                  onChange={(e) => handleUpdateStock(item.id, parseInt(e.target.value) || 0)}
+                                  className="w-16 h-7 text-center"
+                                  min="0"
+                                  disabled={updatingStock === item.id}
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleQuickStockUpdate(item.id, item.quantity, 1)}
+                                  disabled={updatingStock === item.id}
+                                  className="h-7 w-7 p-0"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleQuickStockUpdate(item.id, item.quantity, 5)}
+                                  disabled={updatingStock === item.id}
+                                  className="h-7 w-8 p-0 text-xs"
+                                >
+                                  +5
+                                </Button>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleQuickStockUpdate(item.id, item.quantity, 10)}
+                                  disabled={updatingStock === item.id}
+                                  className="h-6 text-xs flex-1"
+                                >
+                                  +10
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleQuickStockUpdate(item.id, item.quantity, -10)}
+                                  disabled={updatingStock === item.id || item.quantity < 10}
+                                  className="h-6 text-xs flex-1"
+                                >
+                                  -10
+                                </Button>
+                              </div>
+                            </div>
+                            {updatingStock === item.id && (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
