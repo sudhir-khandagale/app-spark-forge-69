@@ -164,6 +164,13 @@ const Profile = () => {
                 </Button>
               </Link>
 
+              <Link to="/wishlist" className="w-full">
+                <Button variant="outline" className="w-full justify-start">
+                  <Heart className="w-4 h-4 mr-2" />
+                  My Wishlist
+                </Button>
+              </Link>
+
               {isAdmin && (
                 <Link to="/admin" className="w-full">
                   <Button variant="outline" className="w-full justify-start">
