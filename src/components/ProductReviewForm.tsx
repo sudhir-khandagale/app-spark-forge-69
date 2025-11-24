@@ -28,7 +28,23 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    const newFiles = [...photoFiles, ...files].slice(0, 3);
+    // Validate file size (200KB = 200 * 1024 bytes)
+    const maxSize = 200 * 1024;
+    const validFiles = files.filter(file => {
+      if (file.size > maxSize) {
+        toast({
+          title: 'File Too Large',
+          description: `${file.name} exceeds 200KB limit`,
+          variant: 'destructive',
+        });
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    const newFiles = [...photoFiles, ...validFiles].slice(0, 3);
     setPhotoFiles(newFiles);
 
     const newPreviews = newFiles.map(file => URL.createObjectURL(file));
@@ -54,16 +70,16 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
       for (const file of photoFiles) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `review-photos/${user.id}/${fileName}`;
+        const filePath = `${user.id}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('product-images')
+          .from('review-photos')
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
-          .from('product-images')
+          .from('review-photos')
           .getPublicUrl(filePath);
 
         uploadedUrls.push(publicUrl);
@@ -182,7 +198,7 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
           </div>
 
           <div className="space-y-2">
-            <Label>Photos (up to 3)</Label>
+            <Label>Photos (up to 3, max 200KB each)</Label>
             <div className="space-y-3">
               {photoPreviews.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
@@ -220,7 +236,7 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                {photoFiles.length}/3 photos
+                {photoFiles.length}/3 photos • Max 200KB per image
               </p>
             </div>
           </div>
