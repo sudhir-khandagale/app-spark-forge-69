@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon, ArrowLeft, Star } from 'lucide-react';
+import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon, ArrowLeft, Star, Plus } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -507,19 +507,25 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/profile')}
-            className="shrink-0"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Manage vendors, stores, and users</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/profile')}
+              className="shrink-0"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+              <p className="text-muted-foreground">Manage vendors, stores, and users</p>
+            </div>
           </div>
+          <Button onClick={() => navigate('/onboarding/merchant')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Store
+          </Button>
         </div>
 
         {/* Stats Cards */}

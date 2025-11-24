@@ -74,15 +74,36 @@ export default function StoreDashboard() {
         return;
       }
 
-      // Fetch store
-      const { data: storeData, error: storeError } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('id', storeId)
-        .eq('owner_id', user.id)
+      // Check if user is admin
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
         .single();
 
-      if (storeError) throw storeError;
+      const isAdmin = roleData?.role === 'admin';
+
+      // Fetch store - admins can access any store, vendors only their own
+      const storeQuery = supabase
+        .from('stores')
+        .select('*')
+        .eq('id', storeId);
+
+      if (!isAdmin) {
+        storeQuery.eq('owner_id', user.id);
+      }
+
+      const { data: storeData, error: storeError } = await storeQuery.single();
+
+      if (storeError) {
+        toast({
+          title: 'Access Denied',
+          description: 'You do not have permission to access this store',
+          variant: 'destructive',
+        });
+        navigate('/profile');
+        return;
+      }
       setStore(storeData);
 
       // Fetch inventory
