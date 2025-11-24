@@ -163,9 +163,7 @@ serve(async (req) => {
             store_id: storeId,
             tier: tier,
             type: 'subscription'
-          },
-          callback_url: `${Deno.env.get('VITE_SUPABASE_URL')}/dashboard/store/${storeId}`,
-          callback_method: 'get'
+          }
         })
       });
 
