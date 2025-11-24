@@ -1,6 +1,6 @@
-# AassPass - Native Mobile App Setup Guide
+# Flowdux - Native Mobile App Setup Guide
 
-Your AassPass app is now configured as a native mobile application using Capacitor! This allows you to build and deploy to iOS App Store and Google Play Store with full access to device features like GPS, camera, and native performance.
+Your Flowdux app is now configured as a native mobile application using Capacitor! This allows you to build and deploy to iOS App Store and Google Play Store with full access to device features like GPS, camera, and native performance.
 
 ## ✅ What's Already Set Up
 
