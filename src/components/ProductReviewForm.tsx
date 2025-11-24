@@ -169,7 +169,7 @@ export default function ProductReviewForm({ productId, storeId, onReviewSubmitte
 
       toast({
         title: 'Success',
-        description: 'Your review has been submitted',
+        description: 'Your review has been submitted. You earned 10 points! 🎉',
       });
 
       setOpen(false);
