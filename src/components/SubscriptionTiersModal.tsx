@@ -107,53 +107,61 @@ export default function SubscriptionTiersModal({
       const selectedTier = tiers.find(t => t.id === tier);
       if (!selectedTier) return;
 
-      // Check if subscription exists
-      const { data: existing } = await supabase
-        .from('vendor_subscriptions')
-        .select('id')
-        .eq('store_id', storeId)
-        .single();
-
-      const expiresAt = new Date();
-      expiresAt.setMonth(expiresAt.getMonth() + 1);
-
-      if (existing) {
-        // Update existing subscription
-        const { error } = await supabase
-          .from('vendor_subscriptions')
-          .update({
-            tier: tier,
-            features: selectedTier.limits,
-            expires_at: expiresAt.toISOString()
-          })
-          .eq('store_id', storeId);
-
-        if (error) throw error;
-      } else {
-        // Create new subscription
-        const { error } = await supabase
-          .from('vendor_subscriptions')
-          .insert({
-            store_id: storeId,
-            tier: tier,
-            features: selectedTier.limits,
-            expires_at: tier === 'free' ? null : expiresAt.toISOString()
-          });
-
-        if (error) throw error;
-      }
-
-      toast({
-        title: 'Subscription Updated!',
-        description: `You're now on the ${selectedTier.name} plan. ${tier !== 'free' ? 'Your features are now active.' : ''}`
+      // Call Razorpay edge function
+      const { data, error } = await supabase.functions.invoke('razorpay-subscription', {
+        body: {
+          action: 'create_subscription',
+          tier: tier,
+          storeId: storeId
+        }
       });
 
-      onUpgrade?.();
-      onOpenChange(false);
+      if (error) throw error;
+
+      if (tier === 'free') {
+        toast({
+          title: 'Subscription Updated!',
+          description: `You're now on the ${selectedTier.name} plan.`
+        });
+        onUpgrade?.();
+        onOpenChange(false);
+        return;
+      }
+
+      // Open Razorpay checkout for paid plans
+      if (data.razorpay_key && data.subscription_id) {
+        const options = {
+          key: data.razorpay_key,
+          subscription_id: data.subscription_id,
+          name: 'AassPass',
+          description: data.description,
+          handler: function (response: any) {
+            toast({
+              title: 'Payment Successful!',
+              description: 'Your subscription has been activated.'
+            });
+            onUpgrade?.();
+            onOpenChange(false);
+            window.location.href = `/payment-success?subscription_id=${response.razorpay_subscription_id}`;
+          },
+          modal: {
+            ondismiss: function() {
+              setUpgrading(false);
+            }
+          },
+          theme: {
+            color: '#2563eb'
+          }
+        };
+
+        const razorpay = new (window as any).Razorpay(options);
+        razorpay.open();
+      }
     } catch (error: any) {
+      console.error('Upgrade error:', error);
       toast({
         title: 'Error',
-        description: error.message,
+        description: error.message || 'Failed to process subscription',
         variant: 'destructive'
       });
     } finally {
