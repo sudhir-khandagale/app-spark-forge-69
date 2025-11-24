@@ -336,7 +336,7 @@ const ProductDetails = () => {
               productId={id!} 
               refreshTrigger={reviewRefresh}
             />
-            {product.in_stock && storeId && (
+            {storeId && (
               <ProductReviewForm 
                 productId={id!}
                 storeId={storeId}

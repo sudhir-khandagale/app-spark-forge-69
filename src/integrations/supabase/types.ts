@@ -708,6 +708,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_has_purchased_product: {
+        Args: { p_product_id: string; p_store_id: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "customer" | "vendor" | "admin"

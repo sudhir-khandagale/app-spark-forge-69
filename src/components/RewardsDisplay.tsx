@@ -4,9 +4,14 @@ import { Award, TrendingUp, Gift } from 'lucide-react';
 import { useRewards } from '@/hooks/useRewards';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDistanceToNow } from 'date-fns';
+import { useUserRole } from '@/hooks/useUserRole';
 
 export default function RewardsDisplay() {
   const { points, transactions, loading } = useRewards();
+  const { isCustomer } = useUserRole();
+
+  // Only show rewards for customers
+  if (!isCustomer) return null;
 
   if (loading) {
     return (
