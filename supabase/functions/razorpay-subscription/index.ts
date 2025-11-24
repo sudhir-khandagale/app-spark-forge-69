@@ -158,6 +158,12 @@ serve(async (req) => {
         })
       });
 
+      if (!planResponse.ok) {
+        const errorData = await planResponse.json();
+        console.error('Razorpay plan creation failed:', errorData);
+        throw new Error(errorData.error?.description || 'Failed to create plan');
+      }
+
       const plan = await planResponse.json();
       console.log('Created plan:', plan.id);
 
@@ -182,14 +188,21 @@ serve(async (req) => {
         })
       });
 
+      if (!subscriptionResponse.ok) {
+        const errorData = await subscriptionResponse.json();
+        console.error('Razorpay subscription creation failed:', errorData);
+        throw new Error(errorData.error?.description || 'Failed to create subscription');
+      }
+
       const subscription = await subscriptionResponse.json();
-      console.log('Created subscription:', subscription.id);
+      console.log('Created subscription:', subscription.id, 'with short_url:', subscription.short_url);
 
       // Return subscription details for frontend checkout
       return new Response(
         JSON.stringify({
           success: true,
           subscription_id: subscription.id,
+          short_url: subscription.short_url,
           razorpay_key: RAZORPAY_KEY_ID,
           amount: planConfig.amount,
           currency: 'INR',
