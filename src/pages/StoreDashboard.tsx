@@ -9,12 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2, Crown } from 'lucide-react';
+import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2, Crown, Lock, Sparkles } from 'lucide-react';
 import { VendorNotifications } from '@/components/VendorNotifications';
 import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
 import BulkInventoryUpload from '@/components/BulkInventoryUpload';
 import FlashSalesManager from '@/components/FlashSalesManager';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
+import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -692,32 +693,153 @@ export default function StoreDashboard() {
         )}
 
         <Tabs defaultValue="inventory">
-          <TabsList className="grid w-full grid-cols-6">
-            {features.analytics && <TabsTrigger value="analytics">Analytics</TabsTrigger>}
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            {features.flash_sales && <TabsTrigger value="flash-sales">Flash Sales</TabsTrigger>}
-            {features.bulk_upload && <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>}
+            <TabsTrigger value="analytics" className="relative">
+              Analytics
+              {!features.analytics && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+            </TabsTrigger>
+            <TabsTrigger value="flash-sales" className="relative">
+              Flash Sales
+              {!features.flash_sales && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+            </TabsTrigger>
+            <TabsTrigger value="bulk-upload" className="relative">
+              Import Products
+              {!features.bulk_upload && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+            </TabsTrigger>
+            <TabsTrigger value="featured" className="relative">
+              Featured
+              {!features.featured_listing && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+            </TabsTrigger>
+            <TabsTrigger value="support" className="relative">
+              Support
+              {!features.priority_support && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+            </TabsTrigger>
             <TabsTrigger value="store-details">Store Details</TabsTrigger>
-            <TabsTrigger value="import">Import Products</TabsTrigger>
           </TabsList>
 
-          {features.analytics && (
-            <TabsContent value="analytics" className="space-y-4">
+          <TabsContent value="analytics" className="space-y-4">
+            <LockedFeatureOverlay
+              isLocked={!features.analytics}
+              onUpgrade={() => setSubscriptionModalOpen(true)}
+              title="Advanced Analytics"
+              description="Get detailed insights into your store's performance, track customer behavior, and identify top-performing products."
+              requiredTier="pro"
+            >
               <VendorAnalyticsDashboard storeId={storeId!} />
-            </TabsContent>
-          )}
+            </LockedFeatureOverlay>
+          </TabsContent>
 
-          {features.flash_sales && (
-            <TabsContent value="flash-sales" className="space-y-4">
+          <TabsContent value="flash-sales" className="space-y-4">
+            <LockedFeatureOverlay
+              isLocked={!features.flash_sales}
+              onUpgrade={() => setSubscriptionModalOpen(true)}
+              title="Flash Sales & Promotions"
+              description="Create time-limited offers to boost sales and attract more customers to your store."
+              requiredTier="pro"
+            >
               <FlashSalesManager storeId={storeId!} />
-            </TabsContent>
-          )}
+            </LockedFeatureOverlay>
+          </TabsContent>
 
-          {features.bulk_upload && (
-            <TabsContent value="bulk-upload" className="space-y-4">
+          <TabsContent value="bulk-upload" className="space-y-4">
+            <LockedFeatureOverlay
+              isLocked={!features.bulk_upload}
+              onUpgrade={() => setSubscriptionModalOpen(true)}
+              title="Bulk CSV Upload"
+              description="Save time by uploading up to 500 products at once using our CSV import feature."
+              requiredTier="pro"
+            >
               <BulkInventoryUpload storeId={storeId!} onUploadComplete={fetchStoreData} />
-            </TabsContent>
-          )}
+            </LockedFeatureOverlay>
+          </TabsContent>
+
+          <TabsContent value="featured" className="space-y-4">
+            <LockedFeatureOverlay
+              isLocked={!features.featured_listing}
+              onUpgrade={() => setSubscriptionModalOpen(true)}
+              title="Featured Store Listing"
+              description="Get premium placement in search results and attract 3x more customers to your store."
+              requiredTier="premium"
+            >
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold">Featured Store Status</h3>
+                      <p className="text-sm text-muted-foreground">Your store is currently featured in search results</p>
+                    </div>
+                    <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Featured
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-3 gap-4 pt-4">
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <p className="text-3xl font-bold text-primary">+245%</p>
+                      <p className="text-sm text-muted-foreground">More Views</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <p className="text-3xl font-bold text-primary">Top 3</p>
+                      <p className="text-sm text-muted-foreground">Search Position</p>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <p className="text-3xl font-bold text-primary">⭐ 4.8</p>
+                      <p className="text-sm text-muted-foreground">Featured Rating</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </LockedFeatureOverlay>
+          </TabsContent>
+
+          <TabsContent value="support" className="space-y-4">
+            <LockedFeatureOverlay
+              isLocked={!features.priority_support}
+              onUpgrade={() => setSubscriptionModalOpen(true)}
+              title="24/7 Priority Support"
+              description="Get instant help from our dedicated support team with faster response times and priority queue."
+              requiredTier="premium"
+            >
+              <Card className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">Priority Support Access</h3>
+                    <p className="text-muted-foreground">Connect with our expert support team anytime</p>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="p-4 border-primary">
+                      <h4 className="font-semibold mb-2">Live Chat Support</h4>
+                      <p className="text-sm text-muted-foreground mb-4">Average response time: &lt;2 minutes</p>
+                      <Button className="w-full">Start Chat</Button>
+                    </Card>
+                    
+                    <Card className="p-4">
+                      <h4 className="font-semibold mb-2">Dedicated Account Manager</h4>
+                      <p className="text-sm text-muted-foreground mb-4">Your personal business advisor</p>
+                      <Button variant="outline" className="w-full">Schedule Call</Button>
+                    </Card>
+                  </div>
+                  
+                  <Card className="p-4 bg-muted">
+                    <h4 className="font-semibold mb-2">Recent Support Tickets</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Inventory sync issue</span>
+                        <Badge variant="outline" className="bg-green-100 text-green-700">Resolved</Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Payment integration help</span>
+                        <Badge variant="outline" className="bg-green-100 text-green-700">Resolved</Badge>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </Card>
+            </LockedFeatureOverlay>
+          </TabsContent>
 
           <TabsContent value="inventory" className="space-y-4">
             <Card>
@@ -1193,61 +1315,6 @@ export default function StoreDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="import" className="space-y-4">
-            {store.status === 'pending' && (
-              <Alert className="border-yellow-500/50 bg-yellow-500/10">
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-                  <strong>Store Pending Approval</strong> — Products you import will be added to your inventory but won't appear in customer searches until your store is approved by an admin.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {store.status === 'rejected' && (
-              <Alert className="border-red-500/50 bg-red-500/10">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800 dark:text-red-200">
-                  <strong>Store Rejected</strong> — Please update your store details and contact support before importing products.
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Import Products
-                </CardTitle>
-                <CardDescription>Bulk import products from CSV</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-8 text-center space-y-4">
-                  <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground" />
-                  <div>
-                    <h3 className="font-medium">Upload CSV File</h3>
-                    <p className="text-sm text-muted-foreground">
-                      CSV should include: name, description, category, price, quantity
-                    </p>
-                  </div>
-                  <Input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleCSVUpload}
-                    className="max-w-xs mx-auto"
-                  />
-                </div>
-
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">CSV Format Example:</h4>
-                  <code className="text-sm">
-                    name,description,category,price,quantity<br />
-                    Widget A,Great product,Electronics,29.99,50<br />
-                    Widget B,Another product,Hardware,19.99,30
-                  </code>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </div>
