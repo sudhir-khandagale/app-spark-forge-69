@@ -9,11 +9,13 @@ const corsHeaders = {
 const RAZORPAY_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID');
 const RAZORPAY_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET');
 
-// Razorpay Plan IDs (in paise - multiply by 100)
+// Razorpay Plan Configurations
+// NOTE: Plans MUST be created in Razorpay Dashboard first!
+// For now, we'll create payment links instead of subscriptions for easier testing
 const PLAN_CONFIGS = {
-  free: { amount: 0, period: 'monthly', name: 'Free Plan' },
-  pro: { amount: 99900, period: 'monthly', name: 'Pro Plan' },
-  premium: { amount: 249900, period: 'monthly', name: 'Premium Plan' }
+  free: { amount: 0, name: 'Free Plan' },
+  pro: { amount: 99900, name: 'Pro Plan - ₹999/month' },
+  premium: { amount: 249900, name: 'Premium Plan - ₹2499/month' }
 };
 
 serve(async (req) => {
@@ -135,81 +137,58 @@ serve(async (req) => {
         throw new Error('Invalid tier');
       }
 
-      // Create Razorpay plan
-      const planResponse = await fetch('https://api.razorpay.com/v1/plans', {
+      // Create a Payment Link for one-time subscription payment
+      // This is simpler than subscriptions and works in test mode
+      const paymentLinkResponse = await fetch('https://api.razorpay.com/v1/payment_links', {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`)}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          period: planConfig.period,
-          interval: 1,
-          item: {
-            name: planConfig.name,
-            amount: planConfig.amount,
-            currency: 'INR',
-            description: `AassPass ${tier} subscription`
+          amount: planConfig.amount,
+          currency: 'INR',
+          description: planConfig.name,
+          customer: {
+            name: profile?.display_name || 'Vendor',
+            email: profile?.email || user.email
           },
-          notes: {
-            tier: tier,
-            store_id: storeId
-          }
-        })
-      });
-
-      if (!planResponse.ok) {
-        const errorData = await planResponse.json();
-        console.error('Razorpay plan creation failed:', errorData);
-        throw new Error(errorData.error?.description || 'Failed to create plan');
-      }
-
-      const plan = await planResponse.json();
-      console.log('Created plan:', plan.id);
-
-      // Create subscription
-      const subscriptionResponse = await fetch('https://api.razorpay.com/v1/subscriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`)}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plan_id: plan.id,
-          customer_id: customerId,
-          quantity: 1,
-          total_count: 12,
-          customer_notify: 1,
+          notify: {
+            sms: false,
+            email: true
+          },
+          reminder_enable: false,
           notes: {
             user_id: user.id,
             store_id: storeId,
-            tier: tier
-          }
+            tier: tier,
+            type: 'subscription'
+          },
+          callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/razorpay-webhook`,
+          callback_method: 'get'
         })
       });
 
-      if (!subscriptionResponse.ok) {
-        const errorData = await subscriptionResponse.json();
-        console.error('Razorpay subscription creation failed:', errorData);
-        throw new Error(errorData.error?.description || 'Failed to create subscription');
+      if (!paymentLinkResponse.ok) {
+        const errorData = await paymentLinkResponse.json();
+        console.error('Razorpay payment link creation failed:', errorData);
+        throw new Error(errorData.error?.description || 'Failed to create payment link');
       }
 
-      const subscription = await subscriptionResponse.json();
-      console.log('Created subscription:', subscription.id, 'with short_url:', subscription.short_url);
+      const paymentLink = await paymentLinkResponse.json();
+      console.log('Created payment link:', paymentLink.id, 'short_url:', paymentLink.short_url);
 
-      // Return subscription details for frontend checkout
+      // Return payment link details for frontend
       return new Response(
         JSON.stringify({
           success: true,
-          subscription_id: subscription.id,
-          short_url: subscription.short_url,
+          payment_link_id: paymentLink.id,
+          short_url: paymentLink.short_url,
           razorpay_key: RAZORPAY_KEY_ID,
           amount: planConfig.amount,
           currency: 'INR',
           name: planConfig.name,
-          description: `${tier} plan subscription`,
-          customer_id: customerId,
-          plan_id: plan.id
+          description: planConfig.name
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );

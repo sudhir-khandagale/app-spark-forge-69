@@ -128,51 +128,12 @@ export default function SubscriptionTiersModal({
         return;
       }
 
-      // Open Razorpay checkout for paid plans
-      if (data.razorpay_key && data.subscription_id) {
-        console.log('Opening Razorpay checkout with:', { 
-          key: data.razorpay_key, 
-          subscription_id: data.subscription_id,
-          short_url: data.short_url 
-        });
-
-        // Use short_url if available (Razorpay hosted checkout page)
-        if (data.short_url) {
-          window.location.href = data.short_url;
-          return;
-        }
-
-        // Fallback to embedded checkout
-        const options = {
-          key: data.razorpay_key,
-          subscription_id: data.subscription_id,
-          name: 'AassPass',
-          description: data.description,
-          handler: function (response: any) {
-            console.log('Payment response:', response);
-            toast({
-              title: 'Payment Successful!',
-              description: 'Your subscription has been activated.'
-            });
-            onUpgrade?.();
-            onOpenChange(false);
-            window.location.href = `/payment-success?subscription_id=${response.razorpay_subscription_id}`;
-          },
-          modal: {
-            ondismiss: function() {
-              console.log('Payment modal dismissed');
-              setUpgrading(false);
-            }
-          },
-          theme: {
-            color: '#2563eb'
-          }
-        };
-
-        const razorpay = new (window as any).Razorpay(options);
-        razorpay.open();
+      // Open Razorpay payment page
+      if (data.short_url) {
+        console.log('Redirecting to payment link:', data.short_url);
+        window.location.href = data.short_url;
       } else {
-        console.error('Missing razorpay data:', data);
+        console.error('Missing payment link:', data);
         throw new Error('Invalid payment configuration');
       }
     } catch (error: any) {
