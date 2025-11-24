@@ -107,12 +107,14 @@ export default function SubscriptionTiersModal({
       const selectedTier = tiers.find(t => t.id === tier);
       if (!selectedTier) return;
 
-      // Call Razorpay edge function
+      // Call Razorpay edge function with callback URL
+      const callbackUrl = `${window.location.origin}/dashboard/store/${storeId}`;
       const { data, error } = await supabase.functions.invoke('razorpay-subscription', {
         body: {
           action: 'create_subscription',
           tier: tier,
-          storeId: storeId
+          storeId: storeId,
+          callbackUrl: callbackUrl
         }
       });
 

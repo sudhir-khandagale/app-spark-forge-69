@@ -39,7 +39,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { action, tier, storeId } = await req.json();
+    const { action, tier, storeId, callbackUrl } = await req.json();
 
     console.log(`Processing ${action} for tier ${tier}, storeId ${storeId}`);
 
@@ -163,7 +163,9 @@ serve(async (req) => {
             store_id: storeId,
             tier: tier,
             type: 'subscription'
-          }
+          },
+          callback_url: callbackUrl || `https://871c9a98-d021-44e9-a2e6-d670157771eb.lovableproject.com/dashboard/store/${storeId}`,
+          callback_method: 'get'
         })
       });
 
