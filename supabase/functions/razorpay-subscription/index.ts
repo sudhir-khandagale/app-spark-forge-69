@@ -164,7 +164,7 @@ serve(async (req) => {
             tier: tier,
             type: 'subscription'
           },
-          callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/razorpay-webhook`,
+          callback_url: `${Deno.env.get('VITE_SUPABASE_URL')}/dashboard/store/${storeId}`,
           callback_method: 'get'
         })
       });
