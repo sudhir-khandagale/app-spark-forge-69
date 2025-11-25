@@ -5,10 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { EmailVerification } from '@/components/EmailVerification';
 import flowduxIcon from '@/assets/flowdux-icon.png';
+import { z } from 'zod';
+
+const emailSchema = z.string().email({ message: "Please enter a valid email address" });
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +24,10 @@ const Auth = () => {
   const [signupRole, setSignupRole] = useState<'customer' | 'vendor'>('customer');
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [signupEmailError, setSignupEmailError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -78,12 +86,39 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const validateEmail = (email: string, isSignup: boolean = false) => {
+    if (!email) {
+      if (isSignup) {
+        setSignupEmailError(null);
+      } else {
+        setEmailError(null);
+      }
+      return true;
+    }
+    const result = emailSchema.safeParse(email);
+    if (isSignup) {
+      setSignupEmailError(result.success ? null : result.error.errors[0].message);
+    } else {
+      setEmailError(result.success ? null : result.error.errors[0].message);
+    }
+    return result.success;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
       toast({
         title: "Missing Information",
         description: "Please enter your email and password",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!validateEmail(loginEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: emailError || "Please enter a valid email address",
         variant: "destructive"
       });
       return;
@@ -112,12 +147,56 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateEmail(forgotPasswordEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+      redirectTo: `${window.location.origin}/reset-password`
+    });
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link"
+      });
+      setShowForgotPassword(false);
+      setForgotPasswordEmail('');
+    }
+    setIsLoading(false);
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!signupEmail || !signupPassword || !signupName) {
       toast({
         title: "Missing Information",
         description: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!validateEmail(signupEmail, true)) {
+      toast({
+        title: "Invalid Email",
+        description: signupEmailError || "Please enter a valid email address",
         variant: "destructive"
       });
       return;
@@ -205,12 +284,28 @@ const Auth = () => {
                     type="email"
                     placeholder="you@example.com"
                     value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
+                    onChange={(e) => {
+                      setLoginEmail(e.target.value);
+                      validateEmail(e.target.value);
+                    }}
+                    className={emailError ? "border-destructive" : ""}
                   />
+                  {emailError && (
+                    <p className="text-xs text-destructive">{emailError}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="login-password">Password</Label>
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
                   <Input
                     id="login-password"
                     type="password"
@@ -250,8 +345,15 @@ const Auth = () => {
                     type="email"
                     placeholder="you@example.com"
                     value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
+                    onChange={(e) => {
+                      setSignupEmail(e.target.value);
+                      validateEmail(e.target.value, true);
+                    }}
+                    className={signupEmailError ? "border-destructive" : ""}
                   />
+                  {signupEmailError && (
+                    <p className="text-xs text-destructive">{signupEmailError}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -304,6 +406,47 @@ const Auth = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Enter your email address and we'll send you a link to reset your password.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">Email</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                placeholder="you@example.com"
+                value={forgotPasswordEmail}
+                onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setForgotPasswordEmail('');
+                }}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} className="flex-1">
+                {isLoading ? 'Sending...' : 'Send Reset Link'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

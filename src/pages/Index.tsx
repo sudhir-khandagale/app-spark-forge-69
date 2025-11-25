@@ -37,7 +37,10 @@ const Index = () => {
   const navigate = useNavigate();
   const { latitude, longitude } = useGeolocation();
   const { stores, loading } = useStores();
-  const { getFlashSale } = useFlashSales(trendingProducts.map(p => p.id));
+  
+  // Only fetch flash sales after products are loaded
+  const productIds = trendingProducts.map(p => p.id);
+  const { getFlashSale } = useFlashSales(productIds.length > 0 ? productIds : undefined);
 
   useEffect(() => {
     fetchTrendingProducts();
