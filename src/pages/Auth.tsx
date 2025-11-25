@@ -7,20 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { EmailVerification } from '@/components/EmailVerification';
+import { PhoneVerification } from '@/components/PhoneVerification';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginOtp, setLoginOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [signupName, setSignupName] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
+  const [signupPhone, setSignupPhone] = useState('');
   const [signupRole, setSignupRole] = useState<'customer' | 'vendor'>('customer');
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [verificationEmail, setVerificationEmail] = useState('');
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [verificationPhone, setVerificationPhone] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -79,68 +77,102 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const validatePhone = (phone: string): boolean => {
+    // Remove all non-digits
+    const cleaned = phone.replace(/\D/g, '');
+    // Check if it's a valid 10-digit number (adjust regex for your country)
+    return cleaned.length === 10;
+  };
+
+  const formatPhoneForAuth = (phone: string): string => {
+    // Remove all non-digits and add country code (assuming India +91)
+    const cleaned = phone.replace(/\D/g, '');
+    return `+91${cleaned}`;
+  };
+
+  const handleSendLoginOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail || !loginPassword) {
+    if (!loginPhone) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all fields",
+        description: "Please enter your phone number",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!validatePhone(loginPhone)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please enter a valid 10-digit phone number",
         variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
+    const formattedPhone = formatPhoneForAuth(loginPhone);
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: formattedPhone
     });
 
     if (error) {
       toast({
-        title: "Login Failed",
+        title: "Failed to Send OTP",
+        description: error.message,
+        variant: "destructive"
+      });
+      setIsLoading(false);
+    } else {
+      toast({
+        title: "OTP Sent",
+        description: "Please check your phone for the verification code",
+      });
+      setOtpSent(true);
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyLoginOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginOtp || loginOtp.length !== 6) {
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter the 6-digit code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    const formattedPhone = formatPhoneForAuth(loginPhone);
+    
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone: formattedPhone,
+      token: loginOtp,
+      type: 'sms'
+    });
+
+    if (error) {
+      toast({
+        title: "Verification Failed",
         description: error.message,
         variant: "destructive"
       });
       setIsLoading(false);
     } else if (data.user) {
-      // Redirect will be handled by onAuthStateChange
+      toast({
+        title: "Success!",
+        description: "Logged in successfully",
+      });
       await redirectByRole(data.user.id);
-    }
-  };
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Check your email",
-        description: "We've sent you a password reset link. Please check your inbox.",
-      });
-      
-      setResetEmail('');
-      setShowForgotPassword(false);
-    } catch (error: any) {
-      toast({
-        title: "Error sending reset email",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signupEmail || !signupPassword || !signupName) {
+    if (!signupPhone || !signupName) {
       toast({
         title: "Missing Information",
         description: "Please fill in all fields",
@@ -149,21 +181,21 @@ const Auth = () => {
       return;
     }
 
-    if (signupPassword.length < 6) {
+    if (!validatePhone(signupPhone)) {
       toast({
-        title: "Invalid Password",
-        description: "Password must be at least 6 characters",
+        title: "Invalid Phone Number",
+        description: "Please enter a valid 10-digit phone number",
         variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: signupEmail,
-      password: signupPassword,
+    const formattedPhone = formatPhoneForAuth(signupPhone);
+    
+    const { data, error } = await supabase.auth.signInWithOtp({
+      phone: formattedPhone,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
         data: {
           display_name: signupName,
           role: signupRole
@@ -178,35 +210,36 @@ const Auth = () => {
         variant: "destructive"
       });
       setIsLoading(false);
-    } else if (data.user) {
-      // Check if email confirmation is required
-      if (data.user.identities && data.user.identities.length === 0) {
-        // Email confirmation required
-        setVerificationEmail(signupEmail);
-        setShowEmailVerification(true);
-        toast({
-          title: "Verify your email",
-          description: "Please check your email for the verification link.",
-        });
-      } else {
-        toast({
-          title: "Success!",
-          description: "Account created successfully. Redirecting...",
-        });
-        // Redirect based on role
-        await redirectByRole(data.user.id);
-      }
+    } else {
+      toast({
+        title: "OTP Sent",
+        description: "Please verify your phone number to complete signup",
+      });
+      setVerificationPhone(formattedPhone);
+      setShowPhoneVerification(true);
+      setIsLoading(false);
     }
   };
 
-  if (showEmailVerification) {
+  const handleVerified = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await redirectByRole(user.id);
+    }
+  };
+
+  if (showPhoneVerification) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="w-full max-w-md">
-            <EmailVerification 
-              email={verificationEmail} 
-              onBackToLogin={() => setShowEmailVerification(false)}
+            <PhoneVerification 
+              phone={verificationPhone}
+              onVerified={handleVerified}
+              onBackToLogin={() => {
+                setShowPhoneVerification(false);
+                setIsLoading(false);
+              }}
             />
           </div>
         </div>
@@ -218,168 +251,133 @@ const Auth = () => {
     <div className="flex flex-col min-h-screen bg-background">
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
-          {/* Logo/Brand */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-primary mb-2">Flowdux</h1>
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold">AassPass</h1>
             <p className="text-muted-foreground">
-              Find products in local stores instantly
+              Find products at local stores instantly
             </p>
           </div>
 
-          {/* Auth Tabs */}
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="login" className="space-y-4">
-              {!showForgotPassword ? (
-                <form onSubmit={handleLogin} className="space-y-4">
+            <TabsContent value="login">
+              <form onSubmit={otpSent ? handleVerifyLoginOtp : handleSendLoginOtp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="login-phone">Phone Number</Label>
+                  <Input
+                    id="login-phone"
+                    type="tel"
+                    placeholder="10-digit mobile number"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    disabled={otpSent}
+                    maxLength={10}
+                  />
+                </div>
+
+                {otpSent && (
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="login-otp">Verification Code</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
+                      id="login-otp"
+                      type="text"
+                      placeholder="6-digit OTP"
+                      value={loginOtp}
+                      onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      maxLength={6}
+                      className="text-center text-xl tracking-widest"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Forgot Password?
-                    </button>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Signing in...' : 'Sign In'}
+                )}
+
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Please wait...' : otpSent ? 'Verify & Login' : 'Send OTP'}
+                </Button>
+
+                {otpSent && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setLoginOtp('');
+                    }}
+                  >
+                    Change phone number
                   </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="resetEmail">Email Address</Label>
-                    <Input
-                      id="resetEmail"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      We'll send you a link to reset your password
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setShowForgotPassword(false);
-                        setResetEmail('');
-                      }}
-                      disabled={isLoading}
-                      className="flex-1"
-                    >
-                      Back to Login
-                    </Button>
-                    <Button type="submit" disabled={isLoading} className="flex-1">
-                      {isLoading ? 'Sending...' : 'Send Reset Link'}
-                    </Button>
-                  </div>
-                </form>
-              )}
+                )}
+              </form>
             </TabsContent>
 
-            <TabsContent value="signup" className="space-y-4">
+            <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="signup-name">Full Name</Label>
                   <Input
-                    id="name"
-                    placeholder="John Doe"
+                    id="signup-name"
+                    type="text"
+                    placeholder="Enter your name"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
-                    required
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-phone">Phone Number</Label>
                   <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="john@example.com"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    required
+                    id="signup-phone"
+                    type="tel"
+                    placeholder="10-digit mobile number"
+                    value={signupPhone}
+                    onChange={(e) => setSignupPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    maxLength={10}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label>I am a:</Label>
-                  <RadioGroup value={signupRole} onValueChange={(value) => setSignupRole(value as 'customer' | 'vendor')}>
+                  <Label>I want to sign up as</Label>
+                  <RadioGroup value={signupRole} onValueChange={(value: 'customer' | 'vendor') => setSignupRole(value)}>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="customer" id="user" />
-                      <Label htmlFor="user" className="font-normal cursor-pointer">
-                        User - Looking to find products in local stores
-                      </Label>
+                      <RadioGroupItem value="customer" id="customer" />
+                      <Label htmlFor="customer" className="font-normal">Customer</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="vendor" id="vendor" />
-                      <Label htmlFor="vendor" className="font-normal cursor-pointer">
-                        Vendor - I own a store and want to list my products
-                      </Label>
+                      <Label htmlFor="vendor" className="font-normal">Vendor (Shop Owner)</Label>
                     </div>
                   </RadioGroup>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Creating account...' : 'Create Account'}
+
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Creating account...' : 'Sign Up'}
                 </Button>
-                <p className="text-xs text-center text-muted-foreground">
-                  By signing up, you agree to our{' '}
-                  <Button variant="link" className="h-auto p-0 text-xs">
-                    Terms
-                  </Button>{' '}
-                  and{' '}
-                  <Button variant="link" className="h-auto p-0 text-xs">
-                    Privacy Policy
-                  </Button>
+
+                <p className="text-sm text-muted-foreground text-center">
+                  Already have an account with this number? You can add another role after login.
                 </p>
               </form>
             </TabsContent>
           </Tabs>
 
           <div className="text-center">
-            <Link to="/">
-              <Button variant="link">Continue as Guest</Button>
+            <Link 
+              to="/" 
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Continue as Guest
             </Link>
           </div>
         </div>
