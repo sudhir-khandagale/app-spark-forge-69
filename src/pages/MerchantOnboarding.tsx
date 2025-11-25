@@ -24,7 +24,7 @@ export default function MerchantOnboarding() {
   const [storeData, setStoreData] = useState({
     name: '',
     description: '',
-    mapsUrl: '',
+    googleMapsLink: '',
     address: '',
     phone: '',
     email: '',
@@ -61,7 +61,7 @@ export default function MerchantOnboarding() {
   };
 
   const handleMapsUrlChange = (url: string) => {
-    setStoreData(prev => ({ ...prev, mapsUrl: url }));
+    setStoreData(prev => ({ ...prev, googleMapsLink: url }));
     
     // Clear error when user starts typing
     if (mapsUrlError && url.trim()) {
@@ -75,63 +75,47 @@ export default function MerchantOnboarding() {
     }
     
     // Try to extract coordinates from Google Maps URL
-    try {
-      // Pattern 1: /@lat,lng,zoom
-      let match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+),/);
-      if (match) {
-        setStoreData(prev => ({
-          ...prev,
-          latitude: match![1],
-          longitude: match![2],
-          address: url,
-        }));
-        setMapsUrlError('');
-        return;
+    if (url.trim() && isValidGoogleMapsUrl(url)) {
+      try {
+        // Pattern 1: /@lat,lng,zoom
+        let match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+),/);
+        if (match) {
+          setStoreData(prev => ({
+            ...prev,
+            latitude: match![1],
+            longitude: match![2],
+          }));
+          setMapsUrlError('');
+          return;
+        }
+        
+        // Pattern 2: ?q=lat,lng
+        match = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (match) {
+          setStoreData(prev => ({
+            ...prev,
+            latitude: match![1],
+            longitude: match![2],
+          }));
+          setMapsUrlError('');
+          return;
+        }
+        
+        // Pattern 3: /place/ with coordinates
+        match = url.match(/\/place\/[^/]+\/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (match) {
+          setStoreData(prev => ({
+            ...prev,
+            latitude: match![1],
+            longitude: match![2],
+          }));
+          setMapsUrlError('');
+          return;
+        }
+      } catch (error) {
+        console.error('Error extracting coordinates:', error);
       }
-      
-      // Pattern 2: ?q=lat,lng
-      match = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (match) {
-        setStoreData(prev => ({
-          ...prev,
-          latitude: match![1],
-          longitude: match![2],
-          address: url,
-        }));
-        setMapsUrlError('');
-        return;
-      }
-      
-      // Pattern 3: /place/ with coordinates
-      match = url.match(/\/place\/[^/]+\/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-      if (match) {
-        setStoreData(prev => ({
-          ...prev,
-          latitude: match![1],
-          longitude: match![2],
-          address: url,
-        }));
-        setMapsUrlError('');
-        return;
-      }
-      
-      // If valid URL but no coordinates found, just store the URL
-      if (isValidGoogleMapsUrl(url)) {
-        setStoreData(prev => ({
-          ...prev,
-          address: url,
-        }));
-        setMapsUrlError('');
-      }
-    } catch (error) {
-      // If parsing fails but URL is valid, just store the URL
-      if (isValidGoogleMapsUrl(url)) {
-        setStoreData(prev => ({
-          ...prev,
-          address: url,
-        }));
-        setMapsUrlError('');
-      }
+      setMapsUrlError('');
     }
   };
 
@@ -248,7 +232,7 @@ export default function MerchantOnboarding() {
           hours: storeData.hours,
           specialties: storeData.specialties.split(',').map(s => s.trim()).filter(Boolean),
           photo_urls: photoUrls.length > 0 ? photoUrls : null,
-          google_maps_link: storeData.mapsUrl || null,
+          google_maps_link: storeData.googleMapsLink || null,
           status: isAdmin ? 'approved' : 'pending',
         })
         .select()
@@ -338,7 +322,7 @@ export default function MerchantOnboarding() {
                 <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
                   <div className="flex items-center gap-2">
                     <LinkIcon className="h-4 w-4 text-primary" />
-                    <Label htmlFor="maps-url">Google Maps Location *</Label>
+                    <Label htmlFor="maps-url">Google Maps Share Link *</Label>
                   </div>
                   
                   <Alert className="bg-blue-500/10 border-blue-500/30">
@@ -351,13 +335,14 @@ export default function MerchantOnboarding() {
                         <li>Click "Copy link" </li>
                         <li>Paste the link in the field below</li>
                       </ol>
+                      <p className="mt-2 text-xs">This ensures customers get your <strong>exact location</strong> when they tap "Open in Maps"</p>
                     </AlertDescription>
                   </Alert>
 
                   <Input
                     id="maps-url"
-                    placeholder="https://maps.google.com/..."
-                    value={storeData.mapsUrl}
+                    placeholder="https://maps.app.goo.gl/..."
+                    value={storeData.googleMapsLink}
                     onChange={(e) => handleMapsUrlChange(e.target.value)}
                     required
                     className={`font-mono text-sm ${mapsUrlError ? 'border-destructive focus-visible:ring-destructive' : ''}`}
@@ -375,11 +360,24 @@ export default function MerchantOnboarding() {
                     </p>
                   )}
                   
-                  {!mapsUrlError && storeData.mapsUrl && !storeData.latitude && (
+                  {!mapsUrlError && storeData.googleMapsLink && !storeData.latitude && (
                     <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
                       ⚠ Valid URL but coordinates not detected. Your location will still be saved.
                     </p>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="address">Store Address *</Label>
+                  <Textarea
+                    id="address"
+                    placeholder="123 Main Street, City, State 12345"
+                    value={storeData.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    required
+                    rows={2}
+                  />
+                  <p className="text-xs text-muted-foreground">Full street address for display purposes</p>
                 </div>
 
                 <div className="space-y-2">
@@ -516,7 +514,7 @@ export default function MerchantOnboarding() {
                 <div className="space-y-4 pt-4 border-t">
                   <Button 
                     onClick={handleSubmit} 
-                    disabled={loading || uploading || !storeData.name.trim() || !storeData.mapsUrl.trim() || !!mapsUrlError} 
+                    disabled={loading || uploading || !storeData.name.trim() || !storeData.address.trim() || !storeData.googleMapsLink.trim() || !!mapsUrlError} 
                     className="w-full"
                   >
                     {loading ? 'Creating Store...' : uploading ? 'Uploading Photos...' : 'Complete Registration'}
