@@ -336,7 +336,10 @@ const ProductDetails = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{product.store_name}</h3>
-                    {product.store_address && product.store_address !== '0' && (
+                    {product.store_address && 
+                     product.store_address !== '0' && 
+                     !product.store_address.startsWith('http') && 
+                     !product.store_address.includes('maps.') && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                         <MapPin className="w-3 h-3" />
                         {product.store_address}
