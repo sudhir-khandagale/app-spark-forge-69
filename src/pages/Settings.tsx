@@ -9,16 +9,24 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
 const Settings = () => {
   const { user } = useUserRole();
   const { toast } = useToast();
   const [searchRadius, setSearchRadius] = useState<number>(10);
   const [loading, setLoading] = useState(true);
+  const { latitude, longitude, error: locationError, loading: locationLoading, refresh } = useGeolocation();
+  const [locationEnabled, setLocationEnabled] = useState(false);
 
   useEffect(() => {
     fetchSearchRadius();
   }, [user]);
+
+  useEffect(() => {
+    // Check if location is enabled based on coordinates availability
+    setLocationEnabled(!!(latitude && longitude));
+  }, [latitude, longitude]);
 
   const fetchSearchRadius = async () => {
     if (!user) {
@@ -41,6 +49,32 @@ const Settings = () => {
       console.error('Error fetching search radius:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLocationToggle = async (checked: boolean) => {
+    if (checked) {
+      // Request location permission
+      const result = await refresh();
+      if (result) {
+        setLocationEnabled(true);
+        toast({
+          title: "Location Enabled",
+          description: "GPS location services are now active",
+        });
+      } else {
+        toast({
+          title: "Location Permission Denied",
+          description: "Please enable location access in your device settings",
+          variant: "destructive",
+        });
+      }
+    } else {
+      setLocationEnabled(false);
+      toast({
+        title: "Location Disabled",
+        description: "Distance-based search will be limited",
+      });
     }
   };
 
@@ -130,6 +164,31 @@ const Settings = () => {
               Location
             </h2>
             <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
+                <div className="flex-1">
+                  <Label htmlFor="location-toggle" className="text-base cursor-pointer">Enable Location Services</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Required for distance-based search
+                  </p>
+                  {locationEnabled && latitude && longitude && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      ✓ Location active: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                    </p>
+                  )}
+                  {locationError && (
+                    <p className="text-xs text-destructive mt-1">
+                      ⚠️ {locationError}
+                    </p>
+                  )}
+                </div>
+                <Switch 
+                  id="location-toggle"
+                  checked={locationEnabled} 
+                  onCheckedChange={handleLocationToggle}
+                  disabled={locationLoading}
+                />
+              </div>
+
               <div className="p-3 bg-card border border-border rounded-lg">
                 <Label className="block mb-2">Default Search Radius (Kilometers)</Label>
                 <select 

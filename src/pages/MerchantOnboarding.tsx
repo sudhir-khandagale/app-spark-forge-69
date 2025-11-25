@@ -363,8 +363,14 @@ export default function MerchantOnboarding() {
                   )}
                   
                   {!mapsUrlError && storeData.googleMapsLink && !storeData.latitude && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                      ⚠ Valid URL but coordinates not detected. Your location will still be saved.
+                    <p className="text-sm text-destructive flex items-center gap-1 font-semibold">
+                      ⚠️ Coordinates are required. Please use a valid Google Maps URL with location data.
+                    </p>
+                  )}
+                  
+                  {storeData.googleMapsLink && (
+                    <p className="text-xs text-muted-foreground">
+                      💡 Tip: Use the "Share" button in Google Maps to get a URL with coordinates, or use the full desktop URL.
                     </p>
                   )}
                 </div>
@@ -516,7 +522,16 @@ export default function MerchantOnboarding() {
                 <div className="space-y-4 pt-4 border-t">
                   <Button 
                     onClick={handleSubmit} 
-                    disabled={loading || uploading || !storeData.name.trim() || !storeData.address.trim() || !storeData.googleMapsLink.trim() || !!mapsUrlError} 
+                    disabled={
+                      loading || 
+                      uploading || 
+                      !storeData.name.trim() || 
+                      !storeData.address.trim() || 
+                      !storeData.googleMapsLink.trim() || 
+                      !!mapsUrlError ||
+                      !storeData.latitude ||
+                      !storeData.longitude
+                    } 
                     className="w-full"
                   >
                     {loading ? 'Creating Store...' : uploading ? 'Uploading Photos...' : 'Complete Registration'}
