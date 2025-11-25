@@ -183,7 +183,7 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">AassPass</h1>
+            <h1 className="text-3xl font-bold">Flowdux</h1>
             <p className="text-muted-foreground">
               Find products at local stores instantly
             </p>
