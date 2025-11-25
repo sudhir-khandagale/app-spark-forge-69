@@ -17,7 +17,7 @@ import { formatPrice } from '@/lib/utils';
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  const { results, loading, searchProducts } = useProductSearch();
+  const { results, recommendations, loading, searchProducts } = useProductSearch();
   const { latitude, longitude } = useGeolocation();
   const { isFavorite } = useFavoriteStores();
   const { getFlashSale } = useFlashSales(results.map(r => r.id));
@@ -79,11 +79,34 @@ const Search = () => {
       <main className="flex-1 p-4">
         <div className="max-w-lg mx-auto">
           {query && (
-            <div className="mb-4 p-3 bg-muted rounded-lg">
-              <p className="text-sm text-foreground">
-                <span className="text-muted-foreground">Searching for:</span>{' '}
-                <span className="font-semibold text-foreground">"{query}"</span>
-              </p>
+            <div className="mb-4 space-y-3">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm text-foreground">
+                  <span className="text-muted-foreground">Searching for:</span>{' '}
+                  <span className="font-semibold text-foreground">"{query}"</span>
+                </p>
+              </div>
+              
+              {recommendations.length > 0 && (
+                <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                  <p className="text-xs font-medium text-primary mb-2">✨ AI Suggestions</p>
+                  <div className="flex flex-wrap gap-2">
+                    {recommendations.map((rec, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setQuery(rec);
+                          setSearchParams({ q: rec });
+                          searchProducts(rec, latitude || undefined, longitude || undefined);
+                        }}
+                        className="px-2 py-1 text-xs bg-background hover:bg-primary/10 border border-border rounded-md transition-colors"
+                      >
+                        {rec}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
