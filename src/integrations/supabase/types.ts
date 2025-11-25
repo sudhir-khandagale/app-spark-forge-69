@@ -385,6 +385,60 @@ export type Database = {
           },
         ]
       }
+      product_variants: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          price: number
+          product_id: string
+          quantity: number
+          size: string | null
+          sku: string | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          price: number
+          product_id: string
+          quantity?: number
+          size?: string | null
+          sku?: string | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          price?: number
+          product_id?: string
+          quantity?: number
+          size?: string | null
+          sku?: string | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variants_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           barcode: string | null
