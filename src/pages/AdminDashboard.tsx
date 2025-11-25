@@ -622,17 +622,19 @@ export default function AdminDashboard() {
                 <CardDescription>Review and approve store registrations</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Store Name</TableHead>
-                        <TableHead>Vendor Name</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="md:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Store Name</TableHead>
+                          <TableHead className="hidden sm:table-cell">Vendor Name</TableHead>
+                          <TableHead className="hidden md:table-cell">Address</TableHead>
+                          <TableHead className="hidden lg:table-cell">Date</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                     {pendingStores.length === 0 ? (
                       <TableRow>
@@ -643,10 +645,13 @@ export default function AdminDashboard() {
                     ) : (
                       pendingStores.map((store) => (
                         <TableRow key={store.id}>
-                          <TableCell className="font-medium">{store.name}</TableCell>
-                          <TableCell>{store.owner_name || 'N/A'}</TableCell>
-                          <TableCell className="max-w-xs truncate">{store.address}</TableCell>
-                          <TableCell>{new Date(store.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="font-medium">
+                            <div>{store.name}</div>
+                            <div className="text-xs text-muted-foreground sm:hidden mt-1">{store.owner_name || 'N/A'}</div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">{store.owner_name || 'N/A'}</TableCell>
+                          <TableCell className="hidden md:table-cell max-w-xs truncate">{store.address}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{new Date(store.created_at).toLocaleDateString()}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Dialog>
@@ -823,7 +828,8 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
+                  </div>
+                </div>
             </CardContent>
             </Card>
           </TabsContent>
@@ -835,17 +841,19 @@ export default function AdminDashboard() {
                 <CardDescription>Review previously rejected stores</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Store Name</TableHead>
-                            <TableHead>Vendor Name</TableHead>
-                            <TableHead>Address</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="md:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Store Name</TableHead>
+                          <TableHead className="hidden sm:table-cell">Vendor Name</TableHead>
+                          <TableHead className="hidden md:table-cell">Address</TableHead>
+                          <TableHead className="hidden lg:table-cell">Date</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                         <TableBody>
                     {rejectedStores.length === 0 ? (
                       <TableRow>
@@ -856,10 +864,13 @@ export default function AdminDashboard() {
                     ) : (
                       rejectedStores.map((store) => (
                         <TableRow key={store.id}>
-                          <TableCell className="font-medium">{store.name}</TableCell>
-                          <TableCell>{store.owner_name || 'N/A'}</TableCell>
-                          <TableCell className="max-w-xs truncate">{store.address}</TableCell>
-                          <TableCell>{new Date(store.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="font-medium">
+                            <div>{store.name}</div>
+                            <div className="text-xs text-muted-foreground sm:hidden mt-1">{store.owner_name || 'N/A'}</div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">{store.owner_name || 'N/A'}</TableCell>
+                          <TableCell className="hidden md:table-cell max-w-xs truncate">{store.address}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{new Date(store.created_at).toLocaleDateString()}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
                               <Dialog>
@@ -1084,7 +1095,8 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
+                  </div>
+                </div>
             </CardContent>
             </Card>
           </TabsContent>
@@ -1096,17 +1108,19 @@ export default function AdminDashboard() {
                 <CardDescription>View and manage all stores</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Store Name</TableHead>
-                            <TableHead>Address</TableHead>
-                            <TableHead>Contact</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Featured</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Actions</TableHead>
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="md:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Store Name</TableHead>
+                          <TableHead className="hidden sm:table-cell">Address</TableHead>
+                          <TableHead className="hidden md:table-cell">Contact</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="hidden lg:table-cell">Featured</TableHead>
+                          <TableHead className="hidden xl:table-cell">Date</TableHead>
+                          <TableHead>Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1188,7 +1202,8 @@ export default function AdminDashboard() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+                  </div>
+                </div>
             </CardContent>
             </Card>
           </TabsContent>
@@ -1200,19 +1215,21 @@ export default function AdminDashboard() {
                 <CardDescription>View and manage all products across stores</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Product Name</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead>Store</TableHead>
-                            <TableHead>Price</TableHead>
-                            <TableHead>Stock</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="md:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product Name</TableHead>
+                          <TableHead className="hidden sm:table-cell">Category</TableHead>
+                          <TableHead className="hidden md:table-cell">Store</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead className="hidden lg:table-cell">Stock</TableHead>
+                          <TableHead className="hidden xl:table-cell">Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                         <TableBody>
                     {products.length === 0 ? (
                       <TableRow>
@@ -1284,8 +1301,9 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
-            </CardContent>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -1300,18 +1318,21 @@ export default function AdminDashboard() {
                   <TrendingUp className="h-4 w-4" />
                   <span>Products marked as trending will be highlighted to customers</span>
                 </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Store</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Trending</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="md:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product Name</TableHead>
+                          <TableHead className="hidden sm:table-cell">Category</TableHead>
+                          <TableHead className="hidden md:table-cell">Store</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead className="hidden lg:table-cell">Stock</TableHead>
+                          <TableHead>Trending</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                   <TableBody>
                     {products.length === 0 ? (
                       <TableRow>
@@ -1356,6 +1377,8 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1367,24 +1390,31 @@ export default function AdminDashboard() {
                 <CardDescription>Manage user roles and permissions</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Current Role</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Change Role</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    <div className="sm:hidden absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none z-10" />
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Email</TableHead>
+                          <TableHead className="hidden sm:table-cell">Current Role</TableHead>
+                          <TableHead className="hidden md:table-cell">Joined</TableHead>
+                          <TableHead>Change Role</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                     {users.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.email}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-medium">
+                          <div>{user.email}</div>
+                          <div className="sm:hidden mt-1">
+                            <Badge variant="outline" className="text-xs">{user.role}</Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <Badge variant="outline">{user.role}</Badge>
                         </TableCell>
-                        <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell className="hidden md:table-cell">{new Date(user.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <Select
                             defaultValue={user.role}
@@ -1404,7 +1434,8 @@ export default function AdminDashboard() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+                  </div>
+                </div>
             </CardContent>
             </Card>
           </TabsContent>
