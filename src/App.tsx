@@ -63,11 +63,11 @@ const App = () => (
     <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
       <TooltipProvider>
         <AppInitializer />
-        <BackButtonHandler />
-        <NetworkStatus />
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <BackButtonHandler />
+          <NetworkStatus />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
