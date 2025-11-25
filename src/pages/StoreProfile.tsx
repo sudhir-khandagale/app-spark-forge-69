@@ -12,7 +12,9 @@ const StoreProfile = () => {
   const { inventory, loading: inventoryLoading } = useStoreInventory(id!);
 
   const handleGetDirections = () => {
-    if (store?.latitude && store?.longitude) {
+    if ((store as any)?.google_maps_link) {
+      window.open((store as any).google_maps_link, '_blank');
+    } else if (store?.latitude && store?.longitude) {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}`;
       window.open(url, '_blank');
     }
@@ -106,10 +108,10 @@ const StoreProfile = () => {
           )}
 
           <div className="flex gap-2">
-            {store.latitude && store.longitude && (
+            {((store as any).google_maps_link || (store.latitude && store.longitude)) && (
               <Button onClick={handleGetDirections} className="flex-1">
                 <Navigation className="w-4 h-4 mr-2" />
-                Get Directions
+                Go to Maps
               </Button>
             )}
             {store.phone && (

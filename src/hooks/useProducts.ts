@@ -24,6 +24,7 @@ export interface ProductWithInventory extends Product {
   store_address?: string;
   store_latitude?: number;
   store_longitude?: number;
+  store_google_maps_link?: string;
 }
 
 export const useProductSearch = () => {
@@ -93,7 +94,8 @@ export const useProduct = (productId: string, storeId?: string) => {
               address,
               rating,
               latitude,
-              longitude
+              longitude,
+              google_maps_link
             )
           `)
           .eq('product_id', productId)
@@ -121,6 +123,7 @@ export const useProduct = (productId: string, storeId?: string) => {
             store_rating: store.rating,
             store_latitude: store.latitude,
             store_longitude: store.longitude,
+            store_google_maps_link: store.google_maps_link,
             price: inventory.price,
             in_stock: inventory.in_stock || false,
             quantity: inventory.quantity
