@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon, ArrowLeft, Star, Plus } from 'lucide-react';
+import { Store, Users, ShoppingBag, CheckCircle, XCircle, Clock, Trash2, Eye, AlertCircle, Package, MapPin, Phone, Mail, Calendar, Image as ImageIcon, ArrowLeft, Star, Plus, TrendingUp } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -55,6 +55,7 @@ interface ProductWithStore {
   quantity: number;
   price: number;
   in_stock: boolean;
+  trending: boolean;
 }
 
 export default function AdminDashboard() {
@@ -214,7 +215,8 @@ export default function AdminDashboard() {
             id,
             name,
             category,
-            created_at
+            created_at,
+            trending
           ),
           stores (
             id,
@@ -235,6 +237,7 @@ export default function AdminDashboard() {
         quantity: item.quantity,
         price: item.price,
         in_stock: item.in_stock || false,
+        trending: item.products.trending || false,
       })) || [];
 
       setProducts(formattedProducts);
@@ -476,6 +479,31 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleToggleTrending = async (productId: string, currentTrending: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ trending: !currentTrending })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Product ${!currentTrending ? 'marked as trending' : 'removed from trending'} successfully`,
+      });
+
+      fetchData();
+    } catch (error: any) {
+      console.error('Error toggling trending:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update trending status',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (roleLoading || loading) {
     return (
       <div className="min-h-screen bg-background p-4">
@@ -583,6 +611,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="rejected">Rejected Stores</TabsTrigger>
             <TabsTrigger value="stores">All Stores</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="trending">Trending Products</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
@@ -1242,6 +1271,77 @@ export default function AdminDashboard() {
                                 </AlertDialogContent>
                               </AlertDialog>
                             </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="trending" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Trending Products Management</CardTitle>
+                <CardDescription>Mark products as trending to feature them on the home page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Products marked as trending will be highlighted to customers</span>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Store</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Trending</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-muted-foreground">
+                          No products found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>
+                            {product.category ? (
+                              <Badge variant="outline">{product.category}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">Uncategorized</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{product.store_name}</TableCell>
+                          <TableCell>₹{product.price.toFixed(2)}</TableCell>
+                          <TableCell>{product.quantity}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={product.trending}
+                                onCheckedChange={() => handleToggleTrending(product.id, product.trending)}
+                              />
+                              {product.trending && <TrendingUp className="h-4 w-4 text-primary" />}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => navigate(`/product/${product.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))
