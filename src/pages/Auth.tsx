@@ -7,18 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { PhoneVerification } from '@/components/PhoneVerification';
+import { EmailVerification } from '@/components/EmailVerification';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [loginPhone, setLoginPhone] = useState('');
-  const [loginOtp, setLoginOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [signupName, setSignupName] = useState('');
-  const [signupPhone, setSignupPhone] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
   const [signupRole, setSignupRole] = useState<'customer' | 'vendor'>('customer');
-  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
-  const [verificationPhone, setVerificationPhone] = useState('');
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -77,86 +77,27 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const validatePhone = (phone: string): boolean => {
-    // Remove all non-digits
-    const cleaned = phone.replace(/\D/g, '');
-    // Check if it's a valid 10-digit number (adjust regex for your country)
-    return cleaned.length === 10;
-  };
-
-  const formatPhoneForAuth = (phone: string): string => {
-    // Remove all non-digits and add country code (assuming India +91)
-    const cleaned = phone.replace(/\D/g, '');
-    return `+91${cleaned}`;
-  };
-
-  const handleSendLoginOtp = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginPhone) {
+    if (!loginEmail || !loginPassword) {
       toast({
         title: "Missing Information",
-        description: "Please enter your phone number",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!validatePhone(loginPhone)) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid 10-digit phone number",
+        description: "Please enter your email and password",
         variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
-    const formattedPhone = formatPhoneForAuth(loginPhone);
     
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: formattedPhone
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword
     });
 
     if (error) {
       toast({
-        title: "Failed to Send OTP",
-        description: error.message,
-        variant: "destructive"
-      });
-      setIsLoading(false);
-    } else {
-      toast({
-        title: "OTP Sent",
-        description: "Please check your phone for the verification code",
-      });
-      setOtpSent(true);
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyLoginOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginOtp || loginOtp.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the 6-digit code",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    const formattedPhone = formatPhoneForAuth(loginPhone);
-    
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone: formattedPhone,
-      token: loginOtp,
-      type: 'sms'
-    });
-
-    if (error) {
-      toast({
-        title: "Verification Failed",
+        title: "Login Failed",
         description: error.message,
         variant: "destructive"
       });
@@ -172,7 +113,7 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signupPhone || !signupName) {
+    if (!signupEmail || !signupPassword || !signupName) {
       toast({
         title: "Missing Information",
         description: "Please fill in all fields",
@@ -181,21 +122,23 @@ const Auth = () => {
       return;
     }
 
-    if (!validatePhone(signupPhone)) {
+    if (signupPassword.length < 6) {
       toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid 10-digit phone number",
+        title: "Weak Password",
+        description: "Password must be at least 6 characters",
         variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
-    const formattedPhone = formatPhoneForAuth(signupPhone);
+    const redirectUrl = `${window.location.origin}/`;
     
-    const { data, error } = await supabase.auth.signInWithOtp({
-      phone: formattedPhone,
+    const { data, error } = await supabase.auth.signUp({
+      email: signupEmail,
+      password: signupPassword,
       options: {
+        emailRedirectTo: redirectUrl,
         data: {
           display_name: signupName,
           role: signupRole
@@ -210,34 +153,22 @@ const Auth = () => {
         variant: "destructive"
       });
       setIsLoading(false);
-    } else {
-      toast({
-        title: "OTP Sent",
-        description: "Please verify your phone number to complete signup",
-      });
-      setVerificationPhone(formattedPhone);
-      setShowPhoneVerification(true);
+    } else if (data.user) {
+      setVerificationEmail(signupEmail);
+      setShowEmailVerification(true);
       setIsLoading(false);
     }
   };
 
-  const handleVerified = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await redirectByRole(user.id);
-    }
-  };
-
-  if (showPhoneVerification) {
+  if (showEmailVerification) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="w-full max-w-md">
-            <PhoneVerification 
-              phone={verificationPhone}
-              onVerified={handleVerified}
+            <EmailVerification 
+              email={verificationEmail}
               onBackToLogin={() => {
-                setShowPhoneVerification(false);
+                setShowEmailVerification(false);
                 setIsLoading(false);
               }}
             />
@@ -265,56 +196,36 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="login">
-              <form onSubmit={otpSent ? handleVerifyLoginOtp : handleSendLoginOtp} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-phone">Phone Number</Label>
+                  <Label htmlFor="login-email">Email</Label>
                   <Input
-                    id="login-phone"
-                    type="tel"
-                    placeholder="10-digit mobile number"
-                    value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    disabled={otpSent}
-                    maxLength={10}
+                    id="login-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
                   />
                 </div>
 
-                {otpSent && (
-                  <div className="space-y-2">
-                    <Label htmlFor="login-otp">Verification Code</Label>
-                    <Input
-                      id="login-otp"
-                      type="text"
-                      placeholder="6-digit OTP"
-                      value={loginOtp}
-                      onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      maxLength={6}
-                      className="text-center text-xl tracking-widest"
-                    />
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="login-password">Password</Label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
+                </div>
 
                 <Button 
                   type="submit" 
                   className="w-full" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Please wait...' : otpSent ? 'Verify & Login' : 'Send OTP'}
+                  {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
-
-                {otpSent && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => {
-                      setOtpSent(false);
-                      setLoginOtp('');
-                    }}
-                  >
-                    Change phone number
-                  </Button>
-                )}
               </form>
             </TabsContent>
 
@@ -332,14 +243,24 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-phone">Phone Number</Label>
+                  <Label htmlFor="signup-email">Email</Label>
                   <Input
-                    id="signup-phone"
-                    type="tel"
-                    placeholder="10-digit mobile number"
-                    value={signupPhone}
-                    onChange={(e) => setSignupPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    maxLength={10}
+                    id="signup-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    placeholder="At least 6 characters"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
                   />
                 </div>
 
@@ -366,7 +287,7 @@ const Auth = () => {
                 </Button>
 
                 <p className="text-sm text-muted-foreground text-center">
-                  Already have an account with this number? You can add another role after login.
+                  Already have an account? Switch to the Login tab.
                 </p>
               </form>
             </TabsContent>
