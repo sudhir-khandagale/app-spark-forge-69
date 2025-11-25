@@ -14,6 +14,8 @@ import { formatPrice } from '@/lib/utils';
 import FlashSaleBadge from '@/components/FlashSaleBadge';
 import { useFlashSales } from '@/hooks/useFlashSales';
 import flowduxIcon from '@/assets/flowdux-icon.png';
+import { PullToRefresh } from '@/components/PullToRefresh';
+import { toast } from '@/hooks/use-toast';
 
 interface TrendingProduct {
   id: string;
@@ -46,8 +48,9 @@ const Index = () => {
     fetchTrendingProducts();
   }, []);
 
-  const fetchTrendingProducts = async () => {
+  const fetchTrendingProducts = async (): Promise<void> => {
     try {
+      setLoadingTrending(true);
       const { data: products } = await supabase
         .from('products')
         .select('id, name, image_url, category, rating, review_count, trending')
@@ -86,8 +89,17 @@ const Index = () => {
       );
 
       setTrendingProducts(productsWithStores.filter(p => p.stores.length > 0));
+      toast({
+        title: 'Refreshed',
+        description: 'Products updated successfully'
+      });
     } catch (error) {
       console.error('Error fetching trending products:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to refresh products',
+        variant: 'destructive'
+      });
     } finally {
       setLoadingTrending(false);
     }
@@ -142,9 +154,10 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-1 p-4">
-        <div className="max-w-lg mx-auto space-y-6">
+      <PullToRefresh onRefresh={fetchTrendingProducts}>
+        {/* Content */}
+        <main className="flex-1 p-4">
+          <div className="max-w-lg mx-auto space-y-6">
           {/* Trending Products Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -299,8 +312,9 @@ const Index = () => {
               </Carousel>
             </div>
           )}
-        </div>
-      </main>
+          </div>
+        </main>
+      </PullToRefresh>
 
       <BottomNav />
     </div>

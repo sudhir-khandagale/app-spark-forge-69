@@ -13,6 +13,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useFavoriteStores } from '@/hooks/useFavoriteStores';
 import { useFlashSales } from '@/hooks/useFlashSales';
 import { formatPrice } from '@/lib/utils';
+import { PullToRefresh } from '@/components/PullToRefresh';
 
 const Search = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -53,6 +54,12 @@ const Search = () => {
     }
   };
 
+  const handleRefresh = async (): Promise<void> => {
+    if (query.trim()) {
+      await searchProducts(query, latitude || undefined, longitude || undefined);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen pb-16">
       {/* Header - extends to top with safe area */}
@@ -75,9 +82,10 @@ const Search = () => {
         </form>
       </header>
 
-      {/* Results */}
-      <main className="flex-1 p-4">
-        <div className="max-w-lg mx-auto">
+      <PullToRefresh onRefresh={handleRefresh}>
+        {/* Results */}
+        <main className="flex-1 p-4">
+          <div className="max-w-lg mx-auto">
           {query && (
             <div className="mb-4 space-y-3">
               <div className="p-3 bg-muted rounded-lg">
@@ -191,8 +199,9 @@ const Search = () => {
               <p className="text-muted-foreground">Search for products to see results</p>
             </div>
           )}
-        </div>
-      </main>
+          </div>
+        </main>
+      </PullToRefresh>
 
       <BottomNav />
     </div>
