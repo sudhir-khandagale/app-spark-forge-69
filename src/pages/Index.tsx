@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatPrice } from '@/lib/utils';
 import FlashSaleBadge from '@/components/FlashSaleBadge';
 import { useFlashSales } from '@/hooks/useFlashSales';
-import flowduxLogo from '@/assets/flowdux-logo.png';
+import flowduxIcon from '@/assets/flowdux-icon.png';
 
 interface TrendingProduct {
   id: string;
@@ -104,7 +104,7 @@ const Index = () => {
       <header className="p-4 bg-primary text-primary-foreground">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <img src={flowduxLogo} alt="Flowdux Logo" className="h-10" />
+            <img src={flowduxIcon} alt="Flowdux Logo" className="h-10" />
             <Button variant="ghost" size="sm" className="text-primary-foreground">
               <MapPin className="w-4 h-4 mr-2" />
               {latitude && longitude ? 'Location Set' : 'Enable Location'}
