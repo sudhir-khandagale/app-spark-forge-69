@@ -8,44 +8,44 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Color Psychology Branding - Trust Blue + Action Orange */
-    --background: 210 40% 98%;
-    --foreground: 222 35% 17%;
+    /* Flowdux Brand Colors - Cyan Blue + Navy */
+    --background: 200 35% 98%;
+    --foreground: 208 54% 26%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 35% 17%;
+    --card-foreground: 208 54% 26%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 35% 17%;
+    --popover-foreground: 208 54% 26%;
 
-    /* Primary - Trust Blue (#2563eb) */
-    --primary: 217 91% 60%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Flowdux Cyan (#32B8D8) */
+    --primary: 194 68% 52%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Action Orange (#F97316) */
-    --secondary: 25 95% 53%;
+    /* Secondary - Flowdux Navy (#1E4068) */
+    --secondary: 208 54% 26%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 200 30% 95%;
+    --muted-foreground: 200 15% 45%;
 
-    /* Accent/Success - Growth Green (#22C55E) */
-    --accent: 142 71% 45%;
+    /* Accent/Success - Complementary Teal */
+    --accent: 180 65% 48%;
     --accent-foreground: 0 0% 100%;
     
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     
-    /* Warning - Attention Yellow (#EAB308) */
-    --warning: 48 96% 47%;
-    --warning-foreground: 222 35% 17%;
+    /* Warning - Flowdux Light Blue */
+    --warning: 194 80% 70%;
+    --warning-foreground: 208 54% 26%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --border: 200 30% 88%;
+    --input: 200 30% 88%;
+    --ring: 194 68% 52%;
 
     --radius: 0.75rem;
 
@@ -63,55 +63,55 @@ All colors MUST be HSL.
 
     --sidebar-border: 220 13% 91%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 194 68% 52%;
   }
 
   .dark {
-    --background: 215 28% 17%;
-    --foreground: 210 40% 98%;
+    --background: 208 45% 12%;
+    --foreground: 200 35% 98%;
 
-    --card: 215 28% 17%;
-    --card-foreground: 210 40% 98%;
+    --card: 208 40% 15%;
+    --card-foreground: 200 35% 98%;
 
-    --popover: 215 28% 17%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 208 40% 15%;
+    --popover-foreground: 200 35% 98%;
 
-    /* Primary - Trust Blue */
-    --primary: 217 91% 60%;
+    /* Primary - Flowdux Cyan */
+    --primary: 194 68% 52%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Action Orange */
-    --secondary: 25 95% 53%;
+    /* Secondary - Flowdux Navy */
+    --secondary: 208 54% 35%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 25% 27%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 208 35% 22%;
+    --muted-foreground: 200 25% 65%;
 
-    /* Accent/Success - Growth Green */
-    --accent: 142 71% 45%;
+    /* Accent/Success - Complementary Teal */
+    --accent: 180 65% 48%;
     --accent-foreground: 0 0% 100%;
     
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     
-    /* Warning - Attention Yellow */
-    --warning: 48 96% 47%;
-    --warning-foreground: 0 0% 100%;
+    /* Warning - Flowdux Light Blue */
+    --warning: 194 80% 70%;
+    --warning-foreground: 208 54% 26%;
 
     --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 200 35% 98%;
 
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
-    --ring: 217 91% 60%;
-    --sidebar-background: 215 28% 17%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
+    --border: 208 35% 22%;
+    --input: 208 35% 22%;
+    --ring: 194 68% 52%;
+    --sidebar-background: 208 45% 12%;
+    --sidebar-foreground: 200 35% 98%;
+    --sidebar-primary: 194 68% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 27%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 25% 27%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 208 35% 22%;
+    --sidebar-accent-foreground: 200 35% 98%;
+    --sidebar-border: 208 35% 22%;
+    --sidebar-ring: 194 68% 52%;
   }
 }
 
