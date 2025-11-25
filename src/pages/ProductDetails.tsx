@@ -151,22 +151,31 @@ const ProductDetails = () => {
   };
 
   const handleOpenInMaps = () => {
-    const googleMapsLink = (product as any)?.store_google_maps_link;
+    // Priority 1: Use vendor's uploaded Google Maps link
+    const googleMapsLink = (product as any)?.store_google_maps_link || product?.store_google_maps_link;
     
-    if (googleMapsLink) {
-      // Directly open the vendor's maps link
+    if (googleMapsLink && googleMapsLink.trim() !== '' && googleMapsLink !== '0') {
       window.open(googleMapsLink, '_blank');
-    } else if (product?.store_latitude && product?.store_longitude && 
-               product.store_latitude !== 0 && product.store_longitude !== 0) {
-      // Open coordinates in Google Maps
+      return;
+    }
+    
+    // Priority 2: Use coordinates if available
+    if (product?.store_latitude && product?.store_longitude && 
+        product.store_latitude !== 0 && product.store_longitude !== 0) {
       const url = `https://www.google.com/maps/search/?api=1&query=${product.store_latitude},${product.store_longitude}`;
       window.open(url, '_blank');
-    } else if (product?.store_address && !product.store_address.startsWith('http')) {
-      // Search address in Google Maps
+      return;
+    }
+    
+    // Priority 3: Search by address
+    if (product?.store_address && !product.store_address.startsWith('http')) {
       const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.store_address)}`;
       window.open(url, '_blank');
-    } else if (product?.store_name) {
-      // Search store name in Google Maps
+      return;
+    }
+    
+    // Priority 4: Search by store name
+    if (product?.store_name) {
       const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(product.store_name)}`;
       window.open(url, '_blank');
     }
