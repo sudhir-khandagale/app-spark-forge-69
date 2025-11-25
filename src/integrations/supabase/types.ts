@@ -452,6 +452,7 @@ export type Database = {
           rating: number | null
           review_count: number | null
           sizes: Json | null
+          trending: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -466,6 +467,7 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           sizes?: Json | null
+          trending?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -480,6 +482,7 @@ export type Database = {
           rating?: number | null
           review_count?: number | null
           sizes?: Json | null
+          trending?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
