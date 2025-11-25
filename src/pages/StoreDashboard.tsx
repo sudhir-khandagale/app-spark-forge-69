@@ -729,32 +729,39 @@ export default function StoreDashboard() {
         )}
 
         <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-7 h-auto flex-nowrap">
-            <TabsTrigger value="inventory" className="whitespace-nowrap">Inventory</TabsTrigger>
-            <TabsTrigger value="analytics" className="relative whitespace-nowrap">
+          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-7 gap-1 h-auto flex-nowrap p-1">
+            <TabsTrigger value="inventory" className="whitespace-nowrap px-4">
+              Inventory
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="relative whitespace-nowrap px-3">
               <span className="hidden sm:inline">Analytics</span>
               <span className="sm:hidden">Stats</span>
-              {!features.analytics && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+              {!features.analytics && <Lock className="h-3 w-3 ml-1.5 shrink-0 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="flash-sales" className="relative whitespace-nowrap">
+            <TabsTrigger value="flash-sales" className="relative whitespace-nowrap px-3">
               <span className="hidden sm:inline">Flash Sales</span>
               <span className="sm:hidden">Sales</span>
-              {!features.flash_sales && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+              {!features.flash_sales && <Lock className="h-3 w-3 ml-1.5 shrink-0 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="bulk-upload" className="relative whitespace-nowrap">
-              <span className="hidden sm:inline">Import Products</span>
+            <TabsTrigger value="bulk-upload" className="relative whitespace-nowrap px-3">
+              <span className="hidden sm:inline">Import</span>
               <span className="sm:hidden">Import</span>
-              {!features.bulk_upload && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+              {!features.bulk_upload && <Lock className="h-3 w-3 ml-1.5 shrink-0 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="featured" className="relative whitespace-nowrap">
-              Featured
-              {!features.featured_listing && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+            <TabsTrigger value="featured" className="relative whitespace-nowrap px-3">
+              <span className="hidden sm:inline">Featured</span>
+              <span className="sm:hidden">Star</span>
+              {!features.featured_listing && <Lock className="h-3 w-3 ml-1.5 shrink-0 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="support" className="relative whitespace-nowrap">
-              Support
-              {!features.priority_support && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
+            <TabsTrigger value="support" className="relative whitespace-nowrap px-3">
+              <span className="hidden sm:inline">Support</span>
+              <span className="sm:hidden">Help</span>
+              {!features.priority_support && <Lock className="h-3 w-3 ml-1.5 shrink-0 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="store-details" className="whitespace-nowrap">Store Details</TabsTrigger>
+            <TabsTrigger value="store-details" className="whitespace-nowrap px-4">
+              <span className="hidden sm:inline">Store Details</span>
+              <span className="sm:hidden">Store</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-4">
