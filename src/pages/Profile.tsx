@@ -109,7 +109,7 @@ const Profile = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <img src={flowduxIcon} alt="Flowdux" className="h-8 w-8" />
+            <img src={flowduxIcon} alt="Flowdux" className="h-8 w-8 rounded-lg" />
             <h1 className="text-2xl font-bold">Profile</h1>
           </div>
           <Link to="/settings">

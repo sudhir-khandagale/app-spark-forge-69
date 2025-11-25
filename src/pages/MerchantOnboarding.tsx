@@ -270,7 +270,7 @@ export default function MerchantOnboarding() {
           </Button>
         </div>
         <div className="text-center space-y-2">
-          <img src={flowduxIcon} alt="Flowdux" className="h-16 w-16 mx-auto mb-2" />
+          <img src={flowduxIcon} alt="Flowdux" className="h-16 w-16 mx-auto mb-2 rounded-xl" />
           <h1 className="text-3xl font-bold">Merchant Onboarding</h1>
           <p className="text-muted-foreground">Join Flowdux and connect with local shoppers</p>
         </div>
