@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft, AlertCircle, Link as LinkIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import flowduxIcon from '@/assets/flowdux-icon.png';
 
 export default function MerchantOnboarding() {
   const navigate = useNavigate();
@@ -269,6 +270,7 @@ export default function MerchantOnboarding() {
           </Button>
         </div>
         <div className="text-center space-y-2">
+          <img src={flowduxIcon} alt="Flowdux" className="h-16 w-16 mx-auto mb-2" />
           <h1 className="text-3xl font-bold">Merchant Onboarding</h1>
           <p className="text-muted-foreground">Join Flowdux and connect with local shoppers</p>
         </div>

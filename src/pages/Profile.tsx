@@ -10,6 +10,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { useState, useEffect } from 'react';
 import RewardsDisplay from '@/components/RewardsDisplay';
 import { AvatarImage } from '@/components/ui/avatar';
+import flowduxIcon from '@/assets/flowdux-icon.png';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -108,6 +109,7 @@ const Profile = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
+            <img src={flowduxIcon} alt="Flowdux" className="h-8 w-8" />
             <h1 className="text-2xl font-bold">Profile</h1>
           </div>
           <Link to="/settings">
