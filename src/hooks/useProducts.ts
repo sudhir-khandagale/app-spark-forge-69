@@ -9,6 +9,8 @@ export interface Product {
   image_url: string | null;
   category: string | null;
   barcode: string | null;
+  colors?: string[];
+  sizes?: { name: string; measurements: string }[];
 }
 
 export interface ProductWithInventory extends Product {
@@ -111,6 +113,8 @@ export const useProduct = (productId: string, storeId?: string) => {
           
           setProduct({
             ...productData,
+            colors: Array.isArray(productData.colors) ? productData.colors as string[] : [],
+            sizes: Array.isArray(productData.sizes) ? productData.sizes as { name: string; measurements: string }[] : [],
             store_name: store.name,
             store_id: store.id,
             store_address: store.address,
@@ -124,6 +128,8 @@ export const useProduct = (productId: string, storeId?: string) => {
         } else {
           setProduct({
             ...productData,
+            colors: Array.isArray(productData.colors) ? productData.colors as string[] : [],
+            sizes: Array.isArray(productData.sizes) ? productData.sizes as { name: string; measurements: string }[] : [],
             store_name: '',
             store_id: '',
             price: 0,

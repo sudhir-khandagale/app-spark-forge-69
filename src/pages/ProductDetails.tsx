@@ -259,6 +259,35 @@ const ProductDetails = () => {
             {product.category && (
               <p className="text-sm text-muted-foreground mt-2">Category: {product.category}</p>
             )}
+            
+            {/* Colors */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="mt-3">
+                <p className="text-sm font-medium mb-2">Available Colors:</p>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((color, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-muted rounded-full text-sm">
+                      {color}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Size Chart */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mt-3">
+                <p className="text-sm font-medium mb-2">Size Chart:</p>
+                <div className="bg-muted rounded-lg p-3 space-y-2">
+                  {product.sizes.map((size, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm">
+                      <span className="font-medium">{size.name}</span>
+                      <span className="text-muted-foreground">{size.measurements}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Compare Prices Button */}
