@@ -34,6 +34,7 @@ const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Compare = lazy(() => import("./pages/Compare"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const ProfileManagement = lazy(() => import("./pages/ProfileManagement"));
+const Install = lazy(() => import("./pages/Install"));
 
 // Loading fallback
 const PageLoader = () => (
@@ -85,6 +86,7 @@ const App = () => (
               <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
               <Route path="/compare/:id" element={<Compare />} />
               <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+              <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
