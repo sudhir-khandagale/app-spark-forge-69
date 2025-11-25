@@ -728,30 +728,33 @@ export default function StoreDashboard() {
           </Alert>
         )}
 
-        <Tabs defaultValue="inventory">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
-            <TabsTrigger value="analytics" className="relative">
-              Analytics
+        <Tabs defaultValue="inventory" className="w-full">
+          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-7 h-auto flex-nowrap">
+            <TabsTrigger value="inventory" className="whitespace-nowrap">Inventory</TabsTrigger>
+            <TabsTrigger value="analytics" className="relative whitespace-nowrap">
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Stats</span>
               {!features.analytics && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="flash-sales" className="relative">
-              Flash Sales
+            <TabsTrigger value="flash-sales" className="relative whitespace-nowrap">
+              <span className="hidden sm:inline">Flash Sales</span>
+              <span className="sm:hidden">Sales</span>
               {!features.flash_sales && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="bulk-upload" className="relative">
-              Import Products
+            <TabsTrigger value="bulk-upload" className="relative whitespace-nowrap">
+              <span className="hidden sm:inline">Import Products</span>
+              <span className="sm:hidden">Import</span>
               {!features.bulk_upload && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="featured" className="relative">
+            <TabsTrigger value="featured" className="relative whitespace-nowrap">
               Featured
               {!features.featured_listing && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="support" className="relative">
+            <TabsTrigger value="support" className="relative whitespace-nowrap">
               Support
               {!features.priority_support && <Lock className="h-3 w-3 ml-1 text-muted-foreground" />}
             </TabsTrigger>
-            <TabsTrigger value="store-details">Store Details</TabsTrigger>
+            <TabsTrigger value="store-details" className="whitespace-nowrap">Store Details</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-4">
@@ -895,7 +898,7 @@ export default function StoreDashboard() {
                         Add Product
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-h-[90vh] overflow-y-auto max-w-[95vw] sm:max-w-lg">
                       <DialogHeader>
                         <DialogTitle>Add New Product</DialogTitle>
                         <DialogDescription>Add a new product to your inventory</DialogDescription>
@@ -1005,7 +1008,7 @@ export default function StoreDashboard() {
                           </div>
 
                           {!newProduct.useVariants && (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <Label htmlFor="product-price">Price (₹) *</Label>
                                 <Input
@@ -1147,7 +1150,7 @@ export default function StoreDashboard() {
                         {newProduct.useVariants && (
                           <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
                             <h4 className="font-medium">Product Variants</h4>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <Label>Color</Label>
                                 <Input
@@ -1178,7 +1181,7 @@ export default function StoreDashboard() {
                                   id="variant-price"
                                 />
                               </div>
-                              <div>
+                              <div className="sm:col-span-2">
                                 <Label>Quantity</Label>
                                 <Input
                                   type="number"
@@ -1223,14 +1226,14 @@ export default function StoreDashboard() {
                               <div className="space-y-2">
                                 {variants.map((variant, index) => (
                                   <div key={index} className="flex items-center justify-between p-3 bg-background rounded border">
-                                    <div className="flex-1 grid grid-cols-3 gap-2 text-sm">
+                                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
                                       <div>
                                         <span className="text-muted-foreground">Color:</span> {variant.color || '-'}
                                       </div>
                                       <div>
                                         <span className="text-muted-foreground">Size:</span> {variant.size || '-'}
                                       </div>
-                                      <div>
+                                      <div className="hidden sm:block">
                                         <span className="text-muted-foreground">SKU:</span> {variant.sku || '-'}
                                       </div>
                                       <div>
@@ -1264,18 +1267,20 @@ export default function StoreDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Variants</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock Controls</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Variants</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Stock Controls</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                     {inventory.map((item) => (
                       <TableRow 
                         key={item.id}
@@ -1422,6 +1427,166 @@ export default function StoreDashboard() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                  {inventory.map((item) => (
+                    <Card 
+                      key={item.id}
+                      className={selectedInventoryId === item.id ? "border-l-4 border-l-primary" : ""}
+                    >
+                      <CardContent className="p-4 space-y-3">
+                        {/* Product Header */}
+                        <div className="flex items-start gap-3">
+                          {item.products.image_url ? (
+                            <img 
+                              src={item.products.image_url} 
+                              alt={item.products.name}
+                              className="w-16 h-16 rounded object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded bg-muted flex items-center justify-center shrink-0">
+                              <Package className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-base line-clamp-2">{item.products.name}</h3>
+                            {item.products.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                                {item.products.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              {getStockStatusBadge(item.quantity, item.low_stock_threshold || 5)}
+                              {item.products.category && (
+                                <Badge variant="outline" className="text-xs">{item.products.category}</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Variants */}
+                        {((item.products.colors && item.products.colors.length > 0) || 
+                          (item.products.sizes && item.products.sizes.length > 0)) && (
+                          <div className="space-y-2 border-t pt-3">
+                            {item.products.colors && item.products.colors.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {item.products.colors.map((color, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {color}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            {item.products.sizes && item.products.sizes.length > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                Sizes: {item.products.sizes.map(s => s.name).join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Price */}
+                        <div className="flex items-center justify-between border-t pt-3">
+                          <span className="text-sm text-muted-foreground">Price:</span>
+                          <span className="text-lg font-semibold">{formatPrice(item.price)}</span>
+                        </div>
+
+                        {/* Stock Controls */}
+                        <div className="border-t pt-3">
+                          <span className="text-sm text-muted-foreground mb-2 block">Stock Quantity:</span>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleQuickStockUpdate(item.id, item.quantity, -5)}
+                                disabled={updatingStock === item.id || item.quantity < 5}
+                                className="flex-1 h-9"
+                              >
+                                -5
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleQuickStockUpdate(item.id, item.quantity, -1)}
+                                disabled={updatingStock === item.id || item.quantity < 1}
+                                className="w-12 h-9"
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <Input
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) => handleUpdateStock(item.id, parseInt(e.target.value) || 0)}
+                                className="w-20 h-9 text-center text-base font-medium"
+                                min="0"
+                                disabled={updatingStock === item.id}
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleQuickStockUpdate(item.id, item.quantity, 1)}
+                                disabled={updatingStock === item.id}
+                                className="w-12 h-9"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleQuickStockUpdate(item.id, item.quantity, 5)}
+                                disabled={updatingStock === item.id}
+                                className="flex-1 h-9"
+                              >
+                                +5
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleQuickStockUpdate(item.id, item.quantity, -10)}
+                                disabled={updatingStock === item.id || item.quantity < 10}
+                                className="flex-1 h-9"
+                              >
+                                -10
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleQuickStockUpdate(item.id, item.quantity, 10)}
+                                disabled={updatingStock === item.id}
+                                className="flex-1 h-9"
+                              >
+                                +10
+                              </Button>
+                            </div>
+                          </div>
+                          {updatingStock === item.id && (
+                            <div className="flex items-center justify-center mt-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="ml-2 text-sm">Updating...</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2 border-t pt-3">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1467,7 +1632,7 @@ export default function StoreDashboard() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="edit-phone">Phone</Label>
                         <Input
