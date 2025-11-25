@@ -9,11 +9,25 @@ interface GeolocationState {
 }
 
 export const useGeolocation = () => {
+  // Load cached location immediately (synchronous)
+  const getCachedLocation = () => {
+    const cached = localStorage.getItem('userLocation');
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const cachedLocation = getCachedLocation();
   const [location, setLocation] = useState<GeolocationState>({
-    latitude: null,
-    longitude: null,
+    latitude: cachedLocation?.latitude || null,
+    longitude: cachedLocation?.longitude || null,
     error: null,
-    loading: true,
+    loading: !cachedLocation, // Only loading if no cache
   });
 
   const getCurrentPosition = async () => {
@@ -82,7 +96,10 @@ export const useGeolocation = () => {
   };
 
   useEffect(() => {
-    getCurrentPosition();
+    // Only fetch if we don't have cached location
+    if (!cachedLocation) {
+      getCurrentPosition();
+    }
   }, []);
 
   return {
