@@ -309,6 +309,14 @@ const ListDetails = () => {
                   )}
                 </div>
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/search?q=${encodeURIComponent(item.product_name)}`)}
+                >
+                  <Search className="h-4 w-4 mr-1" />
+                  Find
+                </Button>
+                <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
