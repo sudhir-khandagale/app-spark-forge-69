@@ -100,12 +100,12 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
-      {/* Header */}
-      <header className="p-4 bg-primary text-primary-foreground">
+      {/* Header - extends to top with safe area */}
+      <header className="bg-primary text-primary-foreground -mt-[env(safe-area-inset-top)] pt-[calc(env(safe-area-inset-top)+1rem)] px-4 pb-4">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-6">
             <img src={flowduxIcon} alt="Flowdux Logo" className="h-10" />
-            <Button variant="ghost" size="sm" className="text-primary-foreground">
+            <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary/90">
               <MapPin className="w-4 h-4 mr-2" />
               {latitude && longitude ? 'Location Set' : 'Enable Location'}
             </Button>

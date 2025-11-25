@@ -55,8 +55,8 @@ const Search = () => {
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b border-border">
+      {/* Header - extends to top with safe area */}
+      <header className="sticky top-0 z-40 bg-background border-b border-border -mt-[env(safe-area-inset-top)] pt-[env(safe-area-inset-top)]">
         <form onSubmit={handleSearch} className="flex items-center gap-3 p-4">
           <Link to="/">
             <Button variant="ghost" size="icon" type="button">

@@ -129,6 +129,14 @@ All colors MUST be HSL.
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Safe area handling for notched devices */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   #root {
