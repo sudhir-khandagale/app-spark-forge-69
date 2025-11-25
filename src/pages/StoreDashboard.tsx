@@ -15,6 +15,7 @@ import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
 import BulkInventoryUpload from '@/components/BulkInventoryUpload';
 import FlashSalesManager from '@/components/FlashSalesManager';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
+import SubscriptionPlans from '@/components/SubscriptionPlans';
 import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -738,9 +739,14 @@ export default function StoreDashboard() {
         )}
 
         <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-7 gap-1 h-auto flex-nowrap p-1">
+          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-8 gap-1 h-auto flex-nowrap p-1">
             <TabsTrigger value="inventory" className="whitespace-nowrap px-4">
               Inventory
+            </TabsTrigger>
+            <TabsTrigger value="plans" className="whitespace-nowrap px-3 sm:px-4">
+              <Crown className="h-3 w-3 mr-1.5 shrink-0" />
+              <span className="hidden sm:inline">Plans</span>
+              <span className="sm:hidden">Plans</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="relative whitespace-nowrap px-3">
               <span className="hidden sm:inline">Analytics</span>
@@ -772,6 +778,14 @@ export default function StoreDashboard() {
               <span className="sm:hidden">Store</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="plans" className="space-y-4">
+            <SubscriptionPlans 
+              storeId={storeId!} 
+              currentTier={subscription?.tier || 'free'}
+              onUpgrade={fetchStoreData}
+            />
+          </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4">
             <LockedFeatureOverlay
