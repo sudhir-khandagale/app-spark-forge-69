@@ -631,48 +631,54 @@ export default function StoreDashboard() {
 
   return (
     <div className="min-h-screen bg-background p-4 pb-20">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+        {/* Mobile-optimized Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/profile')} className="shrink-0 mt-1">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-3xl font-bold">{store.name}</h1>
-                  {subscription?.tier === 'premium' && (
-                    <Badge className="bg-purple-600 hover:bg-purple-700 text-white">
-                      <Crown className="h-3 w-3 mr-1" />
-                      Premium
-                    </Badge>
-                  )}
-                  {subscription?.tier === 'pro' && (
-                    <Badge className="bg-blue-600 hover:bg-blue-700 text-white">
-                      <Crown className="h-3 w-3 mr-1" />
-                      Pro
-                    </Badge>
-                  )}
-                  {(!subscription || subscription?.tier === 'free') && (
-                    <Badge variant="outline">Free</Badge>
-                  )}
-                </div>
-                <p className="text-muted-foreground">{store.address}</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-bold truncate">{store.name}</h1>
+                {subscription?.tier === 'premium' && (
+                  <Badge className="bg-purple-600 hover:bg-purple-700 text-white shrink-0">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Premium
+                  </Badge>
+                )}
+                {subscription?.tier === 'pro' && (
+                  <Badge className="bg-blue-600 hover:bg-blue-700 text-white shrink-0">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Pro
+                  </Badge>
+                )}
+                {(!subscription || subscription?.tier === 'free') && (
+                  <Badge variant="outline" className="shrink-0">Free</Badge>
+                )}
               </div>
+              <p className="text-sm text-muted-foreground mt-1 truncate">{store.address}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setSubscriptionModalOpen(true)}
-              className="gap-2"
+              className="gap-2 flex-1 sm:flex-initial"
             >
               <Crown className="h-4 w-4" />
-              {subscription?.tier === 'premium' ? 'Premium' : subscription?.tier === 'pro' ? 'Pro Plan' : 'Upgrade'}
+              <span className="hidden sm:inline">
+                {subscription?.tier === 'premium' ? 'Premium' : subscription?.tier === 'pro' ? 'Pro Plan' : 'Upgrade'}
+              </span>
+              <span className="sm:hidden">Plan</span>
             </Button>
             <VendorNotifications storeId={storeId || null} onNotificationClick={handleNotificationClick} />
-            <Button variant="outline" onClick={() => navigate(`/store/${storeId}`)}>
-              View Public Profile
+            <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}`)} className="flex-1 sm:flex-initial">
+              <Store className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">View Public Profile</span>
+              <span className="sm:hidden">Public</span>
             </Button>
           </div>
         </div>
@@ -685,15 +691,16 @@ export default function StoreDashboard() {
           onUpgrade={fetchStoreData}
         />
 
-        {/* Store Status Alert */}
+        {/* Store Status Alerts - Compact */}
         {store.status === 'pending' && (
           <Alert className="border-yellow-500/50 bg-yellow-500/10">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-              <strong>Store Pending Approval</strong> — Your store is awaiting admin approval. 
-              Products you add won't appear in customer searches until your store is approved.
-              <span className="block mt-1 text-sm">
-                Current products: <strong>{inventory.length}</strong>
+            <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong className="block sm:inline">Store Pending Approval</strong>
+              <span className="hidden sm:inline"> — </span>
+              <span className="block sm:inline">Products won't appear until approved.</span>
+              <span className="block text-xs mt-1">
+                Products: <strong>{inventory.length}</strong>
               </span>
             </AlertDescription>
           </Alert>
@@ -702,10 +709,12 @@ export default function StoreDashboard() {
         {store.status === 'approved' && (
           <Alert className="border-green-500/50 bg-green-500/10">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800 dark:text-green-200">
-              <strong>Store Approved</strong> — Your store is live! Customers can now find your products in search.
-              <span className="block mt-1 text-sm">
-                Total products: <strong>{inventory.length}</strong> | In stock: <strong>{inventory.filter(i => i.in_stock).length}</strong>
+            <AlertDescription className="text-sm text-green-800 dark:text-green-200">
+              <strong className="block sm:inline">Store Live!</strong>
+              <span className="hidden sm:inline"> — </span>
+              <span className="block sm:inline">Customers can find your products.</span>
+              <span className="block text-xs mt-1">
+                Total: <strong>{inventory.length}</strong> | In stock: <strong>{inventory.filter(i => i.in_stock).length}</strong>
               </span>
             </AlertDescription>
           </Alert>
@@ -714,15 +723,15 @@ export default function StoreDashboard() {
         {store.status === 'rejected' && (
           <Alert className="border-red-500/50 bg-red-500/10">
             <XCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800 dark:text-red-200">
-              <strong>Store Rejected</strong> — Your store application was not approved.
+            <AlertDescription className="text-sm text-red-800 dark:text-red-200">
+              <strong className="block">Store Rejected</strong>
               {store.rejection_reason && (
-                <span className="block mt-1 text-sm">
+                <span className="block text-xs mt-1">
                   Reason: {store.rejection_reason}
                 </span>
               )}
-              <span className="block mt-1 text-sm">
-                Please update your store details and contact support for resubmission.
+              <span className="block text-xs mt-1">
+                Update details and contact support.
               </span>
             </AlertDescription>
           </Alert>
@@ -890,17 +899,17 @@ export default function StoreDashboard() {
           <TabsContent value="inventory" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                       <Package className="h-5 w-5" />
-                      Inventory Management
+                      Inventory
                     </CardTitle>
-                    <CardDescription>{inventory.length} products in stock</CardDescription>
+                    <CardDescription className="text-sm">{inventory.length} products</CardDescription>
                   </div>
                   <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button>
+                      <Button size="sm" className="w-full sm:w-auto">
                         <Plus className="h-4 w-4 mr-2" />
                         Add Product
                       </Button>
@@ -1601,80 +1610,88 @@ export default function StoreDashboard() {
           <TabsContent value="store-details" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <Store className="h-5 w-5" />
-                  Edit Store Details
+                  Store Details
                 </CardTitle>
-                <CardDescription>Update your store information and photos</CardDescription>
+                <CardDescription className="text-sm">Update your store information and photos</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {editedStore && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="edit-name">Store Name *</Label>
+                      <Label htmlFor="edit-name" className="text-sm">Store Name *</Label>
                       <Input
                         id="edit-name"
                         value={editedStore.name || ''}
                         onChange={(e) => setEditedStore({ ...editedStore, name: e.target.value })}
+                        className="text-base"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="edit-description">Description</Label>
+                      <Label htmlFor="edit-description" className="text-sm">Description</Label>
                       <Textarea
                         id="edit-description"
                         value={editedStore.description || ''}
                         onChange={(e) => setEditedStore({ ...editedStore, description: e.target.value })}
                         rows={3}
+                        className="text-base"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="edit-address">Address *</Label>
+                      <Label htmlFor="edit-address" className="text-sm">Address *</Label>
                       <Textarea
                         id="edit-address"
                         value={editedStore.address || ''}
                         onChange={(e) => setEditedStore({ ...editedStore, address: e.target.value })}
                         rows={2}
+                        className="text-base"
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="edit-phone">Phone</Label>
+                        <Label htmlFor="edit-phone" className="text-sm">Phone</Label>
                         <Input
                           id="edit-phone"
+                          type="tel"
                           value={editedStore.phone || ''}
                           onChange={(e) => setEditedStore({ ...editedStore, phone: e.target.value })}
+                          className="text-base"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="edit-email">Email</Label>
+                        <Label htmlFor="edit-email" className="text-sm">Email</Label>
                         <Input
                           id="edit-email"
                           type="email"
                           value={editedStore.email || ''}
                           onChange={(e) => setEditedStore({ ...editedStore, email: e.target.value })}
+                          className="text-base"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="edit-specialties">Specialties (comma-separated)</Label>
+                      <Label htmlFor="edit-specialties" className="text-sm">Specialties (comma-separated)</Label>
                       <Input
                         id="edit-specialties"
                         value={Array.isArray(editedStore.specialties) 
                           ? editedStore.specialties.join(', ') 
                           : editedStore.specialties || ''}
                         onChange={(e) => setEditedStore({ ...editedStore, specialties: e.target.value })}
+                        placeholder="e.g. Electronics, Home Appliances"
+                        className="text-base"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Store Photos (up to 5)</Label>
+                      <Label className="text-sm">Store Photos (up to 5)</Label>
                       <div className="space-y-3">
                         {storePreviews.length > 0 && (
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {storePreviews.map((preview, index) => (
                               <div key={index} className="relative aspect-square">
                                 <img
@@ -1686,10 +1703,10 @@ export default function StoreDashboard() {
                                   type="button"
                                   variant="destructive"
                                   size="icon"
-                                  className="absolute -top-2 -right-2 h-6 w-6"
+                                  className="absolute -top-2 -right-2 h-7 w-7"
                                   onClick={() => removeStorePhoto(index)}
                                 >
-                                  <X className="h-3 w-3" />
+                                  <X className="h-4 w-4" />
                                 </Button>
                               </div>
                             ))}
