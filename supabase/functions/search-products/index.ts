@@ -64,7 +64,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Use AI to expand search terms and find synonyms
+    // Use AI to understand natural language and extract search intent
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -77,28 +77,51 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a product search assistant. Given a product name or description, provide relevant synonyms and alternative names that could help find the product. Return only a JSON array of search terms, nothing else.'
+            content: `You are an intelligent product search assistant. Analyze natural language queries and extract:
+1. Core product terms and synonyms
+2. Product categories (e.g., "electronics", "clothing", "food")
+3. Intent keywords (e.g., "cheap" → "budget", "gift" → "present")
+4. Related product suggestions
+
+Return ONLY a JSON object with this structure:
+{
+  "searchTerms": ["term1", "term2", "term3"],
+  "categories": ["category1", "category2"],
+  "recommendations": ["product1", "product2", "product3"]
+}
+
+Examples:
+"cheap running shoes" → {"searchTerms": ["running shoes", "sneakers", "athletic shoes", "trainers"], "categories": ["footwear", "sports"], "recommendations": ["workout shoes", "gym shoes", "jogging shoes"]}
+"birthday gift for mom" → {"searchTerms": ["gift", "present"], "categories": ["gifts", "accessories", "jewelry"], "recommendations": ["perfume", "jewelry", "handbag", "scarf"]}
+"dinner ingredients" → {"searchTerms": ["food", "ingredients"], "categories": ["groceries", "food"], "recommendations": ["pasta", "vegetables", "meat", "spices"]}`
           },
           {
             role: 'user',
-            content: `Find synonyms and alternative names for: ${query}`
+            content: query
           }
         ],
       }),
     });
 
     let searchTerms = [query];
+    let recommendations: string[] = [];
     
     if (aiResponse.ok) {
       const aiData = await aiResponse.json();
       const content = aiData.choices[0]?.message?.content;
       try {
         const parsed = JSON.parse(content);
-        if (Array.isArray(parsed)) {
-          searchTerms = [...searchTerms, ...parsed];
+        if (parsed.searchTerms && Array.isArray(parsed.searchTerms)) {
+          searchTerms = [...searchTerms, ...parsed.searchTerms];
         }
-      } catch {
-        console.log('Could not parse AI response, using original query');
+        if (parsed.categories && Array.isArray(parsed.categories)) {
+          searchTerms = [...searchTerms, ...parsed.categories];
+        }
+        if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
+          recommendations = parsed.recommendations;
+        }
+      } catch (e) {
+        console.log('Could not parse AI response, using original query:', e);
       }
     }
 
@@ -201,7 +224,11 @@ serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ results: filteredResults, searchTerms }),
+      JSON.stringify({ 
+        results: filteredResults, 
+        searchTerms,
+        recommendations: recommendations.slice(0, 5)
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

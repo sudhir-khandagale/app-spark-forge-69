@@ -29,12 +29,14 @@ export interface ProductWithInventory extends Product {
 
 export const useProductSearch = () => {
   const [results, setResults] = useState<ProductWithInventory[]>([]);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const searchProducts = async (query: string, latitude?: number, longitude?: number) => {
     if (!query.trim()) {
       setResults([]);
+      setRecommendations([]);
       return;
     }
 
@@ -52,6 +54,7 @@ export const useProductSearch = () => {
       if (error) throw error;
 
       setResults(data.results || []);
+      setRecommendations(data.recommendations || []);
     } catch (error: any) {
       console.error('Search error:', error);
       toast({
@@ -60,12 +63,13 @@ export const useProductSearch = () => {
         variant: 'destructive'
       });
       setResults([]);
+      setRecommendations([]);
     } finally {
       setLoading(false);
     }
   };
 
-  return { results, loading, searchProducts };
+  return { results, recommendations, loading, searchProducts };
 };
 
 export const useProduct = (productId: string, storeId?: string) => {
