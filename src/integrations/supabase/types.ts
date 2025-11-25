@@ -389,6 +389,7 @@ export type Database = {
         Row: {
           barcode: string | null
           category: string | null
+          colors: Json | null
           created_at: string | null
           description: string | null
           id: string
@@ -396,11 +397,13 @@ export type Database = {
           name: string
           rating: number | null
           review_count: number | null
+          sizes: Json | null
           updated_at: string | null
         }
         Insert: {
           barcode?: string | null
           category?: string | null
+          colors?: Json | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -408,11 +411,13 @@ export type Database = {
           name: string
           rating?: number | null
           review_count?: number | null
+          sizes?: Json | null
           updated_at?: string | null
         }
         Update: {
           barcode?: string | null
           category?: string | null
+          colors?: Json | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -420,6 +425,7 @@ export type Database = {
           name?: string
           rating?: number | null
           review_count?: number | null
+          sizes?: Json | null
           updated_at?: string | null
         }
         Relationships: []

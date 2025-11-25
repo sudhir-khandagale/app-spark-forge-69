@@ -29,6 +29,8 @@ interface Product {
   description: string | null;
   category: string | null;
   image_url: string | null;
+  colors?: string[];
+  sizes?: { name: string; measurements: string }[];
 }
 
 interface InventoryItem {
@@ -55,7 +57,11 @@ export default function StoreDashboard() {
     category: '',
     price: '',
     quantity: '',
+    colors: [] as string[],
+    sizes: [] as { name: string; measurements: string }[],
   });
+  const [colorInput, setColorInput] = useState('');
+  const [sizeInput, setSizeInput] = useState({ name: '', measurements: '' });
   const [productImage, setProductImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -243,6 +249,8 @@ export default function StoreDashboard() {
               price: parseFloat(newProduct.price),
               quantity: parseInt(newProduct.quantity, 10),
               imageUrl,
+              colors: newProduct.colors,
+              sizes: newProduct.sizes,
             },
           }),
         }
@@ -262,7 +270,9 @@ export default function StoreDashboard() {
       });
 
       setIsAddDialogOpen(false);
-      setNewProduct({ name: '', description: '', category: '', price: '', quantity: '' });
+      setNewProduct({ name: '', description: '', category: '', price: '', quantity: '', colors: [], sizes: [] });
+      setColorInput('');
+      setSizeInput({ name: '', measurements: '' });
       setProductImage(null);
       setImagePreview(null);
       fetchStoreData();
@@ -981,6 +991,118 @@ export default function StoreDashboard() {
                             />
                           </div>
                         </div>
+
+                        {/* Color Picker */}
+                        <div className="space-y-2">
+                          <Label htmlFor="product-colors">Available Colors</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              id="product-colors"
+                              value={colorInput}
+                              onChange={(e) => setColorInput(e.target.value)}
+                              placeholder="e.g., Red, Blue, Black"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && colorInput.trim()) {
+                                  e.preventDefault();
+                                  setNewProduct(prev => ({
+                                    ...prev,
+                                    colors: [...prev.colors, colorInput.trim()]
+                                  }));
+                                  setColorInput('');
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                if (colorInput.trim()) {
+                                  setNewProduct(prev => ({
+                                    ...prev,
+                                    colors: [...prev.colors, colorInput.trim()]
+                                  }));
+                                  setColorInput('');
+                                }
+                              }}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                          {newProduct.colors.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {newProduct.colors.map((color, index) => (
+                                <Badge key={index} variant="secondary" className="gap-1">
+                                  {color}
+                                  <X
+                                    className="h-3 w-3 cursor-pointer"
+                                    onClick={() => {
+                                      setNewProduct(prev => ({
+                                        ...prev,
+                                        colors: prev.colors.filter((_, i) => i !== index)
+                                      }));
+                                    }}
+                                  />
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Size Chart */}
+                        <div className="space-y-2">
+                          <Label>Size Chart</Label>
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                placeholder="Size (e.g., S, M, L)"
+                                value={sizeInput.name}
+                                onChange={(e) => setSizeInput(prev => ({ ...prev, name: e.target.value }))}
+                              />
+                              <Input
+                                placeholder="Measurements (e.g., 38-40 inches)"
+                                value={sizeInput.measurements}
+                                onChange={(e) => setSizeInput(prev => ({ ...prev, measurements: e.target.value }))}
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => {
+                                if (sizeInput.name.trim() && sizeInput.measurements.trim()) {
+                                  setNewProduct(prev => ({
+                                    ...prev,
+                                    sizes: [...prev.sizes, { ...sizeInput }]
+                                  }));
+                                  setSizeInput({ name: '', measurements: '' });
+                                }
+                              }}
+                            >
+                              Add Size
+                            </Button>
+                          </div>
+                          {newProduct.sizes.length > 0 && (
+                            <div className="space-y-2 mt-2">
+                              {newProduct.sizes.map((size, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                                  <div className="text-sm">
+                                    <span className="font-medium">{size.name}</span>: {size.measurements}
+                                  </div>
+                                  <X
+                                    className="h-4 w-4 cursor-pointer"
+                                    onClick={() => {
+                                      setNewProduct(prev => ({
+                                        ...prev,
+                                        sizes: prev.sizes.filter((_, i) => i !== index)
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
                         <Button onClick={handleAddProduct} className="w-full" disabled={uploading}>
                           {uploading ? 'Adding Product...' : 'Add Product'}
                         </Button>
@@ -995,6 +1117,7 @@ export default function StoreDashboard() {
                     <TableRow>
                       <TableHead>Product</TableHead>
                       <TableHead>Category</TableHead>
+                      <TableHead>Variants</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Stock Controls</TableHead>
                       <TableHead>Actions</TableHead>
@@ -1035,6 +1158,28 @@ export default function StoreDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>{item.products.category || '-'}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {item.products.colors && item.products.colors.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {item.products.colors.map((color, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {color}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            {item.products.sizes && item.products.sizes.length > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                Sizes: {item.products.sizes.map(s => s.name).join(', ')}
+                              </div>
+                            )}
+                            {(!item.products.colors || item.products.colors.length === 0) && 
+                             (!item.products.sizes || item.products.sizes.length === 0) && (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>{formatPrice(item.price)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">

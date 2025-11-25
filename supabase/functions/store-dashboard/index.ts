@@ -390,6 +390,8 @@ serve(async (req) => {
             category: data.category ?? null,
             barcode: data.barcode ?? null,
             image_url: data.imageUrl ?? null,
+            colors: data.colors ?? [],
+            sizes: data.sizes ?? [],
           })
           .select()
           .single();
