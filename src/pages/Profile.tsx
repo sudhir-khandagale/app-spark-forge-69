@@ -107,7 +107,7 @@ const Profile = () => {
           </Avatar>
           <div>
             <h2 className="text-xl font-semibold">{user.email}</h2>
-            <p className="text-muted-foreground capitalize">{role} Account</p>
+            <p className="text-muted-foreground capitalize">{role === 'customer' ? 'User' : role} Account</p>
           </div>
         </div>
       </div>
