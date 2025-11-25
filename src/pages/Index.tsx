@@ -127,11 +127,11 @@ const Index = () => {
               />
               <Button 
                 size="icon" 
-                variant="ghost"
+                variant="secondary"
                 onClick={() => handleSearch(searchQuery)}
                 type="button"
               >
-                <Search className="w-5 h-5 text-primary" />
+                <Search className="w-5 h-5" />
               </Button>
             </div>
           </div>
