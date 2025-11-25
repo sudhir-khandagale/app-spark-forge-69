@@ -48,7 +48,7 @@ const Install = () => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
-          <img src={flowduxIcon} alt="Flowdux" className="h-20 w-20 mx-auto mb-4" />
+          <img src={flowduxIcon} alt="Flowdux" className="h-20 w-20 mx-auto mb-4 rounded-xl" />
           <CardTitle className="text-2xl">Install Flowdux</CardTitle>
           <CardDescription>
             Get the best experience by installing our app on your device
