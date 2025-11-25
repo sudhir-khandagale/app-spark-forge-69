@@ -1,4 +1,4 @@
-import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft } from 'lucide-react';
+import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft, Edit } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -157,6 +157,13 @@ const Profile = () => {
 
           <Card>
             <CardContent className="pt-6 space-y-2">
+              <Link to="/profile/manage" className="w-full">
+                <Button variant="outline" className="w-full justify-start">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              </Link>
+
               <Link to="/lists" className="w-full">
                 <Button variant="outline" className="w-full justify-start">
                   <List className="w-4 h-4 mr-2" />

@@ -33,6 +33,7 @@ const Cart = lazy(() => import("./pages/Cart"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Compare = lazy(() => import("./pages/Compare"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const ProfileManagement = lazy(() => import("./pages/ProfileManagement"));
 
 // Loading fallback
 const PageLoader = () => (
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/store/:id" element={<StoreProfile />} />
               <Route path="/scanner" element={<Scanner />} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/profile/manage" element={<ProtectedRoute><ProfileManagement /></ProtectedRoute>} />
               <Route path="/lists" element={<ProtectedRoute><Lists /></ProtectedRoute>} />
               <Route path="/lists/:id" element={<ProtectedRoute><ListDetails /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />
