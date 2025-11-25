@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, User, Mail, Lock } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, Camera } from 'lucide-react';
 import { z } from 'zod';
 import BottomNav from '@/components/BottomNav';
+import { AvatarUpload } from '@/components/AvatarUpload';
 
 const displayNameSchema = z.string()
   .trim()
@@ -34,6 +35,8 @@ const ProfileManagement = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     loadUserData();
@@ -47,16 +50,20 @@ const ProfileManagement = () => {
         return;
       }
 
+      setUserId(user.id);
       setEmail(user.email || '');
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('display_name')
+        .select('display_name, avatar_url')
         .eq('id', user.id)
         .single();
 
       if (profile?.display_name) {
         setDisplayName(profile.display_name);
+      }
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -210,6 +217,30 @@ const ProfileManagement = () => {
 
       <main className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* Profile Picture */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Profile Picture
+              </CardTitle>
+              <CardDescription>
+                Upload a profile picture (max 5MB)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userId && (
+                <AvatarUpload
+                  currentAvatarUrl={avatarUrl}
+                  userId={userId}
+                  onUploadComplete={(url) => setAvatarUrl(url)}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Separator />
+
           {/* Display Name */}
           <Card>
             <CardHeader>
