@@ -248,6 +248,7 @@ export default function MerchantOnboarding() {
           hours: storeData.hours,
           specialties: storeData.specialties.split(',').map(s => s.trim()).filter(Boolean),
           photo_urls: photoUrls.length > 0 ? photoUrls : null,
+          google_maps_link: storeData.mapsUrl || null,
           status: isAdmin ? 'approved' : 'pending',
         })
         .select()

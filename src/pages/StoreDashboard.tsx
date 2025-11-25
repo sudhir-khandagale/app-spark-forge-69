@@ -1702,6 +1702,21 @@ export default function StoreDashboard() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label htmlFor="edit-google-maps" className="text-sm">Google Maps Link</Label>
+                      <Input
+                        id="edit-google-maps"
+                        type="url"
+                        value={(editedStore as any).google_maps_link || ''}
+                        onChange={(e) => setEditedStore({ ...editedStore, google_maps_link: e.target.value })}
+                        placeholder="https://maps.app.goo.gl/..."
+                        className="text-base"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Paste your Google Maps share link here for customers to navigate to your store
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label className="text-sm">Store Photos (up to 5)</Label>
                       <div className="space-y-3">
                         {storePreviews.length > 0 && (

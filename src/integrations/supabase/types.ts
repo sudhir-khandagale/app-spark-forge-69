@@ -698,6 +698,7 @@ export type Database = {
           description: string | null
           email: string | null
           featured: boolean | null
+          google_maps_link: string | null
           hours: Json | null
           id: string
           latitude: number | null
@@ -719,6 +720,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           featured?: boolean | null
+          google_maps_link?: string | null
           hours?: Json | null
           id?: string
           latitude?: number | null
@@ -740,6 +742,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           featured?: boolean | null
+          google_maps_link?: string | null
           hours?: Json | null
           id?: string
           latitude?: number | null

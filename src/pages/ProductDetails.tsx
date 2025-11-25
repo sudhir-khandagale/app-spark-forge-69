@@ -142,14 +142,18 @@ const ProductDetails = () => {
   };
 
   const handleGetDirections = () => {
-    if (product?.store_latitude && product?.store_longitude) {
+    if ((product as any)?.store_google_maps_link) {
+      window.open((product as any).store_google_maps_link, '_blank');
+    } else if (product?.store_latitude && product?.store_longitude) {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${product.store_latitude},${product.store_longitude}`;
       window.open(url, '_blank');
     }
   };
 
   const handleOpenInMaps = () => {
-    if (product?.store_latitude && product?.store_longitude) {
+    if ((product as any)?.store_google_maps_link) {
+      window.open((product as any).store_google_maps_link, '_blank');
+    } else if (product?.store_latitude && product?.store_longitude) {
       // Use coordinates if available
       const url = `https://www.google.com/maps/search/?api=1&query=${product.store_latitude},${product.store_longitude}`;
       window.open(url, '_blank');
@@ -164,6 +168,28 @@ const ProductDetails = () => {
     }
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: product?.name || 'Check out this product',
+      text: `${product?.name} - Available at ${product?.store_name}`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: 'Link Copied',
+          description: 'Product link copied to clipboard',
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen pb-16">
@@ -175,7 +201,7 @@ const ProductDetails = () => {
               </Button>
             </Link>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={handleShare}>
               <Share2 className="w-5 h-5" />
             </Button>
             <WishlistButton productId={id!} />
@@ -227,7 +253,7 @@ const ProductDetails = () => {
             </Button>
           </Link>
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={handleShare}>
               <Share2 className="w-5 h-5" />
             </Button>
             <WishlistButton productId={id!} />
