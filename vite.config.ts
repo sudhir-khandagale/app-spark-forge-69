@@ -15,13 +15,13 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-1024.png', 'splash-1920.png'],
       manifest: {
         name: 'Flowdux - Find Products in Local Stores',
         short_name: 'Flowdux',
         description: 'Find products in local stores instantly. Search real-time inventory, compare prices, and navigate to retailers with items in stock.',
         theme_color: '#2563eb',
-        background_color: '#ffffff',
+        background_color: '#2563eb',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -34,6 +34,12 @@ export default defineConfig(({ mode }) => ({
           {
             src: 'icon-512.png',
             sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: 'icon-1024.png',
+            sizes: '1024x1024',
             type: 'image/png',
             purpose: 'any maskable'
           }
