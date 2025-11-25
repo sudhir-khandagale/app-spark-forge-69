@@ -32,6 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import BottomNav from '@/components/BottomNav';
+import { PullToRefresh } from '@/components/PullToRefresh';
 
 interface ShoppingList {
   id: string;
@@ -57,8 +58,9 @@ const Lists = () => {
     fetchLists();
   }, []);
 
-  const fetchLists = async () => {
+  const fetchLists = async (): Promise<void> => {
     try {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/auth');
@@ -240,9 +242,10 @@ const Lists = () => {
         </div>
       </header>
 
-      {/* Lists */}
-      <main className="flex-1 p-4">
-        <div className="max-w-lg mx-auto space-y-3">
+      <PullToRefresh onRefresh={fetchLists}>
+        {/* Lists */}
+        <main className="flex-1 p-4">
+          <div className="max-w-lg mx-auto space-y-3">
           {lists.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground mb-4">
@@ -318,8 +321,9 @@ const Lists = () => {
               );
             })
           )}
-        </div>
-      </main>
+          </div>
+        </main>
+      </PullToRefresh>
 
       <AlertDialog
         open={deleteListId !== null}
