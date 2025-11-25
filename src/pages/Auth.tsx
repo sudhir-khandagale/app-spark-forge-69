@@ -347,9 +347,9 @@ const Auth = () => {
                   <Label>I am a:</Label>
                   <RadioGroup value={signupRole} onValueChange={(value) => setSignupRole(value as 'customer' | 'vendor')}>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="customer" id="customer" />
-                      <Label htmlFor="customer" className="font-normal cursor-pointer">
-                        Customer - Looking to find products in local stores
+                      <RadioGroupItem value="customer" id="user" />
+                      <Label htmlFor="user" className="font-normal cursor-pointer">
+                        User - Looking to find products in local stores
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
