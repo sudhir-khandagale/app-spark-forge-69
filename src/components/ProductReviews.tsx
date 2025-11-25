@@ -90,16 +90,37 @@ export default function ProductReviews({ productId, refreshTrigger }: ProductRev
   const handleDeleteReview = async (reviewId: string) => {
     setDeletingId(reviewId);
     try {
-      const { error } = await supabase
+      // Get review details before deleting to deduct points
+      const { data: reviewData, error: fetchError } = await supabase
+        .from('product_reviews')
+        .select('user_id')
+        .eq('id', reviewId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Delete the review
+      const { error: deleteError } = await supabase
         .from('product_reviews')
         .delete()
         .eq('id', reviewId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      // Deduct 20 points from the user for inappropriate review
+      if (reviewData?.user_id) {
+        await supabase.rpc('award_points', {
+          p_user_id: reviewData.user_id,
+          p_points: -20,
+          p_action_type: 'review_deleted',
+          p_description: 'Review removed by admin - inappropriate content',
+          p_reference_id: reviewId
+        });
+      }
 
       toast({
         title: 'Success',
-        description: 'Review deleted successfully',
+        description: 'Review deleted successfully and 20 points deducted',
       });
       
       fetchReviews();
