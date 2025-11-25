@@ -103,11 +103,31 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html,
   body {
     @apply bg-background text-foreground;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* Prevent all elements from causing horizontal scroll */
+  * {
+    max-width: 100%;
+  }
+
+  /* Allow specific containers to be wider when needed */
+  .allow-overflow {
+    max-width: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -135,8 +155,22 @@ All colors MUST be HSL.
     border-radius: 3px;
   }
 
-  /* Ensure touch-friendly minimum sizes */
+  /* Responsive table wrapper */
   @media (max-width: 768px) {
+    /* Make card content handle table overflow */
+    .card-content-table {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      display: block;
+      width: 100%;
+    }
+
+    /* Ensure tables scale properly on mobile */
+    table {
+      min-width: 600px; /* Ensures table doesn't get too cramped */
+      max-width: none !important;
+    }
+
     button {
       min-height: 44px;
       min-width: 44px;
@@ -149,6 +183,12 @@ All colors MUST be HSL.
     textarea {
       min-height: 44px;
       font-size: 16px; /* Prevents auto-zoom on iOS */
+    }
+
+    /* Ensure images scale properly on mobile */
+    img {
+      max-width: 100%;
+      height: auto;
     }
   }
 }
