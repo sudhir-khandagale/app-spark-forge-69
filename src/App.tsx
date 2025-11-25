@@ -7,6 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BackButtonHandler } from "@/components/BackButtonHandler";
+import { NetworkStatus } from "@/components/NetworkStatus";
+import { AppInitializer } from "@/components/AppInitializer";
 
 // Eager load critical routes
 import Index from "./pages/Index";
@@ -59,6 +62,9 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
       <TooltipProvider>
+        <AppInitializer />
+        <BackButtonHandler />
+        <NetworkStatus />
         <Toaster />
         <Sonner />
         <BrowserRouter>
