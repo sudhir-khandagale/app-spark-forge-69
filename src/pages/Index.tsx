@@ -46,9 +46,10 @@ const Index = () => {
     try {
       const { data: products } = await supabase
         .from('products')
-        .select('id, name, image_url, category, rating, review_count')
-        .order('review_count', { ascending: false })
+        .select('id, name, image_url, category, rating, review_count, trending')
+        .eq('trending', true)
         .order('rating', { ascending: false })
+        .order('review_count', { ascending: false })
         .limit(6);
 
       if (!products) return;
