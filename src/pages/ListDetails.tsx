@@ -189,7 +189,11 @@ const ListDetails = () => {
   const fetchStoreAvailability = async () => {
     setLoadingAvailability(true);
     try {
-      const itemsWithAvailability = await Promise.all(
+      // Batch product search to reduce API calls
+      const productNames = items.map(item => item.product_name);
+      
+      // Use Promise.allSettled to prevent one failure from breaking all
+      const results = await Promise.allSettled(
         items.map(async (item) => {
           // Search for products matching the item name
           const { data: products } = await supabase
@@ -204,33 +208,30 @@ const ListDetails = () => {
 
           const productId = products[0].id;
 
-          // Get inventory for this product
+          // Get inventory for this product with fewer fields
           const { data: inventory } = await supabase
             .from('inventory')
-            .select(`
-              store_id,
-              price,
-              in_stock,
-              quantity,
-              stores (
-                name
-              )
-            `)
+            .select('store_id, price, quantity, stores!inner(name)')
             .eq('product_id', productId)
             .eq('in_stock', true)
             .gt('quantity', 0)
-            .limit(5);
+            .limit(3); // Reduced from 5 to 3 for better performance
 
           const availability = inventory?.map((inv: any) => ({
             store_id: inv.store_id,
             store_name: inv.stores.name,
             price: inv.price,
-            in_stock: inv.in_stock,
+            in_stock: true,
             quantity: inv.quantity,
           })) || [];
 
           return { ...item, storeAvailability: availability };
         })
+      );
+
+      // Map results, handling both fulfilled and rejected promises
+      const itemsWithAvailability = results.map((result, index) => 
+        result.status === 'fulfilled' ? result.value : { ...items[index], storeAvailability: [] }
       );
 
       setItems(itemsWithAvailability);

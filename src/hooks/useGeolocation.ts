@@ -30,26 +30,47 @@ export const useGeolocation = () => {
         }
       }
 
-      // Get current position
+      // Get current position with optimized settings
       const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        enableHighAccuracy: false, // Use false for better mobile performance
+        timeout: 5000, // Reduced timeout
+        maximumAge: 300000 // Cache for 5 minutes
       });
 
-      setLocation({
+      const newLocation = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         error: null,
         loading: false,
-      });
+      };
+
+      setLocation(newLocation);
+      
+      // Cache location
+      localStorage.setItem('userLocation', JSON.stringify({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      }));
 
       return {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
     } catch (error: any) {
-      console.error('Geolocation error:', error);
+      // Silent fail - use cached location if available
+      const cached = localStorage.getItem('userLocation');
+      if (cached) {
+        const { latitude, longitude } = JSON.parse(cached);
+        setLocation({
+          latitude,
+          longitude,
+          error: null,
+          loading: false,
+        });
+        return { latitude, longitude };
+      }
+
+      console.error('Geolocation error:', error?.message || 'Unknown error');
       setLocation({
         latitude: null,
         longitude: null,
