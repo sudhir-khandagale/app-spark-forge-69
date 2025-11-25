@@ -161,7 +161,7 @@ const Search = () => {
                             </span>
                             {result.distance && (
                               <span className="text-foreground/70 font-medium">
-                                {result.distance.toFixed(1)} mi away
+                                {result.distance.toFixed(1)} km away
                               </span>
                             )}
                           </div>

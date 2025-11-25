@@ -496,6 +496,7 @@ export type Database = {
           id: string
           phone: string | null
           razorpay_customer_id: string | null
+          search_radius: number
           updated_at: string | null
         }
         Insert: {
@@ -506,6 +507,7 @@ export type Database = {
           id: string
           phone?: string | null
           razorpay_customer_id?: string | null
+          search_radius?: number
           updated_at?: string | null
         }
         Update: {
@@ -516,6 +518,7 @@ export type Database = {
           id?: string
           phone?: string | null
           razorpay_customer_id?: string | null
+          search_radius?: number
           updated_at?: string | null
         }
         Relationships: []
