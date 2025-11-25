@@ -151,10 +151,14 @@ const ProductDetails = () => {
   };
 
   const handleOpenInMaps = () => {
-    if ((product as any)?.store_google_maps_link) {
-      window.open((product as any).store_google_maps_link, '_blank');
-    } else if (product?.store_latitude && product?.store_longitude) {
-      // Use coordinates if available
+    const googleMapsLink = (product as any)?.store_google_maps_link;
+    
+    if (googleMapsLink) {
+      // Use vendor's uploaded Google Maps link
+      window.open(googleMapsLink, '_blank');
+    } else if (product?.store_latitude && product?.store_longitude && 
+               product.store_latitude !== 0 && product.store_longitude !== 0) {
+      // Use coordinates if available and not zero
       const url = `https://www.google.com/maps/search/?api=1&query=${product.store_latitude},${product.store_longitude}`;
       window.open(url, '_blank');
     } else if (product?.store_address) {
@@ -332,13 +336,13 @@ const ProductDetails = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{product.store_name}</h3>
-                    {product.store_address && (
+                    {product.store_address && product.store_address !== '0' && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                         <MapPin className="w-3 h-3" />
                         {product.store_address}
                       </p>
                     )}
-                    {product.store_rating && (
+                    {product.store_rating && product.store_rating > 0 && (
                       <p className="text-sm text-muted-foreground mt-1">
                         ⭐ {product.store_rating.toFixed(1)}
                       </p>
@@ -382,7 +386,8 @@ const ProductDetails = () => {
                   </Link>
                 </div>
 
-                {product.store_latitude && product.store_longitude && (
+                {product.store_latitude && product.store_longitude && 
+                 product.store_latitude !== 0 && product.store_longitude !== 0 && (
                   <>
                     <Button 
                       variant="outline" 
