@@ -59,7 +59,15 @@ export default function StoreDashboard() {
     quantity: '',
     colors: [] as string[],
     sizes: [] as { name: string; measurements: string }[],
+    useVariants: false
   });
+  const [variants, setVariants] = useState<Array<{
+    color: string;
+    size: string;
+    price: string;
+    quantity: string;
+    sku: string;
+  }>>([]);
   const [colorInput, setColorInput] = useState('');
   const [sizeInput, setSizeInput] = useState({ name: '', measurements: '' });
   const [productImage, setProductImage] = useState<File | null>(null);
@@ -192,10 +200,19 @@ export default function StoreDashboard() {
   };
 
   const handleAddProduct = async () => {
-    if (!newProduct.name || !newProduct.price || !newProduct.quantity) {
+    if (!newProduct.name || (!newProduct.useVariants && (!newProduct.price || !newProduct.quantity))) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields (name, price, quantity)',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (newProduct.useVariants && variants.length === 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please add at least one variant',
         variant: 'destructive',
       });
       return;
@@ -246,11 +263,19 @@ export default function StoreDashboard() {
               name: newProduct.name,
               description: newProduct.description || null,
               category: newProduct.category || null,
-              price: parseFloat(newProduct.price),
-              quantity: parseInt(newProduct.quantity, 10),
+              price: newProduct.useVariants ? 0 : parseFloat(newProduct.price),
+              quantity: newProduct.useVariants ? 0 : parseInt(newProduct.quantity, 10),
               imageUrl,
               colors: newProduct.colors,
               sizes: newProduct.sizes,
+              useVariants: newProduct.useVariants,
+              variants: newProduct.useVariants ? variants.map(v => ({
+                color: v.color || null,
+                size: v.size || null,
+                sku: v.sku || null,
+                price: parseFloat(v.price),
+                quantity: parseInt(v.quantity)
+              })) : []
             },
           }),
         }
@@ -270,7 +295,8 @@ export default function StoreDashboard() {
       });
 
       setIsAddDialogOpen(false);
-      setNewProduct({ name: '', description: '', category: '', price: '', quantity: '', colors: [], sizes: [] });
+      setNewProduct({ name: '', description: '', category: '', price: '', quantity: '', colors: [], sizes: [], useVariants: false });
+      setVariants([]);
       setColorInput('');
       setSizeInput({ name: '', measurements: '' });
       setProductImage(null);
@@ -966,30 +992,45 @@ export default function StoreDashboard() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="product-price">Price (₹) *</Label>
-                            <Input
-                              id="product-price"
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={newProduct.price}
-                              onChange={(e) => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
-                              placeholder="0.00"
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="use-variants"
+                              checked={newProduct.useVariants}
+                              onChange={(e) => setNewProduct({ ...newProduct, useVariants: e.target.checked })}
+                              className="rounded"
                             />
+                            <Label htmlFor="use-variants">Track inventory by color/size variants</Label>
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="product-quantity">Stock Quantity *</Label>
-                            <Input
-                              id="product-quantity"
-                              type="number"
-                              min="0"
-                              value={newProduct.quantity}
-                              onChange={(e) => setNewProduct(prev => ({ ...prev, quantity: e.target.value }))}
-                              placeholder="0"
-                            />
-                          </div>
+
+                          {!newProduct.useVariants && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="product-price">Price (₹) *</Label>
+                                <Input
+                                  id="product-price"
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={newProduct.price}
+                                  onChange={(e) => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
+                                  placeholder="0.00"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="product-quantity">Stock Quantity *</Label>
+                                <Input
+                                  id="product-quantity"
+                                  type="number"
+                                  min="0"
+                                  value={newProduct.quantity}
+                                  onChange={(e) => setNewProduct(prev => ({ ...prev, quantity: e.target.value }))}
+                                  placeholder="0"
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Color Picker */}
@@ -1101,7 +1142,118 @@ export default function StoreDashboard() {
                               ))}
                             </div>
                           )}
-                        </div>
+                         </div>
+
+                        {newProduct.useVariants && (
+                          <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+                            <h4 className="font-medium">Product Variants</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label>Color</Label>
+                                <Input
+                                  placeholder="e.g., Red"
+                                  id="variant-color"
+                                />
+                              </div>
+                              <div>
+                                <Label>Size</Label>
+                                <Input
+                                  placeholder="e.g., M"
+                                  id="variant-size"
+                                />
+                              </div>
+                              <div>
+                                <Label>SKU</Label>
+                                <Input
+                                  placeholder="Optional"
+                                  id="variant-sku"
+                                />
+                              </div>
+                              <div>
+                                <Label>Price (₹)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  id="variant-price"
+                                />
+                              </div>
+                              <div>
+                                <Label>Quantity</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  id="variant-quantity"
+                                />
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                const color = (document.getElementById('variant-color') as HTMLInputElement).value;
+                                const size = (document.getElementById('variant-size') as HTMLInputElement).value;
+                                const sku = (document.getElementById('variant-sku') as HTMLInputElement).value;
+                                const price = (document.getElementById('variant-price') as HTMLInputElement).value;
+                                const quantity = (document.getElementById('variant-quantity') as HTMLInputElement).value;
+
+                                if (!price || !quantity) {
+                                  toast({
+                                    title: 'Validation Error',
+                                    description: 'Price and quantity are required',
+                                    variant: 'destructive',
+                                  });
+                                  return;
+                                }
+
+                                setVariants([...variants, { color, size, sku, price, quantity }]);
+                                
+                                (document.getElementById('variant-color') as HTMLInputElement).value = '';
+                                (document.getElementById('variant-size') as HTMLInputElement).value = '';
+                                (document.getElementById('variant-sku') as HTMLInputElement).value = '';
+                                (document.getElementById('variant-price') as HTMLInputElement).value = '';
+                                (document.getElementById('variant-quantity') as HTMLInputElement).value = '';
+                              }}
+                              className="w-full"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Variant
+                            </Button>
+
+                            {variants.length > 0 && (
+                              <div className="space-y-2">
+                                {variants.map((variant, index) => (
+                                  <div key={index} className="flex items-center justify-between p-3 bg-background rounded border">
+                                    <div className="flex-1 grid grid-cols-3 gap-2 text-sm">
+                                      <div>
+                                        <span className="text-muted-foreground">Color:</span> {variant.color || '-'}
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Size:</span> {variant.size || '-'}
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">SKU:</span> {variant.sku || '-'}
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Price:</span> ₹{variant.price}
+                                      </div>
+                                      <div>
+                                        <span className="text-muted-foreground">Qty:</span> {variant.quantity}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setVariants(variants.filter((_, i) => i !== index))}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         <Button onClick={handleAddProduct} className="w-full" disabled={uploading}>
                           {uploading ? 'Adding Product...' : 'Add Product'}

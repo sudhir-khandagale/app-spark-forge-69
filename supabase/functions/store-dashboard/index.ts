@@ -353,17 +353,19 @@ serve(async (req) => {
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        if (typeof data.price !== 'number' || data.price < 0) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid input', details: ['Price must be a non-negative number'] }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        if (typeof data.quantity !== 'number' || data.quantity < 0) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid input', details: ['Quantity must be a non-negative number'] }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+        if (!data.useVariants) {
+          if (typeof data.price !== 'number' || data.price < 0) {
+            return new Response(
+              JSON.stringify({ error: 'Invalid input', details: ['Price must be a non-negative number'] }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          if (typeof data.quantity !== 'number' || data.quantity < 0) {
+            return new Response(
+              JSON.stringify({ error: 'Invalid input', details: ['Quantity must be a non-negative number'] }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
         }
 
         // Verify store ownership
@@ -404,30 +406,60 @@ serve(async (req) => {
           );
         }
 
-        // Create inventory entry using service client
-        const { data: inventory, error: inventoryError } = await serviceClient
-          .from('inventory')
-          .insert({
-            store_id: data.storeId,
+        if (data.useVariants && data.variants && data.variants.length > 0) {
+          // Create variants
+          const variantsToInsert = data.variants.map((v: any) => ({
             product_id: product.id,
-            price: data.price,
-            quantity: data.quantity
-          })
-          .select()
-          .single();
+            store_id: data.storeId,
+            color: v.color,
+            size: v.size,
+            sku: v.sku,
+            price: v.price,
+            quantity: v.quantity
+          }));
 
-        if (inventoryError) {
-          console.error('Inventory creation error:', inventoryError);
+          const { error: variantsError } = await serviceClient
+            .from('product_variants')
+            .insert(variantsToInsert);
+
+          if (variantsError) {
+            console.error('Variants creation error:', variantsError);
+            return new Response(
+              JSON.stringify({ error: 'Failed to create variants', details: variantsError.message }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
           return new Response(
-            JSON.stringify({ error: 'Failed to create inventory', details: inventoryError.message }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ product, variants: variantsToInsert }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          // Create inventory entry using service client
+          const { data: inventory, error: inventoryError } = await serviceClient
+            .from('inventory')
+            .insert({
+              store_id: data.storeId,
+              product_id: product.id,
+              price: data.price,
+              quantity: data.quantity
+            })
+            .select()
+            .single();
+
+          if (inventoryError) {
+            console.error('Inventory creation error:', inventoryError);
+            return new Response(
+              JSON.stringify({ error: 'Failed to create inventory', details: inventoryError.message }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          return new Response(
+            JSON.stringify({ product, inventory }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-
-        return new Response(
-          JSON.stringify({ product, inventory }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
       }
 
       case 'manage_reservation': {
