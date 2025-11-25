@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Share2, Trash2, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Share2, Trash2, Search, Minus, Store, TrendingUp } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import BottomNav from '@/components/BottomNav';
+import { Card } from '@/components/ui/card';
 
 interface ListItem {
   id: string;
@@ -16,6 +17,13 @@ interface ListItem {
   quantity: number;
   checked: boolean;
   product_id: string | null;
+  storeAvailability?: Array<{
+    store_id: string;
+    store_name: string;
+    price: number;
+    in_stock: boolean;
+    quantity: number;
+  }>;
 }
 
 interface ShoppingList {
@@ -32,12 +40,19 @@ const ListDetails = () => {
   const [loading, setLoading] = useState(true);
   const [newItemName, setNewItemName] = useState('');
   const [adding, setAdding] = useState(false);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
 
   useEffect(() => {
     if (listId) {
       fetchListDetails();
     }
   }, [listId]);
+
+  useEffect(() => {
+    if (items.length > 0) {
+      fetchStoreAvailability();
+    }
+  }, [items.length]);
 
   const fetchListDetails = async () => {
     try {
@@ -171,6 +186,132 @@ const ListDetails = () => {
     }
   };
 
+  const fetchStoreAvailability = async () => {
+    setLoadingAvailability(true);
+    try {
+      const itemsWithAvailability = await Promise.all(
+        items.map(async (item) => {
+          // Search for products matching the item name
+          const { data: products } = await supabase
+            .from('products')
+            .select('id, name')
+            .ilike('name', `%${item.product_name}%`)
+            .limit(1);
+
+          if (!products || products.length === 0) {
+            return { ...item, storeAvailability: [] };
+          }
+
+          const productId = products[0].id;
+
+          // Get inventory for this product
+          const { data: inventory } = await supabase
+            .from('inventory')
+            .select(`
+              store_id,
+              price,
+              in_stock,
+              quantity,
+              stores (
+                name
+              )
+            `)
+            .eq('product_id', productId)
+            .eq('in_stock', true)
+            .gt('quantity', 0)
+            .limit(5);
+
+          const availability = inventory?.map((inv: any) => ({
+            store_id: inv.store_id,
+            store_name: inv.stores.name,
+            price: inv.price,
+            in_stock: inv.in_stock,
+            quantity: inv.quantity,
+          })) || [];
+
+          return { ...item, storeAvailability: availability };
+        })
+      );
+
+      setItems(itemsWithAvailability);
+    } catch (error) {
+      console.error('Error fetching availability:', error);
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+
+    try {
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .update({ quantity: newQuantity })
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update quantity',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleFindOptimalStores = () => {
+    const uncheckedItems = items.filter((item) => !item.checked);
+    if (uncheckedItems.length === 0) {
+      toast({
+        title: 'All Done!',
+        description: 'All items are checked off',
+      });
+      return;
+    }
+
+    // Count items available per store
+    const storeItemCount = new Map<string, { count: number; name: string }>();
+    
+    uncheckedItems.forEach((item) => {
+      item.storeAvailability?.forEach((store) => {
+        const current = storeItemCount.get(store.store_id) || { count: 0, name: store.store_name };
+        storeItemCount.set(store.store_id, { count: current.count + 1, name: store.store_name });
+      });
+    });
+
+    if (storeItemCount.size === 0) {
+      toast({
+        title: 'No Stores Found',
+        description: 'No stores have these items in stock',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Find store with most items
+    let bestStore = { id: '', name: '', count: 0 };
+    storeItemCount.forEach((value, key) => {
+      if (value.count > bestStore.count) {
+        bestStore = { id: key, name: value.name, count: value.count };
+      }
+    });
+
+    toast({
+      title: 'Best Store Found!',
+      description: `${bestStore.name} has ${bestStore.count} of ${uncheckedItems.length} items`,
+    });
+
+    navigate(`/store/${bestStore.id}`);
+  };
+
   const handleFindAllItems = () => {
     const uncheckedItems = items.filter((item) => !item.checked);
     if (uncheckedItems.length === 0) {
@@ -284,59 +425,131 @@ const ListDetails = () => {
             </div>
           ) : (
             items.map((item) => (
-              <div
+              <Card
                 key={item.id}
-                className={`flex items-center gap-3 p-3 bg-card border border-border rounded-lg transition-opacity ${
+                className={`p-4 transition-opacity ${
                   item.checked ? 'opacity-60' : ''
                 }`}
               >
-                <Checkbox
-                  checked={item.checked}
-                  onCheckedChange={() => handleToggleItem(item.id, item.checked)}
-                />
-                <div className="flex-1">
-                  <p
-                    className={`font-medium ${
-                      item.checked ? 'line-through text-muted-foreground' : ''
-                    }`}
-                  >
-                    {item.product_name}
-                  </p>
-                  {item.quantity > 1 && (
-                    <p className="text-sm text-muted-foreground">
-                      Qty: {item.quantity}
-                    </p>
-                  )}
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    checked={item.checked}
+                    onCheckedChange={() => handleToggleItem(item.id, item.checked)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <p
+                        className={`font-medium ${
+                          item.checked ? 'line-through text-muted-foreground' : ''
+                        }`}
+                      >
+                        {item.product_name}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 -mt-1"
+                        onClick={() => handleDeleteItem(item.id)}
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Qty:</span>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                          disabled={item.quantity <= 1}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Store Availability */}
+                    {item.storeAvailability && item.storeAvailability.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Store className="h-3 w-3" />
+                          Available at {item.storeAvailability.length} store(s)
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {item.storeAvailability.slice(0, 3).map((store) => (
+                            <Badge
+                              key={store.store_id}
+                              variant="secondary"
+                              className="text-xs cursor-pointer hover:bg-secondary/80"
+                              onClick={() => navigate(`/store/${store.store_id}`)}
+                            >
+                              {store.store_name} - ₹{store.price}
+                            </Badge>
+                          ))}
+                          {item.storeAvailability.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{item.storeAvailability.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {item.storeAvailability && item.storeAvailability.length === 0 && !loadingAvailability && (
+                      <p className="text-xs text-destructive">Not available nearby</p>
+                    )}
+
+                    {/* Find Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => navigate(`/search?q=${encodeURIComponent(item.product_name)}`)}
+                    >
+                      <Search className="h-3 w-3 mr-1" />
+                      Find Product
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/search?q=${encodeURIComponent(item.product_name)}`)}
-                >
-                  <Search className="h-4 w-4 mr-1" />
-                  Find
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleDeleteItem(item.id)}
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
+              </Card>
             ))
           )}
         </div>
       </main>
 
-      {/* Action Button */}
+      {/* Action Buttons */}
       {uncheckedCount > 0 && (
-        <div className="p-4 border-t border-border bg-background">
-          <div className="max-w-lg mx-auto">
-            <Button className="w-full" size="lg" onClick={handleFindAllItems}>
+        <div className="p-4 border-t border-border bg-background space-y-2">
+          <div className="max-w-lg mx-auto space-y-2">
+            <Button 
+              className="w-full" 
+              size="lg" 
+              onClick={handleFindOptimalStores}
+              disabled={loadingAvailability}
+            >
+              <TrendingUp className="w-5 h-5 mr-2" />
+              Find Best Store for All Items
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              size="lg" 
+              onClick={handleFindAllItems}
+            >
               <Search className="w-5 h-5 mr-2" />
-              Find Items Nearby
+              Search Individual Items
             </Button>
           </div>
         </div>
