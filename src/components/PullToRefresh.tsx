@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useNativeFeatures } from '@/hooks/useNativeFeatures';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;
@@ -11,6 +12,8 @@ export const PullToRefresh = ({ onRefresh, children }: PullToRefreshProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const startY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { haptic } = useNativeFeatures();
+  const hapticTriggered = useRef(false);
 
   const PULL_THRESHOLD = 80;
   const MAX_PULL = 120;
@@ -34,12 +37,21 @@ export const PullToRefresh = ({ onRefresh, children }: PullToRefreshProps) => {
     if (distance > 0) {
       const pullValue = Math.min(distance * 0.5, MAX_PULL);
       setPullDistance(pullValue);
+      
+      // Trigger haptic at threshold
+      if (pullValue >= PULL_THRESHOLD && !hapticTriggered.current) {
+        haptic.medium();
+        hapticTriggered.current = true;
+      } else if (pullValue < PULL_THRESHOLD) {
+        hapticTriggered.current = false;
+      }
     }
-  }, [isRefreshing]);
+  }, [isRefreshing, haptic]);
 
   const handleTouchEnd = useCallback(async () => {
     if (pullDistance > PULL_THRESHOLD && !isRefreshing) {
       setIsRefreshing(true);
+      haptic.success();
       try {
         await onRefresh();
       } finally {
@@ -48,7 +60,8 @@ export const PullToRefresh = ({ onRefresh, children }: PullToRefreshProps) => {
     }
     setPullDistance(0);
     startY.current = 0;
-  }, [pullDistance, isRefreshing, onRefresh]);
+    hapticTriggered.current = false;
+  }, [pullDistance, isRefreshing, onRefresh, haptic]);
 
   const getStatusText = () => {
     if (isRefreshing) return 'Refreshing...';
