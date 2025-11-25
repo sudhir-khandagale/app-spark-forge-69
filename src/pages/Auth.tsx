@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { EmailVerification } from '@/components/EmailVerification';
-import flowduxLogo from '@/assets/flowdux-logo.png';
+import flowduxIcon from '@/assets/flowdux-icon.png';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -184,7 +184,7 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <img src={flowduxLogo} alt="Flowdux Logo" className="h-24 mx-auto mb-2" />
+            <img src={flowduxIcon} alt="Flowdux Logo" className="h-24 mx-auto mb-2" />
             <p className="text-muted-foreground">
               Find products at local stores instantly
             </p>
