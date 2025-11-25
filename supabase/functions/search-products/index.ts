@@ -31,8 +31,8 @@ const validateSearchInput = (input: any) => {
   }
   
   if (input.maxDistance !== undefined) {
-    if (typeof input.maxDistance !== 'number' || input.maxDistance < 0 || input.maxDistance > 100) {
-      errors.push('MaxDistance must be a number between 0 and 100');
+    if (typeof input.maxDistance !== 'number' || input.maxDistance < 0 || input.maxDistance > 200) {
+      errors.push('MaxDistance must be a number between 0 and 200 km');
     }
   }
   
@@ -173,11 +173,11 @@ Examples:
       throw inventoryError;
     }
 
-    // Calculate distances if location provided
+    // Calculate distances if location provided (in kilometers)
     const results = inventory?.map((inv: any) => {
       let distance = null;
       if (latitude && longitude && inv.store.latitude && inv.store.longitude) {
-        const R = 3959; // Earth's radius in miles
+        const R = 6371; // Earth's radius in kilometers
         const lat1 = latitude * Math.PI / 180;
         const lat2 = inv.store.latitude * Math.PI / 180;
         const dLat = (inv.store.latitude - latitude) * Math.PI / 180;
@@ -212,7 +212,7 @@ Examples:
       };
     }) || [];
 
-    // Filter by distance if provided
+    // Filter by distance if provided (maxDistance is in kilometers)
     const filteredResults = results.filter(r => 
       !maxDistance || !r.distance || r.distance <= maxDistance
     );
