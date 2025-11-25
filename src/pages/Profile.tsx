@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useState, useEffect } from 'react';
 import RewardsDisplay from '@/components/RewardsDisplay';
+import { AvatarImage } from '@/components/ui/avatar';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -16,12 +17,31 @@ const Profile = () => {
   const { user, role, isVendor, isAdmin } = useUserRole();
   const [loading, setLoading] = useState(false);
   const [stores, setStores] = useState<any[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user && (isVendor || isAdmin)) {
-      fetchVendorStores();
+    if (user) {
+      fetchUserProfile();
+      if (isVendor || isAdmin) {
+        fetchVendorStores();
+      }
     }
   }, [user, isVendor, isAdmin]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      setAvatarUrl(data?.avatar_url || null);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchVendorStores = async () => {
     try {
@@ -101,6 +121,7 @@ const Profile = () => {
       <div className="p-6 border-b border-border">
         <div className="max-w-lg mx-auto flex items-center gap-4">
           <Avatar className="w-20 h-20">
+            <AvatarImage src={avatarUrl || undefined} />
             <AvatarFallback className="text-2xl">
               {user.email?.charAt(0).toUpperCase() || 'U'}
             </AvatarFallback>
