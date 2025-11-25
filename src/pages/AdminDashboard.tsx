@@ -622,20 +622,18 @@ export default function AdminDashboard() {
                 <CardDescription>Review and approve store registrations</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
-                  <div className="inline-block min-w-full align-middle">
-                    <div className="overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Store Name</TableHead>
-                            <TableHead>Vendor Name</TableHead>
-                            <TableHead>Address</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Store Name</TableHead>
+                        <TableHead>Vendor Name</TableHead>
+                        <TableHead>Address</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                     {pendingStores.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center text-muted-foreground">
@@ -826,9 +824,7 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          </div>
-        </CardContent>
+            </CardContent>
             </Card>
           </TabsContent>
 
@@ -839,10 +835,8 @@ export default function AdminDashboard() {
                 <CardDescription>Review previously rejected stores</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
-                  <div className="inline-block min-w-full align-middle">
-                    <div className="overflow-hidden">
-                      <Table>
+                <div className="overflow-x-auto">
+                  <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Store Name</TableHead>
@@ -1091,9 +1085,7 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          </div>
-        </CardContent>
+            </CardContent>
             </Card>
           </TabsContent>
 
@@ -1104,10 +1096,8 @@ export default function AdminDashboard() {
                 <CardDescription>View and manage all stores</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
-                  <div className="inline-block min-w-full align-middle">
-                    <div className="overflow-hidden">
-                      <Table>
+                <div className="overflow-x-auto">
+                  <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Store Name</TableHead>
@@ -1199,9 +1189,7 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          </div>
-        </CardContent>
+            </CardContent>
             </Card>
           </TabsContent>
 
@@ -1212,10 +1200,8 @@ export default function AdminDashboard() {
                 <CardDescription>View and manage all products across stores</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
-                  <div className="inline-block min-w-full align-middle">
-                    <div className="overflow-hidden">
-                      <Table>
+                <div className="overflow-x-auto">
+                  <Table>
                         <TableHeader>
                           <TableRow>
                             <TableHead>Product Name</TableHead>
@@ -1299,9 +1285,7 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          </div>
-        </CardContent>
+            </CardContent>
             </Card>
           </TabsContent>
 
@@ -1372,10 +1356,7 @@ export default function AdminDashboard() {
                     )}
                   </TableBody>
                 </Table>
-              </div>
-            </div>
-          </div>
-        </CardContent>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -1386,19 +1367,17 @@ export default function AdminDashboard() {
                 <CardDescription>Manage user roles and permissions</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto -mx-4 sm:mx-0">
-                  <div className="inline-block min-w-full align-middle">
-                    <div className="overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Current Role</TableHead>
-                            <TableHead>Joined</TableHead>
-                            <TableHead>Change Role</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Current Role</TableHead>
+                        <TableHead>Joined</TableHead>
+                        <TableHead>Change Role</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                     {users.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.email}</TableCell>
@@ -1426,9 +1405,7 @@ export default function AdminDashboard() {
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          </div>
-        </CardContent>
+            </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
