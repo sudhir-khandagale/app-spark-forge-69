@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { AppInitializer } from "@/components/AppInitializer";
+import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 
 // Eager load critical routes
 import Index from "./pages/Index";
@@ -63,6 +64,7 @@ const App = () => (
     <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
       <TooltipProvider>
         <AppInitializer />
+        <WebVitalsReporter />
         <Toaster />
         <Sonner />
         <BrowserRouter>
