@@ -1,17 +1,33 @@
 import { useState, useEffect, useRef } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface LazyImageProps {
   src: string;
   alt: string;
   className?: string;
   fallback?: string;
+  aspectRatio?: 'square' | 'video' | 'portrait' | 'auto';
 }
 
-export const LazyImage = ({ src, alt, className = '', fallback = '/placeholder.svg' }: LazyImageProps) => {
+export const LazyImage = ({ 
+  src, 
+  alt, 
+  className = '', 
+  fallback = '/placeholder.svg',
+  aspectRatio = 'auto'
+}: LazyImageProps) => {
   const [imageSrc, setImageSrc] = useState<string>(fallback);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  const aspectClasses = {
+    square: 'aspect-square',
+    video: 'aspect-video',
+    portrait: 'aspect-[3/4]',
+    auto: ''
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -27,6 +43,7 @@ export const LazyImage = ({ src, alt, className = '', fallback = '/placeholder.s
             img.onerror = () => {
               setImageSrc(fallback);
               setIsLoading(false);
+              setHasError(true);
             };
             observer.disconnect();
           }
@@ -45,15 +62,19 @@ export const LazyImage = ({ src, alt, className = '', fallback = '/placeholder.s
   }, [src, fallback]);
 
   return (
-    <div className={`relative ${className}`}>
-      {isLoading && (
-        <Skeleton className={`absolute inset-0 ${className}`} />
+    <div className={cn('relative overflow-hidden', aspectClasses[aspectRatio], className)}>
+      {isLoading && !hasError && (
+        <Skeleton className="absolute inset-0 w-full h-full" />
       )}
       <img
         ref={imgRef}
         src={imageSrc}
         alt={alt}
-        className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        className={cn(
+          'w-full h-full object-cover transition-opacity duration-300',
+          isLoading ? 'opacity-0' : 'opacity-100',
+          hasError && 'opacity-50'
+        )}
         loading="lazy"
       />
     </div>
