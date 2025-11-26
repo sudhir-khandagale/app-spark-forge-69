@@ -12,6 +12,7 @@ import { NetworkStatus } from "@/components/NetworkStatus";
 import { AppInitializer } from "@/components/AppInitializer";
 import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 import { HelmetProvider } from 'react-helmet-async';
+import InstallBanner from "@/components/InstallBanner";
 
 // Eager load critical routes
 import Index from "./pages/Index";
@@ -67,6 +68,7 @@ const App = () => (
         <TooltipProvider>
           <AppInitializer />
           <WebVitalsReporter />
+          <InstallBanner />
           <Toaster />
           <Sonner />
           <BrowserRouter>
