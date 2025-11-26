@@ -11,6 +11,7 @@ import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { AppInitializer } from "@/components/AppInitializer";
 import { WebVitalsReporter } from "@/components/WebVitalsReporter";
+import { HelmetProvider } from 'react-helmet-async';
 
 // Eager load critical routes
 import Index from "./pages/Index";
@@ -60,18 +61,19 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
-      <TooltipProvider>
-        <AppInitializer />
-        <WebVitalsReporter />
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <BackButtonHandler />
-          <NetworkStatus />
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
+        <TooltipProvider>
+          <AppInitializer />
+          <WebVitalsReporter />
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <BackButtonHandler />
+            <NetworkStatus />
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/search" element={<Search />} />
               <Route path="/map" element={<MapView />} />
@@ -96,12 +98,13 @@ const App = () => (
               <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;
