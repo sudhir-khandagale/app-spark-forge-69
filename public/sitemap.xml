@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Home Page -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Search Page -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/search</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Map View -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/map</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Authentication -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/auth</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Scanner -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/scanner</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Shopping Lists -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/lists</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Profile -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/profile</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Settings -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/settings</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  
+  <!-- Merchant Onboarding -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/merchant-onboarding</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Wishlist -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/wishlist</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Cart -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/cart</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Compare -->
+  <url>
+    <loc>https://app-spark-forge-69.lovable.app/compare</loc>
+    <lastmod>2025-11-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>
