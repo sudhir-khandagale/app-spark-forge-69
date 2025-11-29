@@ -570,9 +570,7 @@ export default function MerchantOnboarding() {
                       !storeData.name.trim() || 
                       !storeData.address.trim() || 
                       !storeData.googleMapsLink.trim() || 
-                      !!mapsUrlError ||
-                      !storeData.latitude ||
-                      !storeData.longitude
+                      !!mapsUrlError
                     } 
                     className="w-full"
                   >
