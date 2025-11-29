@@ -259,11 +259,16 @@ const Auth = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-accent/10 via-background to-primary/10">
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <img src={flowduxIcon} alt="Flowdux Logo" className="h-24 mx-auto mb-2 rounded-xl" />
+            <div className="inline-block p-4 bg-gradient-primary rounded-2xl shadow-lg mb-2">
+              <img src={flowduxIcon} alt="Flowdux Logo" className="h-20 mx-auto rounded-xl" />
+            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+              Welcome to Flowdux
+            </h1>
             <p className="text-muted-foreground">
               Find products at local stores instantly
             </p>
@@ -399,7 +404,7 @@ const Auth = () => {
           <div className="text-center">
             <Link 
               to="/" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-muted-foreground hover:text-accent transition-colors"
             >
               Continue as Guest
             </Link>

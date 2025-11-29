@@ -70,6 +70,12 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      backgroundImage: {
+        'gradient-primary': 'linear-gradient(135deg, hsl(var(--accent)), hsl(var(--primary)))',
+        'gradient-secondary': 'linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--accent)))',
+        'gradient-radial': 'radial-gradient(circle, hsl(var(--accent)), hsl(var(--primary)))',
+        'gradient-social': 'linear-gradient(135deg, hsl(var(--accent)), hsl(var(--gradient-pink) / 0.8), hsl(var(--primary)))',
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
