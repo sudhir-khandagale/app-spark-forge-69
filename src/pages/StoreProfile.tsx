@@ -15,6 +15,8 @@ import { useVendorFollowers } from '@/hooks/useVendorFollowers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { VendorPostCard } from '@/components/vendor/VendorPostCard';
 import { useVendorPosts } from '@/hooks/useVendorPosts';
+import { useVendorStories } from '@/hooks/useVendorStories';
+import VendorStoriesCarousel from '@/components/vendor/VendorStoriesCarousel';
 
 const StoreProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +40,7 @@ const StoreProfile = () => {
   const { achievements, loading: achievementsLoading } = useVendorAchievements((store as any)?.owner_id);
   const { followersCount, isFollowing, toggleFollow } = useVendorFollowers(id);
   const { posts, likePost } = useVendorPosts(id);
+  const { stories, incrementViews } = useVendorStories(id);
 
   const isOwner = currentUserId === (store as any)?.owner_id;
 
@@ -114,6 +117,18 @@ const StoreProfile = () => {
       {/* Profile Content */}
       <main className="flex-1">
         <div className="max-w-5xl mx-auto p-4 space-y-6">
+          {/* Vendor Stories */}
+          {stories.length > 0 && (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              <VendorStoriesCarousel
+                stories={stories}
+                vendorName={store.name}
+                vendorAvatar={store.photo_urls?.[0]}
+                onViewStory={incrementViews}
+              />
+            </div>
+          )}
+
           {/* Vendor Profile Header */}
           <VendorProfileHeader
             store={{
