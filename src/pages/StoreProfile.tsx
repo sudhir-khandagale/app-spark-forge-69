@@ -1,4 +1,4 @@
-import { ArrowLeft, Phone, Navigation, Clock, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, Phone, Navigation, Clock, Loader2, MapPin, Package, ShoppingBag } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
@@ -7,19 +7,39 @@ import { useStore, useStoreInventory } from '@/hooks/useStores';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUserActivity } from '@/hooks/useUserActivity';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { VendorProfileHeader } from '@/components/vendor/VendorProfileHeader';
+import { VendorAchievements } from '@/components/vendor/VendorAchievements';
+import { useVendorAchievements } from '@/hooks/useVendorAchievements';
+import { useVendorFollowers } from '@/hooks/useVendorFollowers';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { VendorPostCard } from '@/components/vendor/VendorPostCard';
+import { useVendorPosts } from '@/hooks/useVendorPosts';
 
 const StoreProfile = () => {
   const { id } = useParams<{ id: string }>();
   const { logActivity } = useUserActivity();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       logActivity('shop_visit', { storeId: id });
     }
+    
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    fetchUser();
   }, [id]);
+  
   const { store, loading: storeLoading } = useStore(id!);
   const { inventory, loading: inventoryLoading } = useStoreInventory(id!);
+  const { achievements, loading: achievementsLoading } = useVendorAchievements((store as any)?.owner_id);
+  const { followersCount, isFollowing, toggleFollow } = useVendorFollowers(id);
+  const { posts, likePost } = useVendorPosts(id);
+
+  const isOwner = currentUserId === (store as any)?.owner_id;
 
   const handleGetDirections = () => {
     if ((store as any)?.google_maps_link) {
@@ -39,7 +59,7 @@ const StoreProfile = () => {
   if (storeLoading) {
     return (
       <div className="flex flex-col min-h-screen pb-16">
-        <header className="sticky top-0 z-40 bg-background border-b border-border">
+        <header className="sticky top-0 z-40 bg-background border-b">
           <div className="flex items-center justify-between p-4">
             <Link to="/search">
               <Button variant="ghost" size="icon">
@@ -49,11 +69,8 @@ const StoreProfile = () => {
           </div>
         </header>
         <main className="flex-1 p-4">
-          <div className="max-w-lg mx-auto space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </div>
+          <Skeleton className="h-48 w-full mb-4" />
+          <Skeleton className="h-32 w-full" />
         </main>
       </div>
     );
@@ -62,7 +79,7 @@ const StoreProfile = () => {
   if (!store) {
     return (
       <div className="flex flex-col min-h-screen pb-16">
-        <header className="sticky top-0 z-40 bg-background border-b border-border">
+        <header className="sticky top-0 z-40 bg-background border-b">
           <div className="flex items-center justify-between p-4">
             <Link to="/search">
               <Button variant="ghost" size="icon">
@@ -81,9 +98,9 @@ const StoreProfile = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen pb-16">
+    <div className="flex flex-col min-h-screen pb-16 bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background border-b border-border">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center justify-between p-4">
           <Link to="/search">
             <Button variant="ghost" size="icon">
@@ -94,137 +111,169 @@ const StoreProfile = () => {
         </div>
       </header>
 
-      {/* Store Header */}
-      <div className="p-4 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold mb-2">{store.name}</h1>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-            <span>⭐ {store.rating?.toFixed(1) || 'No rating'}</span>
-            <span>({store.review_count || 0} reviews)</span>
-          </div>
+      {/* Profile Content */}
+      <main className="flex-1">
+        <div className="max-w-5xl mx-auto p-4 space-y-6">
+          {/* Vendor Profile Header */}
+          <VendorProfileHeader
+            store={{
+              name: store.name,
+              description: store.description || '',
+              address: store.address,
+              rating: store.rating || 0,
+              review_count: store.review_count || 0,
+              photo_urls: store.photo_urls || [],
+              specialties: store.specialties || [],
+            }}
+            stats={{
+              products: inventory.length,
+              orders: 0,
+              followers: followersCount,
+            }}
+            isOwner={isOwner}
+            isFollowing={isFollowing}
+            onFollow={() => toggleFollow((store as any).owner_id)}
+          />
 
-          {store.description && (
-            <p className="text-muted-foreground mb-4">{store.description}</p>
+          {/* Achievements */}
+          {!achievementsLoading && achievements.length > 0 && (
+            <VendorAchievements achievements={achievements} />
           )}
 
-          {store.specialties && store.specialties.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {store.specialties.map((specialty, i) => (
-                <span key={i} className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-full">
-                  {specialty}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Tabs */}
+          <Tabs defaultValue="products" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="products">
+                <Package className="h-4 w-4 mr-2" />
+                Products
+              </TabsTrigger>
+              <TabsTrigger value="posts">
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Posts
+              </TabsTrigger>
+              <TabsTrigger value="about">About</TabsTrigger>
+            </TabsList>
 
-          <div className="flex gap-2">
-            {((store as any).google_maps_link || (store.latitude && store.longitude)) && (
-              <Button onClick={handleGetDirections} className="flex-1">
-                <Navigation className="w-4 h-4 mr-2" />
-                Go to Maps
-              </Button>
-            )}
-            {store.phone && (
-              <Button onClick={handleCall} variant="outline" className="flex-1">
-                <Phone className="w-4 h-4 mr-2" />
-                Call
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Store Details */}
-      <main className="flex-1 p-4">
-        <div className="max-w-lg mx-auto space-y-6">
-          {/* Contact & Location */}
-          <div className="space-y-2">
-            <h2 className="font-semibold">Contact & Location</h2>
-            <div className="p-4 bg-card border border-border rounded-lg space-y-2">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm">{store.address}</span>
-              </div>
-              {store.phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{store.phone}</span>
+            {/* Products Tab */}
+            <TabsContent value="products" className="space-y-4 mt-6">
+              {inventoryLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
-              )}
-              {store.email && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">✉</span>
-                  <span className="text-sm">{store.email}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Hours */}
-          {store.hours && (
-            <div className="space-y-2">
-              <h2 className="font-semibold flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Hours
-              </h2>
-              <div className="p-4 bg-card border border-border rounded-lg">
-                {Object.entries(store.hours as Record<string, any>).map(([day, hours]) => {
-                  const hoursText = typeof hours === 'string' 
-                    ? hours 
-                    : hours?.open && hours?.close 
-                      ? `${hours.open} - ${hours.close}` 
-                      : 'Closed';
-                  
-                  return (
-                    <div key={day} className="flex justify-between text-sm py-1">
-                      <span className="capitalize">{day}</span>
-                      <span className="text-muted-foreground">{hoursText}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Available Products */}
-          <div className="space-y-2">
-            <h2 className="font-semibold">Available Products</h2>
-            {inventoryLoading ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              </div>
-            ) : inventory.length > 0 ? (
-              <div className="space-y-2">
-                {inventory.map((item) => {
-                  const product = item.products as any;
-                  return (
-                    <Link key={item.id} to={`/product/${product.id}?store=${store.id}`}>
-                      <div className="p-4 bg-card border border-border rounded-lg hover:border-primary transition-colors">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{product.name}</h3>
-                            {product.category && (
-                              <p className="text-xs text-muted-foreground mt-1">{product.category}</p>
-                            )}
-                          </div>
-                          <div className="text-right ml-4">
-                            <span className="text-lg font-bold text-primary">${item.price.toFixed(2)}</span>
-                            <p className={`text-xs font-medium mt-1 ${item.in_stock ? 'text-accent' : 'text-destructive'}`}>
-                              {item.in_stock ? `${item.quantity} in stock` : 'Out of stock'}
-                            </p>
+              ) : inventory.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {inventory.map((item) => {
+                    const product = item.products as any;
+                    return (
+                      <Link key={item.id} to={`/product/${product.id}?store=${store.id}`}>
+                        <div className="p-4 bg-card border rounded-lg hover:border-primary transition-all hover:shadow-md">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-semibold line-clamp-2">{product.name}</h3>
+                              {product.category && (
+                                <p className="text-xs text-muted-foreground mt-1">{product.category}</p>
+                              )}
+                            </div>
+                            <div className="text-right ml-4">
+                              <span className="text-lg font-bold text-primary">${item.price.toFixed(2)}</span>
+                              <p className={`text-xs font-medium mt-1 ${item.in_stock ? 'text-accent' : 'text-destructive'}`}>
+                                {item.in_stock ? `${item.quantity} left` : 'Out of stock'}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-12 bg-card border rounded-lg text-center">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No products available</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Posts Tab */}
+            <TabsContent value="posts" className="space-y-4 mt-6">
+              {posts.length > 0 ? (
+                posts.map((post) => (
+                  <VendorPostCard key={post.id} post={post} onLike={likePost} />
+                ))
+              ) : (
+                <div className="p-12 bg-card border rounded-lg text-center">
+                  <ShoppingBag className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No posts yet</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* About Tab */}
+            <TabsContent value="about" className="space-y-6 mt-6">
+              {/* Contact & Location */}
+              <div className="space-y-2">
+                <h2 className="font-semibold text-lg">Contact & Location</h2>
+                <div className="p-4 bg-card border rounded-lg space-y-3">
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 mt-1 text-primary flex-shrink-0" />
+                    <span className="text-sm">{store.address}</span>
+                  </div>
+                  {store.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span className="text-sm">{store.phone}</span>
+                    </div>
+                  )}
+                  {store.email && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">✉️</span>
+                      <span className="text-sm">{store.email}</span>
+                    </div>
+                  )}
+                  <div className="flex gap-2 pt-2">
+                    {((store as any).google_maps_link || (store.latitude && store.longitude)) && (
+                      <Button onClick={handleGetDirections} className="flex-1">
+                        <Navigation className="w-4 h-4 mr-2" />
+                        Directions
+                      </Button>
+                    )}
+                    {store.phone && (
+                      <Button onClick={handleCall} variant="outline" className="flex-1">
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="p-8 bg-card border border-border rounded-lg text-center">
-                <p className="text-muted-foreground">No products available</p>
-              </div>
-            )}
-          </div>
+
+              {/* Hours */}
+              {store.hours && (
+                <div className="space-y-2">
+                  <h2 className="font-semibold text-lg flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Business Hours
+                  </h2>
+                  <div className="p-4 bg-card border rounded-lg">
+                    {Object.entries(store.hours as Record<string, any>).map(([day, hours]) => {
+                      const hoursText = typeof hours === 'string' 
+                        ? hours 
+                        : hours?.open && hours?.close 
+                          ? `${hours.open} - ${hours.close}` 
+                          : 'Closed';
+                      
+                      return (
+                        <div key={day} className="flex justify-between text-sm py-2 border-b last:border-0">
+                          <span className="capitalize font-medium">{day}</span>
+                          <span className="text-muted-foreground">{hoursText}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 

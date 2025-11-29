@@ -740,9 +740,13 @@ export default function StoreDashboard() {
         )}
 
         <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-8 gap-1 h-auto flex-nowrap p-1">
+          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-9 gap-1 h-auto flex-nowrap p-1">
             <TabsTrigger value="inventory" className="whitespace-nowrap px-4">
               Inventory
+            </TabsTrigger>
+            <TabsTrigger value="social" className="whitespace-nowrap px-4">
+              <Sparkles className="h-3 w-3 mr-1.5 shrink-0" />
+              Social
             </TabsTrigger>
             <TabsTrigger value="plans" className="whitespace-nowrap px-3 sm:px-4">
               <Crown className="h-3 w-3 mr-1.5 shrink-0" />
@@ -779,6 +783,32 @@ export default function StoreDashboard() {
               <span className="sm:hidden">Store</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="social" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Vendor Social Feed
+                </CardTitle>
+                <CardDescription>
+                  Share your story, showcase products, and connect with customers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 space-y-4">
+                  <div className="text-6xl mb-4">📱</div>
+                  <h3 className="text-xl font-semibold">Share Your Story</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Create posts, share behind-the-scenes content, and build a community around your brand
+                  </p>
+                  <Button onClick={() => navigate('/vendor-feed')} size="lg">
+                    Open Social Feed
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="plans" className="space-y-4">
             <SubscriptionPlans 
