@@ -630,6 +630,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banner_url: string | null
           created_at: string | null
           display_name: string | null
           email: string | null
@@ -637,10 +638,12 @@ export type Database = {
           phone: string | null
           razorpay_customer_id: string | null
           search_radius: number
+          social_links: Json | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
@@ -648,10 +651,12 @@ export type Database = {
           phone?: string | null
           razorpay_customer_id?: string | null
           search_radius?: number
+          social_links?: Json | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          banner_url?: string | null
           created_at?: string | null
           display_name?: string | null
           email?: string | null
@@ -659,6 +664,7 @@ export type Database = {
           phone?: string | null
           razorpay_customer_id?: string | null
           search_radius?: number
+          social_links?: Json | null
           updated_at?: string | null
         }
         Relationships: []

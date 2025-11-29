@@ -37,6 +37,8 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [stores, setStores] = useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (user) {
@@ -51,13 +53,15 @@ const Profile = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('avatar_url')
+        .select('avatar_url, banner_url, social_links')
         .eq('id', user?.id)
         .single();
 
       if (error) throw error;
       if (data) {
         setAvatarUrl(data.avatar_url);
+        setBannerUrl(data.banner_url);
+        setSocialLinks((data.social_links as Record<string, string>) || {});
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -125,7 +129,12 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="container max-w-6xl mx-auto p-4 space-y-6">
-        <ProfileHeader avatarUrl={avatarUrl || undefined} displayName={user?.email} />
+        <ProfileHeader 
+          avatarUrl={avatarUrl || undefined} 
+          displayName={user?.email}
+          bannerUrl={bannerUrl || undefined}
+          socialLinks={socialLinks}
+        />
         <StreakCounter />
         <RewardsDisplay />
         
