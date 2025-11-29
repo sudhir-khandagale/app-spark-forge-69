@@ -43,6 +43,9 @@ const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const ProfileManagement = lazy(() => import("./pages/ProfileManagement"));
 const Install = lazy(() => import("./pages/Install"));
+const Friends = lazy(() => import("./pages/Friends"));
+const ProfileOnboarding = lazy(() => import("./pages/ProfileOnboarding"));
+const Checkout = lazy(() => import("./pages/Checkout"));
 
 // Loading fallback
 const PageLoader = () => (
@@ -102,6 +105,9 @@ const App = () => (
               <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
               <Route path="/profile/achievements" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Achievements /></Suspense></ProtectedRoute>} />
               <Route path="/profile/leaderboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Leaderboard /></Suspense></ProtectedRoute>} />
+              <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+              <Route path="/profile/onboarding" element={<ProtectedRoute><ProfileOnboarding /></ProtectedRoute>} />
+              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
               </Routes>

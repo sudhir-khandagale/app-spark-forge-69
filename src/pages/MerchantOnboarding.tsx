@@ -31,6 +31,10 @@ export default function MerchantOnboarding() {
     email: '',
     latitude: '',
     longitude: '',
+    bank_account_name: '',
+    bank_account_number: '',
+    bank_ifsc_code: '',
+    upi_id: '',
     hours: {
       monday: { open: '09:00', close: '17:00' },
       tuesday: { open: '09:00', close: '17:00' },
@@ -234,6 +238,10 @@ export default function MerchantOnboarding() {
           specialties: storeData.specialties.split(',').map(s => s.trim()).filter(Boolean),
           photo_urls: photoUrls.length > 0 ? photoUrls : null,
           google_maps_link: storeData.googleMapsLink || null,
+          bank_account_name: storeData.bank_account_name || null,
+          bank_account_number: storeData.bank_account_number || null,
+          bank_ifsc_code: storeData.bank_ifsc_code || null,
+          upi_id: storeData.upi_id || null,
           status: isAdmin ? 'approved' : 'pending',
         })
         .select()
@@ -422,6 +430,46 @@ export default function MerchantOnboarding() {
                     placeholder="Electronics, Hardware, Tools"
                     value={storeData.specialties}
                     onChange={(e) => handleInputChange('specialties', e.target.value)}
+                  />
+                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bank-name">Bank Account Name</Label>
+                  <Input
+                    id="bank-name"
+                    placeholder="Account holder name"
+                    value={storeData.bank_account_name || ''}
+                    onChange={(e) => handleInputChange('bank_account_name', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bank-number">Bank Account Number</Label>
+                  <Input
+                    id="bank-number"
+                    placeholder="Account number"
+                    value={storeData.bank_account_number || ''}
+                    onChange={(e) => handleInputChange('bank_account_number', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="ifsc">IFSC Code</Label>
+                  <Input
+                    id="ifsc"
+                    placeholder="IFSC code"
+                    value={storeData.bank_ifsc_code || ''}
+                    onChange={(e) => handleInputChange('bank_ifsc_code', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="upi">UPI ID (Optional)</Label>
+                  <Input
+                    id="upi"
+                    placeholder="yourname@upi"
+                    value={storeData.upi_id || ''}
+                    onChange={(e) => handleInputChange('upi_id', e.target.value)}
                   />
                 </div>
 

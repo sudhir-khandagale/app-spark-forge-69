@@ -279,18 +279,11 @@ const Cart = () => {
                     <span className="text-primary">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={() => {
-                    toast({
-                      title: '🎉 Congratulations!',
-                      description: 'Your order is ready for pickup at the store. See you soon!',
-                    });
-                  }}
-                >
-                  Checkout at Store
-                </Button>
+                <Link to={`/checkout?from=cart`}>
+                  <Button className="w-full" size="lg">
+                    Checkout
+                  </Button>
+                </Link>
                 <p className="text-xs text-muted-foreground text-center mt-2">
                   Items can be picked up from respective stores
                 </p>

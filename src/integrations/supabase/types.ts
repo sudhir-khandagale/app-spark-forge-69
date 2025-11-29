@@ -340,6 +340,65 @@ export type Database = {
         }
         Relationships: []
       }
+      orders: {
+        Row: {
+          created_at: string | null
+          delivery_address: Json | null
+          id: string
+          items: Json
+          notes: string | null
+          payment_status: string | null
+          pickup_scheduled: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          receipt_number: string | null
+          store_id: string
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_address?: Json | null
+          id?: string
+          items: Json
+          notes?: string | null
+          payment_status?: string | null
+          pickup_scheduled?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          receipt_number?: string | null
+          store_id: string
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          delivery_address?: Json | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          payment_status?: string | null
+          pickup_scheduled?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          receipt_number?: string | null
+          store_id?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       points_transactions: {
         Row: {
           action_type: string
@@ -778,6 +837,9 @@ export type Database = {
       stores: {
         Row: {
           address: string
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_ifsc_code: string | null
           created_at: string | null
           description: string | null
           email: string | null
@@ -797,9 +859,13 @@ export type Database = {
           specialties: string[] | null
           status: string | null
           updated_at: string | null
+          upi_id: string | null
         }
         Insert: {
           address: string
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc_code?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null
@@ -819,9 +885,13 @@ export type Database = {
           specialties?: string[] | null
           status?: string | null
           updated_at?: string | null
+          upi_id?: string | null
         }
         Update: {
           address?: string
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc_code?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null
@@ -841,6 +911,7 @@ export type Database = {
           specialties?: string[] | null
           status?: string | null
           updated_at?: string | null
+          upi_id?: string | null
         }
         Relationships: []
       }
@@ -995,6 +1066,7 @@ export type Database = {
           activity_sharing: boolean | null
           created_at: string | null
           id: string
+          onboarding_completed: boolean | null
           preferred_shop_types: string[] | null
           profile_visibility: string | null
           shopping_interests: string[] | null
@@ -1007,6 +1079,7 @@ export type Database = {
           activity_sharing?: boolean | null
           created_at?: string | null
           id?: string
+          onboarding_completed?: boolean | null
           preferred_shop_types?: string[] | null
           profile_visibility?: string | null
           shopping_interests?: string[] | null
@@ -1019,6 +1092,7 @@ export type Database = {
           activity_sharing?: boolean | null
           created_at?: string | null
           id?: string
+          onboarding_completed?: boolean | null
           preferred_shop_types?: string[] | null
           profile_visibility?: string | null
           shopping_interests?: string[] | null
