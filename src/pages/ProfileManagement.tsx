@@ -11,6 +11,10 @@ import { ArrowLeft, User, Mail, Lock, Camera } from 'lucide-react';
 import { z } from 'zod';
 import BottomNav from '@/components/BottomNav';
 import { AvatarUpload } from '@/components/AvatarUpload';
+import { BannerUpload } from '@/components/BannerUpload';
+import { ProfileCompletion } from '@/components/ProfileCompletion';
+import { SocialLinksEditor } from '@/components/SocialLinksEditor';
+import { ProfileCustomization } from '@/components/profile/ProfileCustomization';
 
 const displayNameSchema = z.string()
   .trim()
@@ -36,9 +40,12 @@ const ProfileManagement = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
   const [userId, setUserId] = useState<string | null>(null);
   const [phone, setPhone] = useState('');
   const [searchRadius, setSearchRadius] = useState(10);
+  const [preferences, setPreferences] = useState<any>(null);
 
   useEffect(() => {
     loadUserData();
@@ -57,7 +64,7 @@ const ProfileManagement = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('display_name, avatar_url, phone, search_radius')
+        .select('display_name, avatar_url, banner_url, phone, search_radius, social_links, email')
         .eq('id', user.id)
         .single();
 
@@ -67,11 +74,28 @@ const ProfileManagement = () => {
       if (profile?.avatar_url) {
         setAvatarUrl(profile.avatar_url);
       }
+      if (profile?.banner_url) {
+        setBannerUrl(profile.banner_url);
+      }
       if (profile?.phone) {
         setPhone(profile.phone);
       }
       if (profile?.search_radius) {
         setSearchRadius(profile.search_radius);
+      }
+      if (profile?.social_links) {
+        setSocialLinks(profile.social_links as Record<string, string>);
+      }
+
+      // Load preferences
+      const { data: prefs } = await supabase
+        .from('user_preferences')
+        .select('shopping_interests')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (prefs) {
+        setPreferences(prefs);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -231,6 +255,23 @@ const ProfileManagement = () => {
 
       <main className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* Profile Completion */}
+          {userId && preferences && (
+            <ProfileCompletion 
+              profile={{
+                display_name: displayName,
+                avatar_url: avatarUrl,
+                banner_url: bannerUrl,
+                phone: phone,
+                email: email,
+                social_links: socialLinks
+              }}
+              preferences={preferences}
+            />
+          )}
+
+          <Separator />
+
           {/* Profile Picture */}
           <Card>
             <CardHeader>
@@ -248,6 +289,30 @@ const ProfileManagement = () => {
                   currentAvatarUrl={avatarUrl}
                   userId={userId}
                   onUploadComplete={(url) => setAvatarUrl(url)}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          {/* Profile Banner */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Profile Banner
+              </CardTitle>
+              <CardDescription>
+                Upload a banner image for your profile (max 10MB)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userId && (
+                <BannerUpload
+                  currentBannerUrl={bannerUrl}
+                  userId={userId}
+                  onUploadComplete={(url) => setBannerUrl(url)}
                 />
               )}
             </CardContent>
@@ -489,6 +554,22 @@ const ProfileManagement = () => {
               </form>
             </CardContent>
           </Card>
+
+          <Separator />
+
+          {/* Social Links */}
+          {userId && (
+            <SocialLinksEditor
+              userId={userId}
+              currentLinks={socialLinks}
+              onUpdate={(links) => setSocialLinks(links)}
+            />
+          )}
+
+          <Separator />
+
+          {/* Profile Customization */}
+          <ProfileCustomization />
         </div>
       </main>
 
