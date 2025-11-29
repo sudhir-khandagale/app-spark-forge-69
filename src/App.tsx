@@ -38,6 +38,8 @@ const AdminSetup = lazy(() => import("./pages/AdminSetup"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Compare = lazy(() => import("./pages/Compare"));
+const Achievements = lazy(() => import("./pages/Achievements"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const ProfileManagement = lazy(() => import("./pages/ProfileManagement"));
 const Install = lazy(() => import("./pages/Install"));
@@ -98,6 +100,8 @@ const App = () => (
               <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
               <Route path="/compare/:id" element={<Compare />} />
               <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+              <Route path="/profile/achievements" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Achievements /></Suspense></ProtectedRoute>} />
+              <Route path="/profile/leaderboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Leaderboard /></Suspense></ProtectedRoute>} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
               </Routes>
