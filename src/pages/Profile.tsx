@@ -127,7 +127,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background pb-20">
       <div className="container max-w-6xl mx-auto p-4 space-y-6">
         <ProfileHeader 
           avatarUrl={avatarUrl || undefined} 
@@ -135,35 +135,53 @@ const Profile = () => {
           bannerUrl={bannerUrl || undefined}
           socialLinks={socialLinks}
         />
-        <StreakCounter />
-        <RewardsDisplay />
         
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <ShoppingStatistics />
-            <LeaderboardCard />
-          </div>
-          <ActivityFeed />
+          <StreakCounter />
+          <RewardsDisplay />
         </div>
         
-        <AchievementGrid />
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <ShoppingStatistics />
+            <AchievementGrid />
+          </div>
+          <div className="space-y-6">
+            <LeaderboardCard />
+            <ActivityFeed />
+          </div>
+        </div>
 
         {(isVendor || isAdmin) && (
-          <Card>
+          <Card className="border-2 hover:shadow-lg transition-shadow">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <StoreIcon className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <StoreIcon className="w-6 h-6 text-primary" />
                 My Stores
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {stores.map((store) => (
-                <Button key={store.id} variant="outline" className="w-full justify-start" onClick={() => navigate(`/dashboard/store/${store.id}`)}>
-                  <StoreIcon className="w-4 h-4 mr-2" />
-                  {store.name}
-                </Button>
-              ))}
-              <Button variant="outline" className="w-full" onClick={() => navigate('/onboarding/merchant')}>
+              <div className="grid gap-3">
+                {stores.map((store) => (
+                  <Button 
+                    key={store.id} 
+                    variant="outline" 
+                    className="w-full justify-start hover:bg-primary/5 hover:border-primary transition-all h-auto py-3" 
+                    onClick={() => navigate(`/dashboard/store/${store.id}`)}
+                  >
+                    <StoreIcon className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-semibold">{store.name}</div>
+                      <div className="text-xs text-muted-foreground capitalize">{store.status}</div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+              <Button 
+                variant="default" 
+                className="w-full" 
+                onClick={() => navigate('/onboarding/merchant')}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Register New Store
               </Button>
@@ -171,16 +189,49 @@ const Profile = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={() => navigate('/profile/manage')}><Edit className="w-4 h-4 mr-2" />Edit Profile</Button>
-          <Button variant="outline" onClick={() => navigate('/lists')}><List className="w-4 h-4 mr-2" />My Lists</Button>
-          <Button variant="outline" onClick={() => navigate('/wishlist')}><Heart className="w-4 h-4 mr-2" />Wishlist</Button>
-          <Button variant="outline" onClick={() => navigate('/friends')}><User className="w-4 h-4 mr-2" />Friends</Button>
-          <Button variant="outline" onClick={() => navigate('/orders')}><ShoppingBag className="w-4 h-4 mr-2" />Order History</Button>
-          {isAdmin && <Button variant="outline" onClick={() => navigate('/admin')}><Shield className="w-4 h-4 mr-2" />Admin</Button>}
-          <Button variant="outline" onClick={() => navigate('/settings')}><SettingsIcon className="w-4 h-4 mr-2" />Settings</Button>
-          <Button variant="destructive" onClick={handleSignOut} disabled={loading}><LogOut className="w-4 h-4 mr-2" />Sign Out</Button>
-        </div>
+        <Card className="border-2">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <Button variant="outline" onClick={() => navigate('/profile/manage')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                <Edit className="w-5 h-5" />
+                <span className="text-sm font-medium">Edit Profile</span>
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/lists')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                <List className="w-5 h-5" />
+                <span className="text-sm font-medium">My Lists</span>
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/wishlist')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                <Heart className="w-5 h-5" />
+                <span className="text-sm font-medium">Wishlist</span>
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/friends')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                <User className="w-5 h-5" />
+                <span className="text-sm font-medium">Friends</span>
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/orders')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                <ShoppingBag className="w-5 h-5" />
+                <span className="text-sm font-medium">Orders</span>
+              </Button>
+              {isAdmin && (
+                <Button variant="outline" onClick={() => navigate('/admin')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                  <Shield className="w-5 h-5" />
+                  <span className="text-sm font-medium">Admin</span>
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => navigate('/settings')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                <SettingsIcon className="w-5 h-5" />
+                <span className="text-sm font-medium">Settings</span>
+              </Button>
+              <Button variant="destructive" onClick={handleSignOut} disabled={loading} className="h-auto py-4 flex-col gap-2">
+                <LogOut className="w-5 h-5" />
+                <span className="text-sm font-medium">Sign Out</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       {userLevel && (
