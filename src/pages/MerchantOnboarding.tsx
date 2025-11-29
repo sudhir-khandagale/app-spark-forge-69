@@ -202,9 +202,6 @@ export default function MerchantOnboarding() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Upload photos first
-      const photoUrls = await uploadPhotos();
-
       // Check if user is already admin
       const { data: existingRole } = await supabase
         .from('user_roles')
@@ -213,6 +210,29 @@ export default function MerchantOnboarding() {
         .single();
 
       const isAdmin = existingRole?.role === 'admin';
+
+      // Free tier limit: Check if vendor already has a store (only for non-admins)
+      if (!isAdmin) {
+        const { data: existingStores, error: checkError } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('owner_id', user.id);
+
+        if (checkError) throw checkError;
+
+        if (existingStores && existingStores.length >= 1) {
+          toast({
+            title: 'Store Limit Reached',
+            description: 'Free tier allows 1 store. Upgrade your plan to register more stores.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Upload photos
+      const photoUrls = await uploadPhotos();
 
       // Only assign vendor role if user doesn't have admin role
       if (!isAdmin) {

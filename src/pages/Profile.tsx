@@ -1,4 +1,4 @@
-import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft, Edit, ShoppingBag } from 'lucide-react';
+import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft, Edit, ShoppingBag, Check, Circle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -39,15 +39,46 @@ const Profile = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchUserProfile();
+      checkProfileCompletion();
       if (isVendor || isAdmin) {
         fetchVendorStores();
       }
     }
   }, [user, isVendor, isAdmin]);
+
+  const checkProfileCompletion = async () => {
+    if (!user) return;
+
+    try {
+      // Check if onboarding is completed
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('onboarding_completed')
+        .eq('user_id', user.id)
+        .single();
+
+      // Check if profile is incomplete
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      const isIncomplete = 
+        !preferences?.onboarding_completed || 
+        !profile?.display_name || 
+        !profile?.avatar_url;
+
+      setShowProfileCompletion(isIncomplete);
+    } catch (error) {
+      console.error('Error checking profile completion:', error);
+    }
+  };
 
   const fetchUserProfile = async () => {
     try {
@@ -129,6 +160,56 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background pb-20">
       <div className="container max-w-6xl mx-auto p-4 space-y-6">
+        {/* Profile Completion Prompt */}
+        {showProfileCompletion && (
+          <Card className="border-2 border-primary bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="bg-primary/20 p-3 rounded-full">
+                  <User className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">Complete Your Profile</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Unlock 50 bonus points and personalized features!
+                    </p>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      {avatarUrl ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className={avatarUrl ? 'line-through text-muted-foreground' : ''}>
+                        Add profile photo
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {user.user_metadata?.display_name ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className={user.user_metadata?.display_name ? 'line-through text-muted-foreground' : ''}>
+                        Set display name
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Circle className="h-4 w-4 text-muted-foreground" />
+                      <span>Choose interests</span>
+                    </div>
+                  </div>
+                  <Button onClick={() => navigate('/profile/onboarding')} className="w-full sm:w-auto">
+                    Continue Setup →
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <ProfileHeader 
           avatarUrl={avatarUrl || undefined} 
           displayName={user?.email}
