@@ -24,6 +24,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatPrice } from '@/lib/utils';
+import VendorStoriesCarousel from '@/components/vendor/VendorStoriesCarousel';
+import CreateStoryModal from '@/components/vendor/CreateStoryModal';
+import VendorLeaderboard from '@/components/vendor/VendorLeaderboard';
+import VendorChallenges from '@/components/vendor/VendorChallenges';
+import { useVendorStories } from '@/hooks/useVendorStories';
 
 interface Product {
   id: string;
@@ -90,6 +95,8 @@ export default function StoreDashboard() {
     priority_support: false,
     featured_listing: false
   });
+  const [storyModalOpen, setStoryModalOpen] = useState(false);
+  const { stories, incrementViews, refreshStories } = useVendorStories(storeId);
 
   useEffect(() => {
     fetchStoreData();
@@ -1862,7 +1869,22 @@ export default function StoreDashboard() {
           </TabsContent>
 
         </Tabs>
+
+        <TabsContent value="challenges" className="space-y-6">
+          <VendorChallenges storeId={storeId!} />
+        </TabsContent>
+
+        <TabsContent value="leaderboard" className="space-y-6">
+          <VendorLeaderboard />
+        </TabsContent>
       </div>
+
+      <CreateStoryModal 
+        open={storyModalOpen}
+        onOpenChange={setStoryModalOpen}
+        storeId={storeId!}
+        onStoryCreated={refreshStories}
+      />
     </div>
   );
 }

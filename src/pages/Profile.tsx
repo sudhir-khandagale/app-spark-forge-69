@@ -2,7 +2,7 @@ import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -121,7 +121,7 @@ const Profile = () => {
             </CardContent>
           </Card>
         </div>
-        <BottomNav />
+        <RoleBasedBottomNav />
       </div>
     );
   }
@@ -136,21 +136,26 @@ const Profile = () => {
           socialLinks={socialLinks}
         />
         
-        <div className="grid md:grid-cols-2 gap-6">
-          <StreakCounter />
-          <RewardsDisplay />
-        </div>
-        
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <ShoppingStatistics />
-            <AchievementGrid />
-          </div>
-          <div className="space-y-6">
-            <LeaderboardCard />
-            <ActivityFeed />
-          </div>
-        </div>
+        {/* Customer-only features */}
+        {!isVendor && (
+          <>
+            <div className="grid md:grid-cols-2 gap-6">
+              <StreakCounter />
+              <RewardsDisplay />
+            </div>
+            
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <ShoppingStatistics />
+                <AchievementGrid />
+              </div>
+              <div className="space-y-6">
+                <LeaderboardCard />
+                <ActivityFeed />
+              </div>
+            </div>
+          </>
+        )}
 
         {(isVendor || isAdmin) && (
           <Card className="border-2 hover:shadow-lg transition-shadow">
@@ -199,18 +204,22 @@ const Profile = () => {
                 <Edit className="w-5 h-5" />
                 <span className="text-sm font-medium">Edit Profile</span>
               </Button>
-              <Button variant="outline" onClick={() => navigate('/lists')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
-                <List className="w-5 h-5" />
-                <span className="text-sm font-medium">My Lists</span>
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/wishlist')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
-                <Heart className="w-5 h-5" />
-                <span className="text-sm font-medium">Wishlist</span>
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/friends')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
-                <User className="w-5 h-5" />
-                <span className="text-sm font-medium">Friends</span>
-              </Button>
+              {!isVendor && (
+                <>
+                  <Button variant="outline" onClick={() => navigate('/lists')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                    <List className="w-5 h-5" />
+                    <span className="text-sm font-medium">My Lists</span>
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/wishlist')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                    <Heart className="w-5 h-5" />
+                    <span className="text-sm font-medium">Wishlist</span>
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/friends')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
+                    <User className="w-5 h-5" />
+                    <span className="text-sm font-medium">Friends</span>
+                  </Button>
+                </>
+              )}
               <Button variant="outline" onClick={() => navigate('/orders')} className="h-auto py-4 flex-col gap-2 hover:bg-primary/5 hover:border-primary transition-all">
                 <ShoppingBag className="w-5 h-5" />
                 <span className="text-sm font-medium">Orders</span>
@@ -243,7 +252,7 @@ const Profile = () => {
         />
       )}
       
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

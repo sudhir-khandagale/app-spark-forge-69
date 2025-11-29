@@ -1324,6 +1324,105 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_challenge_progress: {
+        Row: {
+          challenge_id: string
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          progress: number | null
+          reward_claimed: boolean | null
+          store_id: string
+          updated_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          progress?: number | null
+          reward_claimed?: boolean | null
+          store_id: string
+          updated_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          progress?: number | null
+          reward_claimed?: boolean | null
+          store_id?: string
+          updated_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_challenge_progress_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_challenges: {
+        Row: {
+          active: boolean | null
+          challenge_type: string
+          created_at: string | null
+          description: string
+          end_date: string | null
+          icon: string
+          id: string
+          name: string
+          requirement_value: number
+          reward_type: string
+          reward_value: Json | null
+          start_date: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          challenge_type: string
+          created_at?: string | null
+          description: string
+          end_date?: string | null
+          icon: string
+          id?: string
+          name: string
+          requirement_value: number
+          reward_type: string
+          reward_value?: Json | null
+          start_date?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          challenge_type?: string
+          created_at?: string | null
+          description?: string
+          end_date?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          requirement_value?: number
+          reward_type?: string
+          reward_value?: Json | null
+          start_date?: string | null
+        }
+        Relationships: []
+      }
       vendor_followers: {
         Row: {
           created_at: string | null
@@ -1349,6 +1448,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vendor_followers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_leaderboard_cache: {
+        Row: {
+          average_rating: number | null
+          created_at: string | null
+          id: string
+          period: string
+          rank: number
+          response_time_minutes: number | null
+          store_id: string
+          total_orders: number | null
+          total_sales: number | null
+          updated_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          average_rating?: number | null
+          created_at?: string | null
+          id?: string
+          period: string
+          rank: number
+          response_time_minutes?: number | null
+          store_id: string
+          total_orders?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          average_rating?: number | null
+          created_at?: string | null
+          id?: string
+          period?: string
+          rank?: number
+          response_time_minutes?: number | null
+          store_id?: string
+          total_orders?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_leaderboard_cache_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"

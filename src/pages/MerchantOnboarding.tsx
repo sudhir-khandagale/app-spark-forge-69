@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft, AlertCircle, Link as LinkIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import flowduxIcon from '@/assets/flowdux-icon.png';
 
 export default function MerchantOnboarding() {
@@ -272,15 +273,97 @@ export default function MerchantOnboarding() {
   return (
     <div className="min-h-screen bg-background p-4 pb-20">
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* Animated Welcome Banner */}
+        <div className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient rounded-2xl p-8 text-center text-primary-foreground shadow-xl">
+          <img src={flowduxIcon} alt="Flowdux" className="h-20 w-20 mx-auto mb-4 rounded-xl animate-pulse" />
+          <h1 className="text-4xl font-bold mb-2">Turn Your Passion Into Profit 💰</h1>
+          <p className="text-lg opacity-90">Join 500+ successful local vendors</p>
+        </div>
+
+        {/* Success Stories Carousel */}
+        <Card className="border-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Store className="h-5 w-5" />
+              Vendor Success Stories
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-3 mb-2">
+                  <img src={flowduxIcon} className="h-10 w-10 rounded-full" alt="" />
+                  <div>
+                    <p className="font-semibold">Raj Electronics</p>
+                    <p className="text-xs text-muted-foreground">Mumbai</p>
+                  </div>
+                </div>
+                <p className="text-sm italic">"₹50,000+ monthly sales within 3 months!"</p>
+                <div className="flex gap-2 mt-2">
+                  <Badge>500+ Orders</Badge>
+                  <Badge>5.0 ⭐</Badge>
+                </div>
+              </div>
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-3 mb-2">
+                  <img src={flowduxIcon} className="h-10 w-10 rounded-full" alt="" />
+                  <div>
+                    <p className="font-semibold">Fashion Hub</p>
+                    <p className="text-xs text-muted-foreground">Delhi</p>
+                  </div>
+                </div>
+                <p className="text-sm italic">"Reached 1000+ new customers in our area"</p>
+                <div className="flex gap-2 mt-2">
+                  <Badge>1000+ Customers</Badge>
+                  <Badge>4.9 ⭐</Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Benefit Highlights */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
+            <div className="text-4xl mb-3">📊</div>
+            <h3 className="font-semibold mb-1">Free Analytics</h3>
+            <p className="text-sm text-muted-foreground">Track sales & customer insights</p>
+          </Card>
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
+            <div className="text-4xl mb-3">🔔</div>
+            <h3 className="font-semibold mb-1">Real-time Alerts</h3>
+            <p className="text-sm text-muted-foreground">Get notified on low stock</p>
+          </Card>
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
+            <div className="text-4xl mb-3">📱</div>
+            <h3 className="font-semibold mb-1">Mobile-First</h3>
+            <p className="text-sm text-muted-foreground">Manage on the go</p>
+          </Card>
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
+            <div className="text-4xl mb-3">🎯</div>
+            <h3 className="font-semibold mb-1">Local Targeting</h3>
+            <p className="text-sm text-muted-foreground">Reach nearby customers</p>
+          </Card>
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
+            <div className="text-4xl mb-3">💳</div>
+            <h3 className="font-semibold mb-1">Easy Payments</h3>
+            <p className="text-sm text-muted-foreground">Integrated payment system</p>
+          </Card>
+          <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
+            <div className="text-4xl mb-3">🏆</div>
+            <h3 className="font-semibold mb-1">Achievements</h3>
+            <p className="text-sm text-muted-foreground">Earn badges & rewards</p>
+          </Card>
+        </div>
+
         <div className="flex items-center gap-3 mb-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-        </div>
-        <div className="text-center space-y-2">
-          <img src={flowduxIcon} alt="Flowdux" className="h-16 w-16 mx-auto mb-2 rounded-xl" />
-          <h1 className="text-3xl font-bold">Merchant Onboarding</h1>
-          <p className="text-muted-foreground">Join Flowdux and connect with local shoppers</p>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold">Store Registration</h2>
+            <p className="text-sm text-muted-foreground">Ready to start your journey? 🚀</p>
+          </div>
         </div>
 
         <Alert className="border-blue-500/50 bg-blue-500/10">
