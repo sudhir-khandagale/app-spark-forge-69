@@ -4,10 +4,20 @@ import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/BottomNav';
 import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import { useStore, useStoreInventory } from '@/hooks/useStores';
+import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUserActivity } from '@/hooks/useUserActivity';
+import { useEffect } from 'react';
 
 const StoreProfile = () => {
   const { id } = useParams<{ id: string }>();
+  const { logActivity } = useUserActivity();
+
+  useEffect(() => {
+    if (id) {
+      logActivity('shop_visit', { storeId: id });
+    }
+  }, [id]);
   const { store, loading: storeLoading } = useStore(id!);
   const { inventory, loading: inventoryLoading } = useStoreInventory(id!);
 

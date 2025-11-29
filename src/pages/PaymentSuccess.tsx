@@ -1,22 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const subscriptionId = searchParams.get('subscription_id');
+  const orderId = searchParams.get('order');
+  const [receipt, setReceipt] = useState<any>(null);
 
   useEffect(() => {
-    // Auto redirect after 5 seconds
-    const timer = setTimeout(() => {
-      navigate('/store-dashboard');
-    }, 5000);
+    if (orderId) {
+      fetchReceipt();
+    }
+  }, [orderId]);
 
-    return () => clearTimeout(timer);
-  }, [navigate]);
+  const fetchReceipt = async () => {
+    const { data } = await supabase.functions.invoke('generate-receipt', {
+      body: { orderId }
+    });
+    setReceipt(data);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-muted">
@@ -25,33 +31,30 @@ export default function PaymentSuccess() {
           <div className="flex justify-center mb-4">
             <CheckCircle className="h-16 w-16 text-green-600" />
           </div>
-          <CardTitle className="text-2xl">Payment Successful!</CardTitle>
+          <CardTitle className="text-2xl">Order Successful!</CardTitle>
           <CardDescription>
-            Your subscription has been activated
+            Your order has been placed successfully
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-muted rounded-lg p-4 text-center">
-            <p className="text-sm text-muted-foreground mb-1">Subscription ID</p>
-            <p className="font-mono text-xs">{subscriptionId || 'Processing...'}</p>
-          </div>
+          {receipt && (
+            <>
+              <div className="bg-muted rounded-lg p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">Receipt Number</p>
+                <p className="font-mono text-sm font-bold">{receipt.receiptNumber}</p>
+              </div>
 
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p>✓ Your premium features are now active</p>
-            <p>✓ You can start using advanced analytics</p>
-            <p>✓ Flash sales and bulk upload are enabled</p>
-          </div>
+              <div className="space-y-2 text-sm">
+                <p><strong>Store:</strong> {receipt.store?.name}</p>
+                <p><strong>Total:</strong> ₹{receipt.totalAmount}</p>
+                <p><strong>Status:</strong> {receipt.paymentStatus}</p>
+              </div>
+            </>
+          )}
 
-          <Button 
-            onClick={() => navigate('/store-dashboard')} 
-            className="w-full"
-          >
-            Go to Dashboard
+          <Button onClick={() => navigate('/profile')} className="w-full">
+            Back to Profile
           </Button>
-
-          <p className="text-xs text-center text-muted-foreground">
-            Redirecting automatically in 5 seconds...
-          </p>
         </CardContent>
       </Card>
     </div>

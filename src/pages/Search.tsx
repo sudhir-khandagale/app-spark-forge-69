@@ -14,8 +14,11 @@ import { useFavoriteStores } from '@/hooks/useFavoriteStores';
 import { useFlashSales } from '@/hooks/useFlashSales';
 import { formatPrice } from '@/lib/utils';
 import { PullToRefresh } from '@/components/PullToRefresh';
+import { useUserActivity } from '@/hooks/useUserActivity';
+import { supabase } from '@/integrations/supabase/client';
 
 const Search = () => {
+  const { logActivity } = useUserActivity();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const { results, recommendations, loading, searchProducts } = useProductSearch();
@@ -46,11 +49,14 @@ const Search = () => {
     }
   }, [searchParams, latitude, longitude]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       setSearchParams({ q: query });
-      searchProducts(query, latitude || undefined, longitude || undefined);
+      await searchProducts(query, latitude || undefined, longitude || undefined);
+      
+      // Log search activity
+      await logActivity('search', { query, resultCount: results.length });
     }
   };
 
@@ -134,7 +140,16 @@ const Search = () => {
                   
                   return (
                     <div key={`${result.id}-${result.store_id}`} className="relative">
-                      <Link to={`/product/${result.id}?store=${result.store_id}`}>
+                      <Link 
+                        to={`/product/${result.id}?store=${result.store_id}`}
+                        onClick={() => {
+                          logActivity('find', { 
+                            productId: result.id, 
+                            storeId: result.store_id,
+                            productName: result.name 
+                          });
+                        }}
+                      >
                         <div className="p-4 bg-background border-2 border-border rounded-lg hover:border-primary transition-colors shadow-sm hover:shadow-md">
                           {isStoreFavorite && (
                             <Badge className="absolute top-2 left-2 bg-yellow-500 text-xs z-10">

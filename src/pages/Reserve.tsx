@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import BottomNav from '@/components/BottomNav';
 import { useState } from 'react';
+import { useUserActivity } from '@/hooks/useUserActivity';
 
 const reservationSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -26,6 +27,7 @@ const Reserve = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logActivity } = useUserActivity();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<ReservationFormData>({
@@ -93,6 +95,12 @@ const Reserve = () => {
       });
 
       if (error) throw error;
+
+      // Log activity
+      await logActivity('reservation', {
+        productId: mockProductId,
+        storeId: mockStoreId
+      });
 
       toast({
         title: 'Reservation Confirmed',

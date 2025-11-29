@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import RewardsDisplay from '@/components/RewardsDisplay';
 import flowduxIcon from '@/assets/flowdux-icon.png';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -15,8 +15,22 @@ import { ShoppingStatistics } from '@/components/profile/ShoppingStatistics';
 import { ActivityFeed } from '@/components/profile/ActivityFeed';
 import { LeaderboardCard } from '@/components/profile/LeaderboardCard';
 import { StreakCounter } from '@/components/profile/StreakCounter';
+import { LevelUpCelebration } from '@/components/profile/LevelUpCelebration';
+import { useUserLevel } from '@/hooks/useUserLevel';
 
 const Profile = () => {
+  const { userLevel } = useUserLevel();
+  const [previousLevel, setPreviousLevel] = useState<number | null>(null);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+
+  useEffect(() => {
+    if (userLevel && previousLevel !== null && userLevel.level > previousLevel) {
+      setShowLevelUp(true);
+    }
+    if (userLevel) {
+      setPreviousLevel(userLevel.level);
+    }
+  }, [userLevel]);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, role, isVendor, isAdmin } = useUserRole();
@@ -152,11 +166,22 @@ const Profile = () => {
           <Button variant="outline" onClick={() => navigate('/profile-management')}><Edit className="w-4 h-4 mr-2" />Edit Profile</Button>
           <Button variant="outline" onClick={() => navigate('/lists')}><List className="w-4 h-4 mr-2" />My Lists</Button>
           <Button variant="outline" onClick={() => navigate('/wishlist')}><Heart className="w-4 h-4 mr-2" />Wishlist</Button>
+          <Button variant="outline" onClick={() => navigate('/friends')}><User className="w-4 h-4 mr-2" />Friends</Button>
           {isAdmin && <Button variant="outline" onClick={() => navigate('/admin')}><Shield className="w-4 h-4 mr-2" />Admin</Button>}
           <Button variant="outline" onClick={() => navigate('/settings')}><SettingsIcon className="w-4 h-4 mr-2" />Settings</Button>
           <Button variant="destructive" onClick={handleSignOut} disabled={loading}><LogOut className="w-4 h-4 mr-2" />Sign Out</Button>
         </div>
       </div>
+      
+      {userLevel && (
+        <LevelUpCelebration
+          level={userLevel.level}
+          levelName={userLevel.level_name}
+          open={showLevelUp}
+          onClose={() => setShowLevelUp(false)}
+        />
+      )}
+      
       <BottomNav />
     </div>
   );

@@ -11,8 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 import ProductReviewForm from '@/components/ProductReviewForm';
 import ProductReviews from '@/components/ProductReviews';
 import { formatPrice } from '@/lib/utils';
+import { useUserActivity } from '@/hooks/useUserActivity';
+import { useNavigate } from 'react-router-dom';
 
 const ProductDetails = () => {
+  const { logActivity } = useUserActivity();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const storeId = searchParams.get('store');
@@ -92,6 +96,13 @@ const ProductDetails = () => {
         });
         return;
       }
+
+      // Log activity
+      await logActivity('add_to_cart', {
+        productId: id,
+        storeId: product!.store_id,
+        productName: product!.name
+      });
 
       // Get or create cart
       let { data: cart } = await supabase
@@ -371,18 +382,27 @@ const ProductDetails = () => {
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     {product.in_stock && (
-                      <Button 
-                        className="flex-1"
-                        onClick={handleAddToCart}
-                        disabled={isAddingToCart}
-                      >
-                        {isAddingToCart ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <ShoppingCart className="w-4 h-4 mr-2" />
-                        )}
-                        Add to Cart
-                      </Button>
+                      <>
+                        <Button 
+                          variant="outline"
+                          className="flex-1"
+                          onClick={handleAddToCart}
+                          disabled={isAddingToCart}
+                        >
+                          {isAddingToCart ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                          )}
+                          Add to Cart
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          onClick={() => navigate(`/checkout?product=${id}&store=${product.store_id}`)}
+                        >
+                          Buy Now
+                        </Button>
+                      </>
                     )}
                     <Button 
                       variant="outline"
