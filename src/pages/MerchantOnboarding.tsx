@@ -371,14 +371,8 @@ export default function MerchantOnboarding() {
                   )}
                   
                   {!mapsUrlError && storeData.googleMapsLink && !storeData.latitude && (
-                    <p className="text-sm text-destructive flex items-center gap-1 font-semibold">
-                      ⚠️ Coordinates are required. Please use a valid Google Maps URL with location data.
-                    </p>
-                  )}
-                  
-                  {storeData.googleMapsLink && (
-                    <p className="text-xs text-muted-foreground">
-                      💡 Tip: Use the "Share" button in Google Maps to get a URL with coordinates, or use the full desktop URL.
+                    <p className="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                      ℹ️ Coordinates will be extracted from your link. If not, the map link will still work for customers.
                     </p>
                   )}
                 </div>

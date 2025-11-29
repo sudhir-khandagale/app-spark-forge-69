@@ -37,6 +37,8 @@ const ProfileManagement = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [phone, setPhone] = useState('');
+  const [searchRadius, setSearchRadius] = useState(10);
 
   useEffect(() => {
     loadUserData();
@@ -55,7 +57,7 @@ const ProfileManagement = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('display_name, avatar_url')
+        .select('display_name, avatar_url, phone, search_radius')
         .eq('id', user.id)
         .single();
 
@@ -64,6 +66,12 @@ const ProfileManagement = () => {
       }
       if (profile?.avatar_url) {
         setAvatarUrl(profile.avatar_url);
+      }
+      if (profile?.phone) {
+        setPhone(profile.phone);
+      }
+      if (profile?.search_radius) {
+        setSearchRadius(profile.search_radius);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -102,6 +110,9 @@ const ProfileManagement = () => {
         title: "Success",
         description: "Display name updated successfully"
       });
+      
+      // Reload data to reflect changes
+      await loadUserData();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -193,6 +204,9 @@ const ProfileManagement = () => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      
+      // Reload data
+      await loadUserData();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -300,6 +314,133 @@ const ProfileManagement = () => {
                 </div>
                 <Button type="submit" disabled={loading}>
                   {loading ? 'Updating...' : 'Update Email'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          {/* Phone Number */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Phone Number
+              </CardTitle>
+              <CardDescription>
+                Update your contact number
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) throw new Error('Not authenticated');
+                  
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({ phone })
+                    .eq('id', user.id);
+                  
+                  if (error) throw error;
+                  
+                  toast({
+                    title: "Success",
+                    description: "Phone number updated successfully"
+                  });
+                  await loadUserData();
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.message || "Failed to update phone number",
+                    variant: "destructive"
+                  });
+                } finally {
+                  setLoading(false);
+                }
+              }} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Updating...' : 'Update Phone'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          {/* Search Radius */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Search Radius
+              </CardTitle>
+              <CardDescription>
+                Set your default search radius for finding stores
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) throw new Error('Not authenticated');
+                  
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({ search_radius: searchRadius })
+                    .eq('id', user.id);
+                  
+                  if (error) throw error;
+                  
+                  toast({
+                    title: "Success",
+                    description: "Search radius updated successfully"
+                  });
+                  await loadUserData();
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.message || "Failed to update search radius",
+                    variant: "destructive"
+                  });
+                } finally {
+                  setLoading(false);
+                }
+              }} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="search-radius">Search Radius: {searchRadius} km</Label>
+                  <input
+                    id="search-radius"
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={searchRadius}
+                    onChange={(e) => setSearchRadius(parseInt(e.target.value))}
+                    disabled={loading}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This will be used when searching for nearby stores
+                  </p>
+                </div>
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Updating...' : 'Update Radius'}
                 </Button>
               </form>
             </CardContent>
