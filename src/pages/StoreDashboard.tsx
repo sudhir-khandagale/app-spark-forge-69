@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2, Crown, Lock, Sparkles } from 'lucide-react';
 import { VendorNotifications } from '@/components/VendorNotifications';
 import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
+import ComprehensiveAnalytics from '@/components/ComprehensiveAnalytics';
 import BulkInventoryUpload from '@/components/BulkInventoryUpload';
 import FlashSalesManager from '@/components/FlashSalesManager';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
@@ -795,7 +796,7 @@ export default function StoreDashboard() {
               description="Get detailed insights into your store's performance, track customer behavior, and identify top-performing products."
               requiredTier="pro"
             >
-              <VendorAnalyticsDashboard storeId={storeId!} />
+              <ComprehensiveAnalytics storeId={storeId!} />
             </LockedFeatureOverlay>
           </TabsContent>
 
