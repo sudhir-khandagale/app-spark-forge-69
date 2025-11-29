@@ -48,6 +48,7 @@ const Friends = lazy(() => import("./pages/Friends"));
 const ProfileOnboarding = lazy(() => import("./pages/ProfileOnboarding"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const OrderHistory = lazy(() => import("./pages/OrderHistory"));
+const VendorFeed = lazy(() => import("./pages/VendorFeed"));
 
 // Loading fallback
 const PageLoader = () => (
@@ -112,6 +113,7 @@ const App = () => (
               <Route path="/profile/onboarding" element={<ProtectedRoute><ProfileOnboarding /></ProtectedRoute>} />
               <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
               <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+              <Route path="/vendor-feed" element={<VendorFeed />} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
               </Routes>

@@ -429,6 +429,70 @@ export type Database = {
         }
         Relationships: []
       }
+      post_comments: {
+        Row: {
+          comment: string
+          created_at: string | null
+          id: string
+          post_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_analytics: {
         Row: {
           created_at: string | null
@@ -1192,6 +1256,106 @@ export type Database = {
         }
         Relationships: []
       }
+      user_vendor_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          progress: number | null
+          unlocked_at: string | null
+          vendor_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          progress?: number | null
+          unlocked_at?: string | null
+          vendor_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          progress?: number | null
+          unlocked_at?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_vendor_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_achievements: {
+        Row: {
+          badge_color: string | null
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          points_reward: number | null
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          badge_color?: string | null
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          name: string
+          points_reward?: number | null
+          requirement_type: string
+          requirement_value: number
+        }
+        Update: {
+          badge_color?: string | null
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          points_reward?: number | null
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
+      vendor_followers: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          id: string
+          store_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          id?: string
+          store_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          id?: string
+          store_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_followers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_notifications: {
         Row: {
           created_at: string
@@ -1239,6 +1403,106 @@ export type Database = {
           },
           {
             foreignKeyName: "vendor_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_posts: {
+        Row: {
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          id: string
+          likes_count: number | null
+          media_urls: string[] | null
+          post_type: string
+          store_id: string
+          updated_at: string | null
+          vendor_id: string
+          views_count: number | null
+        }
+        Insert: {
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          media_urls?: string[] | null
+          post_type: string
+          store_id: string
+          updated_at?: string | null
+          vendor_id: string
+          views_count?: number | null
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          media_urls?: string[] | null
+          post_type?: string
+          store_id?: string
+          updated_at?: string | null
+          vendor_id?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_posts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_stories: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          media_type: string
+          media_url: string
+          metadata: Json | null
+          store_id: string
+          story_type: string | null
+          vendor_id: string
+          views_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          media_type: string
+          media_url: string
+          metadata?: Json | null
+          store_id: string
+          story_type?: string | null
+          vendor_id: string
+          views_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          media_type?: string
+          media_url?: string
+          metadata?: Json | null
+          store_id?: string
+          story_type?: string | null
+          vendor_id?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_stories_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
