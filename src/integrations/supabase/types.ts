@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          points_reward: number
+          requirement_count: number
+          requirement_type: string
+          tier: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          name: string
+          points_reward?: number
+          requirement_count: number
+          requirement_type: string
+          tier: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          points_reward?: number
+          requirement_count?: number
+          requirement_type?: string
+          tier?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           cart_id: string
@@ -258,6 +297,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      leaderboard_cache: {
+        Row: {
+          area_code: string | null
+          created_at: string | null
+          id: string
+          latitude: number | null
+          level: number
+          longitude: number | null
+          period: string
+          points: number
+          rank: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          area_code?: string | null
+          created_at?: string | null
+          id?: string
+          latitude?: number | null
+          level: number
+          longitude?: number | null
+          period: string
+          points: number
+          rank: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          area_code?: string | null
+          created_at?: string | null
+          id?: string
+          latitude?: number | null
+          level?: number
+          longitude?: number | null
+          period?: string
+          points?: number
+          rank?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       points_transactions: {
         Row: {
@@ -763,6 +844,125 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          notified: boolean | null
+          progress: number | null
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          notified?: boolean | null
+          progress?: number | null
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          notified?: boolean | null
+          progress?: number | null
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_activity: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_friends: {
+        Row: {
+          created_at: string | null
+          friend_id: string
+          id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_id: string
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_id?: string
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_levels: {
+        Row: {
+          created_at: string | null
+          current_points: number
+          id: string
+          level: number
+          level_name: string
+          next_level_points: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_points?: number
+          id?: string
+          level?: number
+          level_name?: string
+          next_level_points?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_points?: number
+          id?: string
+          level?: number
+          level_name?: string
+          next_level_points?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_points: {
         Row: {
           balance: number
@@ -790,6 +990,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          activity_sharing: boolean | null
+          created_at: string | null
+          id: string
+          preferred_shop_types: string[] | null
+          profile_visibility: string | null
+          shopping_interests: string[] | null
+          showcase_achievements: string[] | null
+          theme_preference: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_sharing?: boolean | null
+          created_at?: string | null
+          id?: string
+          preferred_shop_types?: string[] | null
+          profile_visibility?: string | null
+          shopping_interests?: string[] | null
+          showcase_achievements?: string[] | null
+          theme_preference?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_sharing?: boolean | null
+          created_at?: string | null
+          id?: string
+          preferred_shop_types?: string[] | null
+          profile_visibility?: string | null
+          shopping_interests?: string[] | null
+          showcase_achievements?: string[] | null
+          theme_preference?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -807,6 +1046,60 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_statistics: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          join_date: string | null
+          last_active_date: string | null
+          longest_streak: number | null
+          money_saved_estimate: number | null
+          products_found: number | null
+          reviews_written: number | null
+          searches_made: number | null
+          shops_discovered: number | null
+          successful_finds: number | null
+          time_saved_minutes: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          join_date?: string | null
+          last_active_date?: string | null
+          longest_streak?: number | null
+          money_saved_estimate?: number | null
+          products_found?: number | null
+          reviews_written?: number | null
+          searches_made?: number | null
+          shops_discovered?: number | null
+          successful_finds?: number | null
+          time_saved_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          join_date?: string | null
+          last_active_date?: string | null
+          longest_streak?: number | null
+          money_saved_estimate?: number | null
+          products_found?: number | null
+          reviews_written?: number | null
+          searches_made?: number | null
+          shops_discovered?: number | null
+          successful_finds?: number | null
+          time_saved_minutes?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -931,6 +1224,36 @@ export type Database = {
         }
         Returns: undefined
       }
+      calculate_user_level: {
+        Args: { p_user_id: string }
+        Returns: {
+          level: number
+          level_name: string
+          next_level_points: number
+        }[]
+      }
+      check_and_award_achievements: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      get_local_leaderboard: {
+        Args: {
+          p_latitude: number
+          p_limit?: number
+          p_longitude: number
+          p_period?: string
+          p_radius_km?: number
+        }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          level: number
+          level_name: string
+          points: number
+          rank: number
+          user_id: string
+        }[]
+      }
       get_subscription_features: { Args: { p_store_id: string }; Returns: Json }
       get_vendor_analytics: {
         Args: { p_days?: number; p_store_id: string }
@@ -949,8 +1272,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      sync_user_level: { Args: { p_user_id: string }; Returns: undefined }
       track_product_view: {
         Args: { p_product_id: string; p_store_id: string; p_user_id?: string }
+        Returns: undefined
+      }
+      update_streak: { Args: { p_user_id: string }; Returns: undefined }
+      update_user_statistics: {
+        Args: { p_activity_type: string; p_metadata?: Json; p_user_id: string }
         Returns: undefined
       }
       user_has_purchased_product: {
