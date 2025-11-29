@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { AppInitializer } from "@/components/AppInitializer";
+import { OnboardingCheck } from "@/components/OnboardingCheck";
 import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 import { HelmetProvider } from 'react-helmet-async';
 import InstallBanner from "@/components/InstallBanner";
@@ -78,6 +79,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <OnboardingCheck />
             <BackButtonHandler />
             <NetworkStatus />
             <Suspense fallback={<PageLoader />}>
