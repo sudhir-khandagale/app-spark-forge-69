@@ -53,6 +53,30 @@ const ProfileOnboarding = () => {
     }));
   };
 
+  const handleSkip = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Mark onboarding as completed without awarding points
+      await supabase
+        .from('user_preferences')
+        .update({
+          onboarding_completed: true,
+        })
+        .eq('user_id', user.id);
+
+      navigate('/profile');
+    } catch (error) {
+      console.error('Skip onboarding error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to skip onboarding',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleComplete = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -124,9 +148,14 @@ const ProfileOnboarding = () => {
                 We'll help you set up your profile in just a few steps.
                 Discover local products, earn rewards, and shop smarter!
               </p>
-              <Button onClick={() => setStep(2)} className="w-full">
-                Get Started
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={handleSkip} variant="outline" className="flex-1">
+                  Skip for Now
+                </Button>
+                <Button onClick={() => setStep(2)} className="flex-1">
+                  Get Started
+                </Button>
+              </div>
             </div>
           )}
 
