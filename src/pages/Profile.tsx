@@ -103,37 +103,43 @@ const Profile = () => {
 
   return (
     <div className="flex flex-col min-h-screen pb-16">
-      <header className="p-4 border-b border-border">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <img src={flowduxIcon} alt="Flowdux" className="h-8 w-8 rounded-lg" />
-            <h1 className="text-2xl font-bold">Profile</h1>
+      <header className="bg-gradient-primary text-white p-6 border-b border-border/20">
+        <div className="max-w-lg mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/')}
+                className="text-white hover:bg-white/20"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <img src={flowduxIcon} alt="Flowdux" className="h-8 w-8 rounded-lg shadow-md" />
+              <h1 className="text-2xl font-bold">Profile</h1>
+            </div>
+            <Link to="/settings">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                <SettingsIcon className="w-5 h-5" />
+              </Button>
+            </Link>
           </div>
-          <Link to="/settings">
-            <Button variant="ghost" size="icon">
-              <SettingsIcon className="w-5 h-5" />
-            </Button>
-          </Link>
+          
+          {/* User Info in Header */}
+          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4">
+            <Avatar className="w-16 h-16 border-2 border-white/30">
+              <AvatarImage src={avatarUrl || undefined} />
+              <AvatarFallback className="text-xl bg-white/20">
+                {user.email?.charAt(0).toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-white">{user.email}</h2>
+              <p className="text-white/80 text-sm capitalize">{role === 'customer' ? 'User' : role} Account</p>
+            </div>
+          </div>
         </div>
       </header>
-
-      <div className="p-6 border-b border-border">
-        <div className="max-w-lg mx-auto flex items-center gap-4">
-          <Avatar className="w-20 h-20">
-            <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className="text-2xl">
-              {user.email?.charAt(0).toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="text-xl font-semibold">{user.email}</h2>
-            <p className="text-muted-foreground capitalize">{role === 'customer' ? 'User' : role} Account</p>
-          </div>
-        </div>
-      </div>
 
       <main className="flex-1 p-4">
         <div className="max-w-lg mx-auto space-y-4">

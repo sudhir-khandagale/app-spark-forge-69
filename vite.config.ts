@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => ({
         name: 'Flowdux - Find Products in Local Stores',
         short_name: 'Flowdux',
         description: 'Find products in local stores instantly. Search real-time inventory, compare prices, and navigate to retailers with items in stock.',
-        theme_color: '#2563eb',
-        background_color: '#2563eb',
+        theme_color: '#1E3A5F',
+        background_color: '#1E3A5F',
         display: 'standalone',
         start_url: '/',
         icons: [

@@ -54,11 +54,11 @@ const InstallBanner = () => {
   if (!showBanner) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-primary text-primary-foreground shadow-lg">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-primary text-white shadow-lg">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1">
-            <img src={flowduxIcon} alt="Flowdux" className="h-10 w-10 rounded-lg" />
+            <img src={flowduxIcon} alt="Flowdux" className="h-10 w-10 rounded-lg shadow-md" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm">Install Flowdux App</p>
               <p className="text-xs opacity-90 truncate">Get the full experience with our app</p>
@@ -69,7 +69,7 @@ const InstallBanner = () => {
               size="sm"
               variant="secondary"
               onClick={handleInstall}
-              className="whitespace-nowrap"
+              className="whitespace-nowrap bg-white text-primary hover:bg-white/90 font-semibold"
             >
               <Download className="h-4 w-4 mr-1" />
               Install
@@ -78,7 +78,7 @@ const InstallBanner = () => {
               size="sm"
               variant="ghost"
               onClick={handleDismiss}
-              className="hover:bg-primary-foreground/10"
+              className="hover:bg-white/20 text-white"
             >
               <X className="h-4 w-4" />
             </Button>

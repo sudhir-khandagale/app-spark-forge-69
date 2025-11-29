@@ -25,10 +25,10 @@ const BottomNav = () => {
               to={path}
               onClick={() => haptic.light()}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-colors",
+                "flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200",
                 isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-accent scale-110"
+                  : "text-muted-foreground hover:text-foreground hover:scale-105"
               )}
             >
               <Icon className="w-6 h-6" />

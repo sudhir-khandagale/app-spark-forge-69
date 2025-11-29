@@ -8,46 +8,51 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Flowdux Brand Colors - Cyan Blue + Navy */
-    --background: 200 35% 98%;
-    --foreground: 208 54% 26%;
+    /* Flowdux Brand Colors - Navy Blue + Vibrant Orange (Social Media Style) */
+    --background: 0 0% 100%;
+    --foreground: 215 60% 25%;
 
     --card: 0 0% 100%;
-    --card-foreground: 208 54% 26%;
+    --card-foreground: 215 60% 25%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 208 54% 26%;
+    --popover-foreground: 215 60% 25%;
 
-    /* Primary - Flowdux Cyan (#32B8D8) */
-    --primary: 194 68% 52%;
+    /* Primary - Dark Navy Blue (#1E3A5F) */
+    --primary: 215 60% 25%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Flowdux Navy (#1E4068) */
-    --secondary: 208 54% 26%;
+    /* Secondary - Warm Orange (#F5923A) */
+    --secondary: 28 90% 60%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 200 30% 95%;
-    --muted-foreground: 200 15% 45%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 20% 50%;
 
-    /* Accent/Success - Complementary Teal */
-    --accent: 180 65% 48%;
+    /* Accent - Vibrant Orange (#F47920) */
+    --accent: 24 95% 55%;
     --accent-foreground: 0 0% 100%;
     
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     
-    /* Warning - Flowdux Light Blue */
-    --warning: 194 80% 70%;
-    --warning-foreground: 208 54% 26%;
+    /* Warning - Bright Amber */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 30% 88%;
-    --input: 200 30% 88%;
-    --ring: 194 68% 52%;
+    --border: 215 20% 90%;
+    --input: 215 20% 90%;
+    --ring: 24 95% 55%;
 
     --radius: 0.75rem;
+    
+    /* Gradient Colors for Social Media Vibe */
+    --gradient-start: 24 95% 55%; /* Orange */
+    --gradient-end: 215 60% 25%; /* Navy */
+    --gradient-pink: 330 85% 65%; /* Pink accent */
 
     --sidebar-background: 0 0% 98%;
 
@@ -67,43 +72,48 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 208 45% 12%;
-    --foreground: 200 35% 98%;
+    --background: 215 60% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 208 40% 15%;
-    --card-foreground: 200 35% 98%;
+    --card: 215 60% 12%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 208 40% 15%;
-    --popover-foreground: 200 35% 98%;
+    --popover: 215 60% 12%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary - Flowdux Cyan */
-    --primary: 194 68% 52%;
+    /* Primary - Dark Navy Blue */
+    --primary: 215 60% 25%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Flowdux Navy */
-    --secondary: 208 54% 35%;
+    /* Secondary - Warm Orange */
+    --secondary: 28 90% 60%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 208 35% 22%;
-    --muted-foreground: 200 25% 65%;
+    --muted: 215 30% 18%;
+    --muted-foreground: 215 20% 65%;
 
-    /* Accent/Success - Complementary Teal */
-    --accent: 180 65% 48%;
+    /* Accent - Vibrant Orange */
+    --accent: 24 95% 55%;
     --accent-foreground: 0 0% 100%;
     
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     
-    /* Warning - Flowdux Light Blue */
-    --warning: 194 80% 70%;
-    --warning-foreground: 208 54% 26%;
+    /* Warning - Bright Amber */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 200 35% 98%;
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 208 35% 22%;
-    --input: 208 35% 22%;
-    --ring: 194 68% 52%;
+    --border: 215 30% 20%;
+    --input: 215 30% 20%;
+    --ring: 24 95% 55%;
+    
+    /* Gradient Colors for Dark Mode */
+    --gradient-start: 24 95% 55%;
+    --gradient-end: 215 60% 25%;
+    --gradient-pink: 330 85% 65%;
     --sidebar-background: 208 45% 12%;
     --sidebar-foreground: 200 35% 98%;
     --sidebar-primary: 194 68% 52%;
