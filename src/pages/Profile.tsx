@@ -1,4 +1,4 @@
-import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft, Edit } from 'lucide-react';
+import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft, Edit, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -163,10 +163,11 @@ const Profile = () => {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" onClick={() => navigate('/profile-management')}><Edit className="w-4 h-4 mr-2" />Edit Profile</Button>
+          <Button variant="outline" onClick={() => navigate('/profile/manage')}><Edit className="w-4 h-4 mr-2" />Edit Profile</Button>
           <Button variant="outline" onClick={() => navigate('/lists')}><List className="w-4 h-4 mr-2" />My Lists</Button>
           <Button variant="outline" onClick={() => navigate('/wishlist')}><Heart className="w-4 h-4 mr-2" />Wishlist</Button>
           <Button variant="outline" onClick={() => navigate('/friends')}><User className="w-4 h-4 mr-2" />Friends</Button>
+          <Button variant="outline" onClick={() => navigate('/orders')}><ShoppingBag className="w-4 h-4 mr-2" />Order History</Button>
           {isAdmin && <Button variant="outline" onClick={() => navigate('/admin')}><Shield className="w-4 h-4 mr-2" />Admin</Button>}
           <Button variant="outline" onClick={() => navigate('/settings')}><SettingsIcon className="w-4 h-4 mr-2" />Settings</Button>
           <Button variant="destructive" onClick={handleSignOut} disabled={loading}><LogOut className="w-4 h-4 mr-2" />Sign Out</Button>
