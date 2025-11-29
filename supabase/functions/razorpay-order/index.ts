@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Razorpay from "https://esm.sh/razorpay@2.9.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,16 +24,29 @@ serve(async (req) => {
       throw new Error('Razorpay credentials not configured');
     }
 
-    const razorpay = new Razorpay({
-      key_id: razorpayKeyId,
-      key_secret: razorpayKeySecret,
+    // Create Basic Auth header
+    const auth = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
+
+    // Make direct API call to Razorpay
+    const response = await fetch('https://api.razorpay.com/v1/orders', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        amount: amount,
+        currency: 'INR',
+        receipt: `order_${orderId}`,
+      }),
     });
 
-    const order = await razorpay.orders.create({
-      amount: amount, // amount in paise
-      currency: 'INR',
-      receipt: `order_${orderId}`,
-    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Razorpay API error: ${JSON.stringify(errorData)}`);
+    }
+
+    const order = await response.json();
 
     return new Response(
       JSON.stringify(order),
