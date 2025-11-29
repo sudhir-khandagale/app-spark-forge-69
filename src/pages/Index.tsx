@@ -3,7 +3,7 @@ import { Search, MapPin, Store as StoreIcon, Star, TrendingUp } from 'lucide-rea
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useStores } from '@/hooks/useStores';
 import { Card, CardContent } from '@/components/ui/card';
@@ -317,7 +317,7 @@ const Index = () => {
         </main>
       </PullToRefresh>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };
