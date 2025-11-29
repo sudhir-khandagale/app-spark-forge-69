@@ -37,7 +37,7 @@ serve(async (req) => {
       body: JSON.stringify({
         amount: amount,
         currency: 'INR',
-        receipt: `order_${orderId}`,
+        receipt: String(orderId).slice(0, 40),
       }),
     });
 
