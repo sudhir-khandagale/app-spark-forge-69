@@ -31,11 +31,33 @@ export const useProfileCustomization = () => {
         .from('user_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
-      setPreferences(data as ProfilePreferences);
+      // If no preferences exist, create default ones
+      if (!data) {
+        const defaultPreferences: ProfilePreferences = {
+          shopping_interests: [],
+          preferred_shop_types: [],
+          profile_visibility: 'public',
+          activity_sharing: true,
+          showcase_achievements: [],
+          theme_preference: 'auto',
+        };
+        
+        const { error: insertError } = await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: user.id,
+            ...defaultPreferences
+          });
+        
+        if (insertError) throw insertError;
+        setPreferences(defaultPreferences);
+      } else {
+        setPreferences(data as ProfilePreferences);
+      }
     } catch (error) {
       console.error('Error fetching preferences:', error);
     } finally {
@@ -50,7 +72,10 @@ export const useProfileCustomization = () => {
 
       const { error } = await supabase
         .from('user_preferences')
-        .update(updates)
+        .upsert({
+          user_id: user.id,
+          ...updates
+        })
         .eq('user_id', user.id);
 
       if (error) throw error;
