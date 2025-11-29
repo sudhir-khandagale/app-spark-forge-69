@@ -243,13 +243,18 @@ const ProfileManagement = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-16">
-      <header className="p-4 border-b border-border">
+    <div className="flex flex-col min-h-screen pb-16 bg-gradient-to-b from-background via-background/95 to-background">
+      <header className="p-4 border-b border-border/50 backdrop-blur-sm sticky top-0 z-10 bg-background/80">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/profile')} className="hover:bg-primary/10">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Profile Settings</h1>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Profile Settings
+            </h1>
+            <p className="text-sm text-muted-foreground">Customize your profile and preferences</p>
+          </div>
         </div>
       </header>
 

@@ -63,29 +63,48 @@ export const useLeaderboard = (
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Get top users by points
-      const { data, error } = await supabase
+      // Get top users by points with their profiles
+      const { data: pointsData, error: pointsError } = await supabase
         .from('user_points')
-        .select(`
-          user_id,
-          balance,
-          profiles!inner(display_name, avatar_url),
-          user_levels(level, level_name)
-        `)
+        .select('user_id, balance')
         .order('balance', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (pointsError) throw pointsError;
 
-      const formatted = data?.map((entry: any, index: number) => ({
-        user_id: entry.user_id,
-        display_name: entry.profiles?.display_name || 'Anonymous',
-        avatar_url: entry.profiles?.avatar_url,
-        rank: index + 1,
-        points: entry.balance,
-        level: entry.user_levels?.level || 1,
-        level_name: entry.user_levels?.level_name || 'New Explorer'
-      })) || [];
+      if (!pointsData || pointsData.length === 0) {
+        setLeaderboard([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch profiles and levels separately
+      const userIds = pointsData.map(p => p.user_id);
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', userIds);
+
+      const { data: levels } = await supabase
+        .from('user_levels')
+        .select('user_id, level, level_name')
+        .in('user_id', userIds);
+
+      const formatted = pointsData.map((entry: any, index: number) => {
+        const profile = profiles?.find(p => p.id === entry.user_id);
+        const level = levels?.find(l => l.user_id === entry.user_id);
+
+        return {
+          user_id: entry.user_id,
+          display_name: profile?.display_name || 'Anonymous',
+          avatar_url: profile?.avatar_url,
+          rank: index + 1,
+          points: entry.balance,
+          level: level?.level || 1,
+          level_name: level?.level_name || 'New Explorer'
+        };
+      });
 
       setLeaderboard(formatted);
 

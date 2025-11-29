@@ -31,34 +31,54 @@ export const ProfileCompletion = ({ profile, preferences }: ProfileCompletionPro
   const totalCount = checks.length;
   const percentage = Math.round((completedCount / totalCount) * 100);
 
+  const getCompletionColor = () => {
+    if (percentage >= 80) return 'from-green-500 to-emerald-500';
+    if (percentage >= 50) return 'from-yellow-500 to-orange-500';
+    return 'from-red-500 to-rose-500';
+  };
+
   return (
-    <Card>
+    <Card className="border-2 hover:shadow-lg transition-shadow">
       <CardHeader>
-        <CardTitle>Profile Completion</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Profile Completion
+          {percentage === 100 && <span className="text-2xl">🎉</span>}
+        </CardTitle>
         <CardDescription>
-          Complete your profile to get the most out of AassPass
+          Complete your profile to unlock all features
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="font-medium">{percentage}% Complete</span>
+            <span className="font-bold text-lg">{percentage}% Complete</span>
             <span className="text-muted-foreground">
               {completedCount} of {totalCount} items
             </span>
           </div>
-          <Progress value={percentage} className="h-2" />
+          <div className="relative">
+            <Progress value={percentage} className="h-3" />
+            <div 
+              className={`absolute inset-0 h-3 bg-gradient-to-r ${getCompletionColor()} rounded-full transition-all duration-500`}
+              style={{ width: `${percentage}%` }}
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="grid gap-2">
           {checks.map((check, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
+            <div 
+              key={index} 
+              className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                check.completed ? 'bg-primary/5' : 'hover:bg-muted/50'
+              }`}
+            >
               {check.completed ? (
-                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <CheckCircle2 className="w-5 h-5 text-primary animate-in zoom-in" />
               ) : (
-                <Circle className="w-4 h-4 text-muted-foreground" />
+                <Circle className="w-5 h-5 text-muted-foreground" />
               )}
-              <span className={check.completed ? 'text-foreground' : 'text-muted-foreground'}>
+              <span className={`text-sm ${check.completed ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                 {check.label}
               </span>
             </div>

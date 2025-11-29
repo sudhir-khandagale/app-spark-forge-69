@@ -49,7 +49,7 @@ export const useUserLevel = () => {
         .from('user_levels')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -59,6 +59,26 @@ export const useUserLevel = () => {
           ...data,
           progress_percentage: Math.min(progress, 100)
         });
+      } else {
+        // Initialize default level if none exists
+        const { data: newLevel, error: insertError } = await supabase
+          .from('user_levels')
+          .insert({
+            user_id: user.id,
+            level: 1,
+            level_name: 'New Explorer',
+            current_points: 0,
+            next_level_points: 51
+          })
+          .select()
+          .single();
+
+        if (!insertError && newLevel) {
+          setUserLevel({
+            ...newLevel,
+            progress_percentage: 0
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching user level:', error);
