@@ -2,16 +2,32 @@ import { useState } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Search, Filter, TrendingUp, TrendingDown, AlertTriangle, Package } from 'lucide-react';
+import { Search, Filter, TrendingUp, TrendingDown, AlertTriangle, Package, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/hooks/useTranslation';
+import { debounce } from '@/lib/debounce';
+import { useToast } from '@/hooks/use-toast';
 
 interface SmartInventorySearchProps {
   onSearch: (query: string) => void;
   onFilterChange: (filter: string) => void;
   currentFilter: string;
+  storeId: string;
+  onSmartFiltersChange?: (filters: any) => void;
 }
 
-export const SmartInventorySearch = ({ onSearch, onFilterChange, currentFilter }: SmartInventorySearchProps) => {
+export const SmartInventorySearch = ({ 
+  onSearch, 
+  onFilterChange, 
+  currentFilter, 
+  storeId,
+  onSmartFiltersChange 
+}: SmartInventorySearchProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [parsedFilters, setParsedFilters] = useState<any>(null);
+  const [isParsingQuery, setIsParsingQuery] = useState(false);
+  const { t } = useTranslation();
+  const { toast } = useToast();
 
   const quickFilters = [
     { id: 'all', label: 'All Products', icon: Package, color: 'default' },
@@ -20,9 +36,49 @@ export const SmartInventorySearch = ({ onSearch, onFilterChange, currentFilter }
     { id: 'trending', label: 'Best Sellers', icon: TrendingUp, color: 'default' }
   ];
 
+  const parseNaturalLanguageQuery = debounce(async (query: string) => {
+    if (!query || query.length < 3) {
+      setParsedFilters(null);
+      onSmartFiltersChange?.({});
+      return;
+    }
+
+    setIsParsingQuery(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('smart-inventory-search', {
+        body: { query, storeId }
+      });
+
+      if (error) throw error;
+
+      console.log('Parsed filters:', data.filters);
+      setParsedFilters(data.filters);
+      onSmartFiltersChange?.(data.filters);
+    } catch (error) {
+      console.error('Error parsing query:', error);
+      toast({
+        title: 'Search Error',
+        description: 'Could not parse your search query',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsParsingQuery(false);
+    }
+  }, 800);
+
   const handleSearch = (value: string) => {
     setSearchQuery(value);
     onSearch(value);
+    parseNaturalLanguageQuery(value);
+  };
+
+  const clearFilter = (filterKey: string) => {
+    if (parsedFilters) {
+      const newFilters = { ...parsedFilters };
+      delete newFilters[filterKey];
+      setParsedFilters(Object.keys(newFilters).length > 0 ? newFilters : null);
+      onSmartFiltersChange?.(newFilters);
+    }
   };
 
   return (
@@ -32,10 +88,44 @@ export const SmartInventorySearch = ({ onSearch, onFilterChange, currentFilter }
         <Input
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder="Search products... (e.g., 'beverages under ₹50')"
+          placeholder={t('search_products')}
           className="pl-10"
         />
+        {isParsingQuery && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
       </div>
+
+      {parsedFilters && Object.keys(parsedFilters).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {parsedFilters.category && (
+            <Badge variant="secondary" className="gap-1">
+              Category: {parsedFilters.category}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => clearFilter('category')} />
+            </Badge>
+          )}
+          {parsedFilters.minPrice && (
+            <Badge variant="secondary" className="gap-1">
+              Min: ₹{parsedFilters.minPrice}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => clearFilter('minPrice')} />
+            </Badge>
+          )}
+          {parsedFilters.maxPrice && (
+            <Badge variant="secondary" className="gap-1">
+              Max: ₹{parsedFilters.maxPrice}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => clearFilter('maxPrice')} />
+            </Badge>
+          )}
+          {parsedFilters.stockStatus && (
+            <Badge variant="secondary" className="gap-1">
+              Stock: {parsedFilters.stockStatus}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => clearFilter('stockStatus')} />
+            </Badge>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         {quickFilters.map((filter) => {
@@ -57,9 +147,9 @@ export const SmartInventorySearch = ({ onSearch, onFilterChange, currentFilter }
         })}
       </div>
 
-      {searchQuery && (
+      {searchQuery && !parsedFilters && (
         <div className="text-sm text-muted-foreground">
-          💡 Natural language search enabled - Try phrases like "snacks under 100" or "dairy products"
+          💡 {t('natural_language_hint')}
         </div>
       )}
     </div>

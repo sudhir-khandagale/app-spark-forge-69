@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.inventory-ocr]
 verify_jwt = true
+
+[functions.smart-inventory-search]
+verify_jwt = true

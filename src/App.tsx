@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
@@ -75,13 +76,14 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
-        <TooltipProvider>
-          <AppInitializer />
-          <WebVitalsReporter />
-          <InstallBanner />
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <LanguageProvider>
+          <TooltipProvider>
+            <AppInitializer />
+            <WebVitalsReporter />
+            <InstallBanner />
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <OnboardingCheck />
             <BackButtonHandler />
             <NetworkStatus />
@@ -126,6 +128,7 @@ const App = () => (
             </Suspense>
           </BrowserRouter>
         </TooltipProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </HelmetProvider>
