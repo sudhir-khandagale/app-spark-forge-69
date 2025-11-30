@@ -1,4 +1,4 @@
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { BackButton } from '@/components/BackButton';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -233,11 +233,14 @@ const Reserve = () => {
             >
               {isSubmitting ? 'Confirming...' : 'Confirm Reservation'}
             </Button>
-            <Link to={`/product/${id || '1'}`}>
-              <Button variant="outline" className="w-full" type="button">
-                Cancel
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              type="button"
+              onClick={() => navigate(`/product/${id || '1'}`)}
+            >
+              Cancel
+            </Button>
           </div>
         </form>
       </main>
