@@ -89,8 +89,38 @@ export default function OrderHistory() {
     }
   };
 
-  const downloadReceipt = (receiptNumber: string) => {
-    window.open(`/receipt/${receiptNumber}`, '_blank');
+  const downloadInvoice = async (orderId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invoice', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+
+      if (data?.invoice?.html) {
+        const blob = new Blob([data.invoice.html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice_${data.invoice.receiptNumber}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast({
+          title: 'Invoice Downloaded',
+          description: 'Your invoice has been downloaded successfully',
+        });
+      }
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast({
+        title: 'Download Failed',
+        description: 'Failed to download invoice',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -203,17 +233,15 @@ export default function OrderHistory() {
                     <Truck className="w-4 h-4 mr-2" />
                     Track Order
                   </Button>
-                  {order.receipt_number && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => downloadReceipt(order.receipt_number!)}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Receipt
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => downloadInvoice(order.id)}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Invoice
+                  </Button>
                 </div>
               </CardContent>
             </Card>
