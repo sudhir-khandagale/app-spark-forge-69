@@ -427,6 +427,13 @@ export default function LiveInventory() {
           </CardContent>
         </Card>
 
+        {/* AI Assistant - Inline */}
+        <InventoryAssistant
+          storeId={storeId || ''}
+          onInventoryUpdate={fetchInventory}
+          inline={true}
+        />
+
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
@@ -731,11 +738,6 @@ export default function LiveInventory() {
         onOpenChange={setScannerOpen}
         storeId={storeId!}
         onStockUpdated={fetchInventory}
-      />
-
-      <InventoryAssistant
-        storeId={storeId || ''}
-        onInventoryUpdate={fetchInventory}
       />
 
       <RoleBasedBottomNav />
