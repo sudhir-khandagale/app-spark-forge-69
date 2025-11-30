@@ -6,9 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Minus, Package, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Package, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Search, Scan, Download, Edit2, Check, X, Filter } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { InventoryScanner } from '@/components/InventoryScanner';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 
 interface InventoryItem {
@@ -34,7 +38,21 @@ export default function LiveInventory() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'low' | 'out'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  
+  // Edit modes
+  const [editingQuantity, setEditingQuantity] = useState<string | null>(null);
+  const [editingPrice, setEditingPrice] = useState<string | null>(null);
+  const [editingThreshold, setEditingThreshold] = useState<string | null>(null);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  
+  // Temp values for editing
+  const [tempQuantity, setTempQuantity] = useState('');
+  const [tempPrice, setTempPrice] = useState('');
+  const [tempThreshold, setTempThreshold] = useState('');
+  const [tempCategory, setTempCategory] = useState('');
 
   useEffect(() => {
     fetchInventory();
@@ -120,13 +138,120 @@ export default function LiveInventory() {
     }
   };
 
+  const updatePrice = async (inventoryId: string, newPrice: number) => {
+    if (newPrice < 0) return;
+
+    try {
+      const { error } = await supabase
+        .from('inventory')
+        .update({ price: newPrice })
+        .eq('id', inventoryId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Price updated',
+      });
+      fetchInventory();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update price',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const updateThreshold = async (inventoryId: string, newThreshold: number) => {
+    if (newThreshold < 0) return;
+
+    try {
+      const { error } = await supabase
+        .from('inventory')
+        .update({ low_stock_threshold: newThreshold })
+        .eq('id', inventoryId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Low stock threshold updated',
+      });
+      fetchInventory();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update threshold',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const updateCategory = async (productId: string, newCategory: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ category: newCategory })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Category updated',
+      });
+      fetchInventory();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update category',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const exportToCSV = () => {
+    const csvData = filteredInventory.map(item => ({
+      'Product Name': item.products.name,
+      'Category': item.products.category || 'Uncategorized',
+      'Current Stock': item.quantity,
+      'Price': item.price,
+      'Low Stock Threshold': item.low_stock_threshold,
+      'Status': item.quantity === 0 ? 'Out of Stock' : item.quantity <= item.low_stock_threshold ? 'Low Stock' : 'In Stock',
+      'Last Updated': new Date(item.last_updated).toLocaleString(),
+    }));
+
+    const headers = Object.keys(csvData[0] || {});
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => headers.map(header => `"${row[header as keyof typeof row]}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventory-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: 'Export Complete',
+      description: `Exported ${csvData.length} products to CSV`,
+    });
+  };
+
+  const categories = Array.from(new Set(inventory.map(i => i.products.category).filter(Boolean))) as string[];
+
   const filteredInventory = inventory.filter(item => {
     const matchesSearch = item.products.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = 
       filter === 'all' ? true :
       filter === 'low' ? item.quantity > 0 && item.quantity <= item.low_stock_threshold :
       filter === 'out' ? item.quantity === 0 : true;
-    return matchesSearch && matchesFilter;
+    const matchesCategory = categoryFilter === 'all' || item.products.category === categoryFilter;
+    return matchesSearch && matchesFilter && matchesCategory;
   });
 
   const stats = {
@@ -136,7 +261,59 @@ export default function LiveInventory() {
     outOfStock: inventory.filter(i => i.quantity === 0).length,
     healthScore: inventory.length > 0 
       ? Math.round((inventory.filter(i => i.quantity > i.low_stock_threshold).length / inventory.length) * 100)
-      : 100
+      : 100,
+    totalValue: inventory.reduce((sum, item) => sum + (item.quantity * item.price), 0)
+  };
+
+  const startEditQuantity = (item: InventoryItem) => {
+    setEditingQuantity(item.id);
+    setTempQuantity(item.quantity.toString());
+  };
+
+  const saveQuantity = (inventoryId: string) => {
+    const qty = parseInt(tempQuantity);
+    if (!isNaN(qty) && qty >= 0) {
+      updateStock(inventoryId, qty);
+    }
+    setEditingQuantity(null);
+  };
+
+  const startEditPrice = (item: InventoryItem) => {
+    setEditingPrice(item.id);
+    setTempPrice(item.price.toString());
+  };
+
+  const savePrice = (inventoryId: string) => {
+    const price = parseFloat(tempPrice);
+    if (!isNaN(price) && price >= 0) {
+      updatePrice(inventoryId, price);
+    }
+    setEditingPrice(null);
+  };
+
+  const startEditThreshold = (item: InventoryItem) => {
+    setEditingThreshold(item.id);
+    setTempThreshold(item.low_stock_threshold.toString());
+  };
+
+  const saveThreshold = (inventoryId: string) => {
+    const threshold = parseInt(tempThreshold);
+    if (!isNaN(threshold) && threshold >= 0) {
+      updateThreshold(inventoryId, threshold);
+    }
+    setEditingThreshold(null);
+  };
+
+  const startEditCategory = (item: InventoryItem) => {
+    setEditingCategory(item.id);
+    setTempCategory(item.products.category || '');
+  };
+
+  const saveCategory = (productId: string) => {
+    if (tempCategory.trim()) {
+      updateCategory(productId, tempCategory.trim());
+    }
+    setEditingCategory(null);
   };
 
   return (
@@ -151,16 +328,38 @@ export default function LiveInventory() {
               <h1 className="text-2xl font-bold">Live Inventory</h1>
               <p className="text-sm text-muted-foreground">Real-time stock management</p>
             </div>
+            <Button onClick={() => setScannerOpen(true)} variant="outline" size="sm">
+              <Scan className="h-4 w-4 mr-2" />
+              Scan
+            </Button>
+            <Button onClick={exportToCSV} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
           </div>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -202,6 +401,13 @@ export default function LiveInventory() {
                 <div className="text-xs text-muted-foreground">Out of Stock</div>
               </div>
             </div>
+            
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Total Stock Value</span>
+                <span className="text-xl font-bold">₹{stats.totalValue.toLocaleString()}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -229,61 +435,167 @@ export default function LiveInventory() {
               filteredInventory.map((item) => (
                 <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <CardContent className="p-4">
-                    <div className="flex gap-4">
-                      {item.products.image_url && (
-                        <img 
-                          src={item.products.image_url} 
-                          alt={item.products.name}
-                          className="w-20 h-20 rounded-lg object-cover"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{item.products.name}</h3>
-                        {item.products.category && (
-                          <p className="text-xs text-muted-foreground">{item.products.category}</p>
+                    <div className="space-y-3">
+                      <div className="flex gap-4">
+                        {item.products.image_url && (
+                          <img 
+                            src={item.products.image_url} 
+                            alt={item.products.name}
+                            className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                          />
                         )}
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant={
-                            item.quantity === 0 ? 'destructive' :
-                            item.quantity <= item.low_stock_threshold ? 'outline' : 'default'
-                          } className="text-xs">
-                            {item.quantity === 0 ? (
-                              <><AlertCircle className="h-3 w-3 mr-1" /> Out of Stock</>
-                            ) : item.quantity <= item.low_stock_threshold ? (
-                              <><TrendingDown className="h-3 w-3 mr-1" /> Low Stock</>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate">{item.products.name}</h3>
+                          
+                          {/* Category */}
+                          <div className="mt-1">
+                            {editingCategory === item.id ? (
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  value={tempCategory}
+                                  onChange={(e) => setTempCategory(e.target.value)}
+                                  className="h-7 text-xs"
+                                  placeholder="Category"
+                                  autoFocus
+                                />
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => saveCategory(item.products.id)}>
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingCategory(null)}>
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
                             ) : (
-                              <><CheckCircle className="h-3 w-3 mr-1" /> In Stock</>
+                              <button onClick={() => startEditCategory(item)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+                                {item.products.category || 'No category'}
+                                <Edit2 className="h-3 w-3" />
+                              </button>
                             )}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(item.last_updated).toLocaleTimeString()}
-                          </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant={
+                              item.quantity === 0 ? 'destructive' :
+                              item.quantity <= item.low_stock_threshold ? 'outline' : 'default'
+                            } className="text-xs">
+                              {item.quantity === 0 ? (
+                                <><AlertCircle className="h-3 w-3 mr-1" /> Out of Stock</>
+                              ) : item.quantity <= item.low_stock_threshold ? (
+                                <><TrendingDown className="h-3 w-3 mr-1" /> Low Stock</>
+                              ) : (
+                                <><CheckCircle className="h-3 w-3 mr-1" /> In Stock</>
+                              )}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(item.last_updated).toLocaleTimeString()}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end justify-between">
-                        <div className="text-right">
-                          <div className="text-2xl font-bold">{item.quantity}</div>
-                          <div className="text-xs text-muted-foreground">units</div>
+
+                      {/* Stock, Price, Threshold Controls */}
+                      <div className="grid grid-cols-3 gap-3 pt-3 border-t">
+                        {/* Stock Quantity */}
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Stock</Label>
+                          {editingQuantity === item.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                value={tempQuantity}
+                                onChange={(e) => setTempQuantity(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                              />
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveQuantity(item.id)}>
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingQuantity(null)}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => startEditQuantity(item)} className="text-lg font-bold hover:text-primary flex items-center gap-1">
+                                {item.quantity}
+                                <Edit2 className="h-3 w-3" />
+                              </button>
+                              <div className="flex gap-1 ml-auto">
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => updateStock(item.id, item.quantity - 1)}
+                                  disabled={updatingId === item.id || item.quantity === 0}
+                                  className="h-7 w-7"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  onClick={() => updateStock(item.id, item.quantity + 1)}
+                                  disabled={updatingId === item.id}
+                                  className="h-7 w-7"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={() => updateStock(item.id, item.quantity - 1)}
-                            disabled={updatingId === item.id || item.quantity === 0}
-                            className="h-9 w-9"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            onClick={() => updateStock(item.id, item.quantity + 1)}
-                            disabled={updatingId === item.id}
-                            className="h-9 w-9"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
+
+                        {/* Price */}
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Price</Label>
+                          {editingPrice === item.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                value={tempPrice}
+                                onChange={(e) => setTempPrice(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                              />
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => savePrice(item.id)}>
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingPrice(null)}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <button onClick={() => startEditPrice(item)} className="text-sm font-semibold hover:text-primary flex items-center gap-1">
+                              ₹{item.price}
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Threshold */}
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Alert at</Label>
+                          {editingThreshold === item.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                value={tempThreshold}
+                                onChange={(e) => setTempThreshold(e.target.value)}
+                                className="h-8 text-sm"
+                                autoFocus
+                              />
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveThreshold(item.id)}>
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingThreshold(null)}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <button onClick={() => startEditThreshold(item)} className="text-sm font-semibold hover:text-primary flex items-center gap-1">
+                              {item.low_stock_threshold}
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -294,6 +606,13 @@ export default function LiveInventory() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <InventoryScanner 
+        open={scannerOpen} 
+        onOpenChange={setScannerOpen}
+        storeId={storeId!}
+        onStockUpdated={fetchInventory}
+      />
 
       <RoleBasedBottomNav />
     </div>
