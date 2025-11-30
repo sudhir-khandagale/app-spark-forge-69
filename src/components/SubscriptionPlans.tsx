@@ -24,7 +24,7 @@ const tiers = [
       'Basic inventory management',
       'Up to 50 products',
       'Store profile page',
-      'Customer reviews',
+      'User reviews',
       'Manual stock updates'
     ]
   },

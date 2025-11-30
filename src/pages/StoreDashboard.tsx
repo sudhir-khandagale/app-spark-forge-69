@@ -837,7 +837,7 @@ export default function StoreDashboard() {
               isLocked={!features.analytics}
               onUpgrade={() => setSubscriptionModalOpen(true)}
               title="Advanced Analytics"
-              description="Get detailed insights into your store's performance, track customer behavior, and identify top-performing products."
+              description="Get detailed insights into your store's performance, track user behavior, and identify top-performing products."
               requiredTier="pro"
             >
               <ComprehensiveAnalytics storeId={storeId!} />
@@ -983,7 +983,7 @@ export default function StoreDashboard() {
                         <Alert className="border-yellow-500/50 bg-yellow-500/10">
                           <AlertCircle className="h-4 w-4 text-yellow-600" />
                           <AlertDescription className="text-sm text-yellow-800 dark:text-yellow-200">
-                            Your store is pending approval. This product will be added but won't appear in customer searches until your store is approved.
+                            Your store is pending approval. This product will be added but won't appear in user searches until your store is approved.
                           </AlertDescription>
                         </Alert>
                       )}
