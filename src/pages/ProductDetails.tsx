@@ -1,6 +1,7 @@
-import { ArrowLeft, Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale, Map } from 'lucide-react';
+import { Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale, Map } from 'lucide-react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/BackButton';
 import BottomNav from '@/components/BottomNav';
 import WishlistButton from '@/components/WishlistButton';
 import { useProduct } from '@/hooks/useProducts';
@@ -219,11 +220,7 @@ const ProductDetails = () => {
       <div className="flex flex-col min-h-screen pb-16">
         <header className="sticky top-0 z-40 bg-background border-b border-border">
           <div className="flex items-center justify-between p-4">
-            <Link to="/search">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/search" />
           <div className="flex gap-2">
             <Button variant="ghost" size="icon" onClick={handleShare}>
               <Share2 className="w-5 h-5" />
@@ -250,11 +247,7 @@ const ProductDetails = () => {
       <div className="flex flex-col min-h-screen pb-16">
         <header className="sticky top-0 z-40 bg-background border-b border-border">
           <div className="flex items-center justify-between p-4">
-            <Link to="/search">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/search" />
           </div>
         </header>
         <main className="flex-1 p-4 flex items-center justify-center">
@@ -271,11 +264,7 @@ const ProductDetails = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="flex items-center justify-between p-4">
-          <Link to="/search">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+          <BackButton fallbackPath="/search" />
           <div className="flex gap-2">
             <Button variant="ghost" size="icon" onClick={handleShare}>
               <Share2 className="w-5 h-5" />

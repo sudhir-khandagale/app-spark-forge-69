@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, ShoppingBag, Store, Calendar, FileText } from 'lucide-react';
+import { ShoppingBag, Store, Calendar, FileText } from 'lucide-react';
+import { BackButton } from '@/components/BackButton';
 import { format } from 'date-fns';
 import BottomNav from '@/components/BottomNav';
 import { useToast } from '@/hooks/use-toast';
@@ -91,9 +92,7 @@ export default function OrderHistory() {
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border">
         <div className="max-w-4xl mx-auto p-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/profile')}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <BackButton fallbackPath="/profile" />
           <div>
             <h1 className="text-2xl font-bold">Order History</h1>
             <p className="text-sm text-muted-foreground">View your past purchases</p>

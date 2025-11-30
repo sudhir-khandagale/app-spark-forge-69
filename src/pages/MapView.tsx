@@ -1,6 +1,7 @@
-import { ArrowLeft, MapPin, Loader2, Locate } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { MapPin, Loader2, Locate } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/BackButton';
 import { Input } from '@/components/ui/input';
 import BottomNav from '@/components/BottomNav';
 import GoogleMap from '@/components/GoogleMap';
@@ -70,11 +71,7 @@ const MapView = () => {
       {/* Search Bar */}
       <div className="absolute top-4 left-4 right-4 z-10">
         <form onSubmit={handleSearch} className="flex items-center gap-2 bg-background rounded-lg shadow-lg p-2">
-          <Link to="/">
-            <Button variant="ghost" size="icon" type="button">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+          <BackButton fallbackPath="/" />
           <Input
             placeholder="Search on map..."
             className="border-0 shadow-none"
