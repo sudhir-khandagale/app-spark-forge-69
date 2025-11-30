@@ -13,10 +13,12 @@ import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import flowduxIcon from '@/assets/flowdux-icon.png';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function MerchantOnboarding() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState('store-info');
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
@@ -320,8 +322,8 @@ export default function MerchantOnboarding() {
         {/* Animated Welcome Banner */}
         <div className="bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-gradient rounded-2xl p-8 text-center text-primary-foreground shadow-xl">
           <img src={flowduxIcon} alt="Flowdux" className="h-20 w-20 mx-auto mb-4 rounded-xl animate-pulse" />
-          <h1 className="text-4xl font-bold mb-2">Turn Your Passion Into Profit 💰</h1>
-          <p className="text-lg opacity-90">Join 500+ successful local vendors</p>
+          <h1 className="text-4xl font-bold mb-2">{t('turn_passion_into_profit')} 💰</h1>
+          <p className="text-lg opacity-90">{t('reach_local_shoppers')}</p>
         </div>
 
         {/* Success Stories Carousel */}
@@ -405,7 +407,7 @@ export default function MerchantOnboarding() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold">Store Registration</h2>
+            <h2 className="text-2xl font-bold">{t('register_your_store')}</h2>
             <p className="text-sm text-muted-foreground">Ready to start your journey? 🚀</p>
           </div>
         </div>
@@ -430,13 +432,13 @@ export default function MerchantOnboarding() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Store className="h-5 w-5" />
-                  Store Details
+                  {t('store_name')}
                 </CardTitle>
                 <CardDescription>Tell us about your store</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Store Name *</Label>
+                  <Label htmlFor="name">{t('store_name')} *</Label>
                   <Input
                     id="name"
                     placeholder="My Amazing Store"
@@ -446,7 +448,7 @@ export default function MerchantOnboarding() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">{t('store_description')}</Label>
                   <Textarea
                     id="description"
                     placeholder="Tell customers what makes your store special"

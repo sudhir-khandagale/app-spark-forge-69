@@ -16,6 +16,7 @@ import { useFlashSales } from '@/hooks/useFlashSales';
 import flowduxIcon from '@/assets/flowdux-icon.png';
 import { PullToRefresh } from '@/components/PullToRefresh';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface TrendingProduct {
   id: string;
@@ -37,6 +38,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { latitude, longitude } = useGeolocation();
   const { stores, loading } = useStores();
+  const { t } = useTranslation();
   
   // Only fetch flash sales after products are loaded
   const productIds = trendingProducts.map(p => p.id);
@@ -152,7 +154,7 @@ const Index = () => {
             <img src={flowduxIcon} alt="Flowdux Logo" className="h-10 rounded-xl shadow-lg" />
             <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
               <MapPin className="w-4 h-4 mr-2" />
-              {latitude && longitude ? 'Location Set' : 'Enable Location'}
+              {latitude && longitude ? t('location_required').split(' ')[0] : t('enable_location')}
             </Button>
           </div>
 
@@ -161,7 +163,7 @@ const Index = () => {
             <div className="flex items-center gap-2 p-3 bg-background rounded-lg shadow-lg">
               <Search className="w-5 h-5 text-muted-foreground" />
               <Input
-                placeholder="Search for products..."
+                placeholder={t('search_products')}
                 className="border-0 shadow-none flex-1"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -193,7 +195,7 @@ const Index = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="font-semibold">Trending Products</h2>
+              <h2 className="font-semibold">{t('trending_products')}</h2>
             </div>
             {loadingTrending ? (
               <div className="grid grid-cols-2 gap-3">
@@ -264,7 +266,7 @@ const Index = () => {
             ) : (
               <Card>
                 <CardContent className="p-6 text-center text-sm text-muted-foreground">
-                  No trending products yet
+                  {t('no_results')}
                 </CardContent>
               </Card>
             )}
@@ -275,7 +277,7 @@ const Index = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <StoreIcon className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold">Featured Stores</h2>
+                <h2 className="font-semibold">{t('featured_stores')}</h2>
               </div>
               <Carousel className="w-full">
                 <CarouselContent>

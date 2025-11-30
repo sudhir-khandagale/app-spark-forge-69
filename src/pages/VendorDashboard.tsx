@@ -14,6 +14,7 @@ import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { InventoryAssistant } from '@/components/InventoryAssistant';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface InventorySummary {
   total_products: number;
@@ -33,6 +34,7 @@ export default function VendorDashboard() {
   const { storeId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { user, isVendor, isAdmin, loading: roleLoading } = useUserRole();
   const [stores, setStores] = useState<Store[]>([]);
   const [store, setStore] = useState<Store | null>(null);
@@ -165,7 +167,7 @@ export default function VendorDashboard() {
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
           <div className="p-4">
-            <h1 className="text-2xl font-bold">My Stores</h1>
+            <h1 className="text-2xl font-bold">{t('store_settings')}</h1>
             <p className="text-sm text-muted-foreground">Manage your stores and inventory</p>
           </div>
         </div>
@@ -180,7 +182,7 @@ export default function VendorDashboard() {
                   Create your first store to start selling
                 </p>
                 <Button onClick={() => navigate('/onboarding/merchant')}>
-                  Register Store
+                  {t('register_your_store')}
                 </Button>
               </CardContent>
             </Card>
@@ -214,7 +216,7 @@ export default function VendorDashboard() {
                       onClick={() => navigate(`/inventory/${storeItem.id}`)}
                     >
                       <Package className="w-4 h-4 mr-2" />
-                      Inventory
+                      {t('inventory')}
                     </Button>
                     <Button
                       variant="outline"
@@ -222,7 +224,7 @@ export default function VendorDashboard() {
                       onClick={() => navigate(`/vendor/dashboard/${storeItem.id}`)}
                     >
                       <BarChart className="w-4 h-4 mr-2" />
-                      Analytics
+                      {t('analytics')}
                     </Button>
                   </div>
                   <Button
@@ -230,7 +232,7 @@ export default function VendorDashboard() {
                     className="w-full mt-2"
                     onClick={() => navigate('/vendor/orders')}
                   >
-                    View Orders
+                    {t('orders')}
                   </Button>
                 </CardContent>
               </Card>
@@ -262,7 +264,7 @@ export default function VendorDashboard() {
             </Button>
             <div>
               <h1 className="text-xl font-bold">{store.name}</h1>
-              <p className="text-sm text-muted-foreground">Analytics</p>
+              <p className="text-sm text-muted-foreground">{t('analytics')}</p>
             </div>
           </div>
           <Badge variant={subscriptionTier === 'free' ? 'secondary' : 'default'}>
@@ -316,13 +318,13 @@ export default function VendorDashboard() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Package className="h-5 w-5 text-primary" />
-              <CardTitle>Inventory Summary</CardTitle>
+              <CardTitle>{t('inventory')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Products</p>
+                <p className="text-sm text-muted-foreground">{t('all_products')}</p>
                 <p className="text-2xl font-bold">{inventorySummary?.total_products || 0}</p>
               </div>
               <div className="space-y-1">
@@ -332,14 +334,14 @@ export default function VendorDashboard() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                  <p className="text-sm text-muted-foreground">Low Stock</p>
+                  <p className="text-sm text-muted-foreground">{t('low_stock')}</p>
                 </div>
                 <p className="text-2xl font-bold text-yellow-500">{inventorySummary?.low_stock_items || 0}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <p className="text-sm text-muted-foreground">Out of Stock</p>
+                  <p className="text-sm text-muted-foreground">{t('out_of_stock')}</p>
                 </div>
                 <p className="text-2xl font-bold text-destructive">{inventorySummary?.out_of_stock_items || 0}</p>
               </div>
@@ -349,7 +351,7 @@ export default function VendorDashboard() {
               className="w-full mt-4"
               onClick={() => navigate(`/inventory/${storeId}`)}
             >
-              Manage Inventory
+              {t('update_stock')}
             </Button>
           </CardContent>
         </Card>
