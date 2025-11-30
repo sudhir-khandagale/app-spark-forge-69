@@ -162,7 +162,7 @@ const Checkout = () => {
         amount: razorpayOrder.amount,
         currency: 'INR',
         order_id: razorpayOrder.id,
-        name: 'AassPass',
+        name: 'Flowdux',
         description: 'Order Payment',
         handler: async (response: any) => {
           // Update order with payment details

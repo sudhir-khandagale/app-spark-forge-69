@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus } from 'lucide-react';
@@ -9,14 +9,59 @@ import { VendorPostCard } from '@/components/vendor/VendorPostCard';
 import { CreatePostModal } from '@/components/vendor/CreatePostModal';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const VendorFeed = () => {
   const { role } = useUserRole();
   const { posts, loading, likePost, refreshPosts } = useVendorPosts();
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
+  const [vendorStores, setVendorStores] = useState<any[]>([]);
+  const { toast } = useToast();
 
   const isVendor = role === 'vendor' || role === 'admin';
+
+  useEffect(() => {
+    if (isVendor) {
+      fetchVendorStores();
+    }
+  }, [isVendor]);
+
+  const fetchVendorStores = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: stores, error } = await supabase
+        .from('stores')
+        .select('id, name')
+        .eq('owner_id', user.id)
+        .eq('status', 'approved');
+
+      if (error) throw error;
+      setVendorStores(stores || []);
+      
+      // Auto-select first store
+      if (stores && stores.length > 0) {
+        setSelectedStoreId(stores[0].id);
+      }
+    } catch (error) {
+      console.error('Error fetching vendor stores:', error);
+    }
+  };
+
+  const handleCreatePost = () => {
+    if (vendorStores.length === 0) {
+      toast({
+        title: 'No approved store found',
+        description: 'You need an approved store to create posts',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setCreatePostOpen(true);
+  };
 
   return (
     <>
@@ -37,7 +82,7 @@ const VendorFeed = () => {
                 <p className="text-sm text-muted-foreground">Discover amazing local stores</p>
               </div>
               {isVendor && (
-                <Button onClick={() => setCreatePostOpen(true)} size="sm">
+                <Button onClick={handleCreatePost} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Post
                 </Button>

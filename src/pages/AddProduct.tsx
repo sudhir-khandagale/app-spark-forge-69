@@ -57,13 +57,32 @@ export default function AddProduct() {
 
     setLoading(true);
     try {
-      // Implementation continues with product creation...
+      // Create product via edge function
+      const { data, error } = await supabase.functions.invoke('store-dashboard', {
+        body: {
+          action: 'create_product',
+          storeId,
+          productData: {
+            name: formData.name,
+            description: formData.description || null,
+            category: formData.category || null,
+            price: parseFloat(formData.price),
+            quantity: parseInt(formData.quantity),
+            barcode: formData.barcode || null,
+            lowStockThreshold: parseInt(formData.lowStockThreshold),
+          }
+        }
+      });
+
+      if (error) throw error;
+
       toast({
         title: 'Success',
         description: 'Product added successfully',
       });
       navigate(`/inventory/${storeId}`);
     } catch (error: any) {
+      console.error('Add product error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to add product',
@@ -149,12 +168,24 @@ export default function AddProduct() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Input
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="e.g., Electronics, Fashion, Food"
+                  disabled={limitReached}
+                />
+              </div>
+
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="price">Price (₹) *</Label>
                   <Input
                     id="price"
                     type="number"
+                    step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     placeholder="999"
@@ -171,6 +202,30 @@ export default function AddProduct() {
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                     placeholder="50"
                     required
+                    disabled={limitReached}
+                  />
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="barcode">Barcode</Label>
+                  <Input
+                    id="barcode"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                    placeholder="Optional barcode"
+                    disabled={limitReached}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lowStockThreshold">Low Stock Alert</Label>
+                  <Input
+                    id="lowStockThreshold"
+                    type="number"
+                    value={formData.lowStockThreshold}
+                    onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
+                    placeholder="10"
                     disabled={limitReached}
                   />
                 </div>

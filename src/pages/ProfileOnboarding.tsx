@@ -133,7 +133,7 @@ const ProfileOnboarding = () => {
       <Card className="max-w-lg w-full">
         <CardHeader>
           <div className="flex items-center justify-between mb-2">
-            <CardTitle>Welcome to AassPass!</CardTitle>
+            <CardTitle>Welcome to Flowdux!</CardTitle>
             <Badge variant="secondary">Step {step} of {totalSteps}</Badge>
           </div>
           <Progress value={progress} className="h-2" />
