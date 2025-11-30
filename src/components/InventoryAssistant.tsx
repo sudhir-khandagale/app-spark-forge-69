@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
 import { Bot, Send, Sparkles, X, Loader2, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,9 +21,10 @@ interface Message {
 interface InventoryAssistantProps {
   storeId: string;
   onInventoryUpdate?: () => void;
+  inline?: boolean;
 }
 
-export const InventoryAssistant = ({ storeId, onInventoryUpdate }: InventoryAssistantProps) => {
+export const InventoryAssistant = ({ storeId, onInventoryUpdate, inline = false }: InventoryAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -108,10 +109,33 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate }: InventoryAssi
   };
 
   if (!isOpen) {
+    if (inline) {
+      return (
+        <Card className="w-full border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 transition-all cursor-pointer animate-pulse" onClick={() => setIsOpen(true)}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center animate-pulse">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">AI Inventory Assistant</h3>
+                  <p className="text-sm text-muted-foreground">Ask me anything about your inventory</p>
+                </div>
+              </div>
+              {autoSpeak && (
+                <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse" />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+    
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-[88px] right-4 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-accent hover:scale-110 transition-transform z-[60] relative"
+        className="fixed bottom-[88px] right-4 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-accent hover:scale-110 transition-transform z-[60] relative animate-pulse"
         size="icon"
       >
         <Sparkles className="h-6 w-6" />
@@ -119,6 +143,128 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate }: InventoryAssi
           <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse" />
         )}
       </Button>
+    );
+  }
+
+  if (inline) {
+    return (
+      <Card className="w-full border-primary/20">
+        <div className="bg-gradient-to-r from-primary to-accent p-4 rounded-t-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bot className="h-5 w-5 text-white" />
+            <span className="font-semibold text-white">{t('ai_assistant')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setAutoSpeak(!autoSpeak);
+                if (!autoSpeak) {
+                  toast({
+                    title: t('voice_chat_enabled'),
+                    description: t('auto_read_responses'),
+                  });
+                }
+              }}
+              className="h-8 w-8 text-white hover:bg-white/20"
+            >
+              {autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            <Button
+              onClick={() => setIsOpen(false)}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-white hover:bg-white/20"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <ScrollArea ref={scrollRef} className="h-[400px] p-4">
+          <div className="space-y-4">
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                    msg.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  {msg.result && (
+                    <p className="text-xs mt-2 opacity-80 font-medium">
+                      ✓ {msg.result}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-lg px-4 py-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {messages.length === 1 && (
+          <div className="px-4 pb-2">
+            <p className="text-xs text-muted-foreground mb-2">{t('suggestions')}:</p>
+            <div className="flex flex-wrap gap-2">
+              {suggestions.map((suggestion, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-auto py-1"
+                  onClick={() => sendMessage(suggestion)}
+                >
+                  {suggestion}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="p-4 border-t space-y-2">
+          <div className="flex gap-2">
+            <VoiceChatInput onTranscript={handleVoiceTranscript} />
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder={t('ask_me_anything')}
+              disabled={loading}
+              className="flex-1"
+            />
+            <Button
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              size="icon"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          {isSpeaking && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={stop}
+              className="w-full"
+            >
+              {t('stop_speaking')}
+            </Button>
+          )}
+        </div>
+      </Card>
     );
   }
 
