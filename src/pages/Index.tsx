@@ -52,21 +52,16 @@ const Index = () => {
   const fetchTrendingProducts = async (): Promise<void> => {
     try {
       setLoadingTrending(true);
-      
-      // Simplified single-query approach with shorter timeout
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 5000)
-      );
 
-      // Single optimized query: get inventory with product and store data
-      const inventoryPromise = supabase
+      // Fetch inventory with products and stores (no nested filters)
+      const { data: inventory, error: inventoryError } = await supabase
         .from('inventory')
         .select(`
           product_id,
           price,
           in_stock,
           store_id,
-          products!inner (
+          products (
             id,
             name,
             image_url,
@@ -75,31 +70,30 @@ const Index = () => {
             review_count,
             trending
           ),
-          stores!inner (
+          stores (
             id,
             name,
             status
           )
         `)
-        .eq('products.trending', true)
-        .eq('stores.status', 'approved')
         .eq('in_stock', true)
-        .limit(8);
-
-      const { data: inventory, error: inventoryError } = await Promise.race([
-        inventoryPromise,
-        timeoutPromise
-      ]) as any;
+        .limit(50);
 
       if (inventoryError) {
         console.error('Query error:', inventoryError);
         throw inventoryError;
       }
 
+      // Client-side filter for trending products in approved stores
+      const filtered = inventory?.filter((inv: any) => 
+        inv.products?.trending === true && 
+        inv.stores?.status === 'approved'
+      ) || [];
+
       // Map unique products (take first store for each product)
       const productMap = new Map<string, TrendingProduct>();
       
-      inventory?.forEach((inv: any) => {
+      filtered.forEach((inv: any) => {
         const product = inv.products;
         if (product && !productMap.has(product.id)) {
           productMap.set(product.id, {
@@ -120,13 +114,11 @@ const Index = () => {
       const products = Array.from(productMap.values()).slice(0, 4);
       setTrendingProducts(products);
 
-      // If no products after successful query, show helpful message
       if (products.length === 0) {
-        console.log('No trending products with inventory in approved stores');
+        console.log('No trending products found in approved stores');
       }
     } catch (error: any) {
       console.error('Error fetching trending products:', error);
-      // Show user-friendly error instead of empty state
       toast({
         title: 'Unable to load products',
         description: 'Please refresh the page or try again later',
