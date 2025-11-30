@@ -50,26 +50,28 @@ export default function VendorEarnings() {
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [storeId, setStoreId] = useState<string | null>(null);
+  const [stores, setStores] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('all');
 
   useEffect(() => {
     if (user && (isVendor || isAdmin)) {
       fetchEarningsData();
     }
-  }, [user, isVendor, isAdmin, timeRange]);
+  }, [user, isVendor, isAdmin, timeRange, selectedStoreId]);
 
   const fetchEarningsData = async () => {
     try {
-      // Get user's store
-      const { data: store } = await supabase
+      // Get all user's stores
+      const { data: storesData, error: storeError } = await supabase
         .from('stores')
-        .select('id')
+        .select('id, name')
         .eq('owner_id', user?.id)
-        .eq('status', 'approved')
-        .single();
+        .eq('status', 'approved');
 
-      if (!store) {
+      if (storeError) throw storeError;
+
+      if (!storesData || storesData.length === 0) {
         toast({
           title: 'No Store Found',
           description: 'Please register your store first',
@@ -79,7 +81,13 @@ export default function VendorEarnings() {
         return;
       }
 
-      setStoreId(store.id);
+      setStores(storesData);
+      
+      // Set selected store if not already set
+      const activeStoreId = selectedStoreId || storesData[0].id;
+      if (!selectedStoreId) {
+        setSelectedStoreId(activeStoreId);
+      }
 
       // Calculate date range
       let dateFilter = '';
@@ -95,11 +103,11 @@ export default function VendorEarnings() {
         dateFilter = threeMonthsAgo.toISOString();
       }
 
-      // Fetch orders
+      // Fetch orders for the selected store
       let query = supabase
         .from('orders')
         .select('*')
-        .eq('store_id', store.id)
+        .eq('store_id', activeStoreId)
         .order('created_at', { ascending: false });
 
       if (dateFilter) {
@@ -197,25 +205,45 @@ export default function VendorEarnings() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <BackButton fallbackPath="/vendor/dashboard" />
-            <div>
-              <h1 className="text-2xl font-bold">Earnings & Payouts</h1>
-              <p className="text-sm text-muted-foreground">Track your revenue</p>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BackButton fallbackPath="/vendor/dashboard" />
+              <div>
+                <h1 className="text-2xl font-bold">Earnings & Payouts</h1>
+                <p className="text-sm text-muted-foreground">Track your revenue</p>
+              </div>
             </div>
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="7days">Last 7 Days</SelectItem>
+                <SelectItem value="30days">Last 30 Days</SelectItem>
+                <SelectItem value="90days">Last 90 Days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Time</SelectItem>
-              <SelectItem value="7days">Last 7 Days</SelectItem>
-              <SelectItem value="30days">Last 30 Days</SelectItem>
-              <SelectItem value="90days">Last 90 Days</SelectItem>
-            </SelectContent>
-          </Select>
+          
+          {stores.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Store:</span>
+              <Select value={selectedStoreId || undefined} onValueChange={setSelectedStoreId}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select store" />
+                </SelectTrigger>
+                <SelectContent>
+                  {stores.map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      {store.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </header>
 
