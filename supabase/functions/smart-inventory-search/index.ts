@@ -135,7 +135,7 @@ Return ONLY valid JSON with extracted filters. If no filters found, return {}.`
       ml: 'തിരയൽ ചോദ്യം വിജയകരമായി പാർസ് ചെയ്തു',
       pa: 'ਖੋਜ ਕੁਐਰੀ ਸਫਲਤਾਪੂਰਵਕ ਪਾਰਸ ਕੀਤੀ ਗਈ',
       or: 'ସନ୍ଧାନ ପ୍ରଶ୍ନ ସଫଳତାର ସହ ପାର୍ସ କରାଗଲା',
-      as: 'সন্ধান প্ৰশ্ন সফলভাৱে পাৰ্ছ কৰা হ'ল'
+      as: 'সন্ধান প্ৰশ্ন সফলভাৱে পাৰ্ছ কৰা হ\'ল'
     };
 
     return new Response(JSON.stringify({ 
