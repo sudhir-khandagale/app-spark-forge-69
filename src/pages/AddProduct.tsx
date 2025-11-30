@@ -11,6 +11,9 @@ import { ArrowLeft, Package, AlertCircle, Crown } from 'lucide-react';
 import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
+import { SmartInventoryUpload } from '@/components/SmartInventoryUpload';
+import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function AddProduct() {
   const { storeId } = useParams();
@@ -134,109 +137,135 @@ export default function AddProduct() {
           </Alert>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Product Information
-            </CardTitle>
-            <CardDescription>Enter the details of your product</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Samsung Galaxy S23"
-                  required
-                  disabled={limitReached}
+        <Tabs defaultValue="manual" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+            <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="manual" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Product Information
+                </CardTitle>
+                <CardDescription>Enter the details of your product</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Product Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="e.g., Samsung Galaxy S23"
+                      required
+                      disabled={limitReached}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Describe your product..."
+                      rows={3}
+                      disabled={limitReached}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      placeholder="e.g., Electronics, Fashion, Food"
+                      disabled={limitReached}
+                    />
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price (₹) *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        placeholder="999"
+                        required
+                        disabled={limitReached}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity">Quantity *</Label>
+                      <Input
+                        id="quantity"
+                        type="number"
+                        value={formData.quantity}
+                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                        placeholder="50"
+                        required
+                        disabled={limitReached}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="barcode">Barcode</Label>
+                      <Input
+                        id="barcode"
+                        value={formData.barcode}
+                        onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                        placeholder="Optional barcode"
+                        disabled={limitReached}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lowStockThreshold">Low Stock Alert</Label>
+                      <Input
+                        id="lowStockThreshold"
+                        type="number"
+                        value={formData.lowStockThreshold}
+                        onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
+                        placeholder="10"
+                        disabled={limitReached}
+                      />
+                    </div>
+                  </div>
+
+                  <Button type="submit" disabled={loading || limitReached || subLoading} className="w-full">
+                    {loading ? 'Adding Product...' : 'Add Product'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="bulk">
+            {subscription && (
+              <LockedFeatureOverlay
+                isLocked={!subscription.canAccessBulkUpload}
+                onUpgrade={() => navigate('/profile')}
+                title="Bulk Upload Locked"
+                description="Upgrade to Pro or Premium to use AI-powered bulk inventory upload from PDF, Excel, CSV, or images"
+                requiredTier="pro"
+              >
+                <SmartInventoryUpload 
+                  storeId={storeId || ''}
+                  onSuccess={() => navigate(`/inventory/${storeId}`)}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe your product..."
-                  rows={3}
-                  disabled={limitReached}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="e.g., Electronics, Fashion, Food"
-                  disabled={limitReached}
-                />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price (₹) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="999"
-                    required
-                    disabled={limitReached}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity *</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                    placeholder="50"
-                    required
-                    disabled={limitReached}
-                  />
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="barcode">Barcode</Label>
-                  <Input
-                    id="barcode"
-                    value={formData.barcode}
-                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                    placeholder="Optional barcode"
-                    disabled={limitReached}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lowStockThreshold">Low Stock Alert</Label>
-                  <Input
-                    id="lowStockThreshold"
-                    type="number"
-                    value={formData.lowStockThreshold}
-                    onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
-                    placeholder="10"
-                    disabled={limitReached}
-                  />
-                </div>
-              </div>
-
-              <Button type="submit" disabled={loading || limitReached || subLoading} className="w-full">
-                {loading ? 'Adding Product...' : 'Add Product'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+              </LockedFeatureOverlay>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <RoleBasedBottomNav />
