@@ -9,8 +9,10 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useState, useEffect } from 'react';
 import { useStores } from '@/hooks/useStores';
 import { useProductSearch } from '@/hooks/useProducts';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const MapView = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { latitude, longitude, loading: locationLoading, error, refresh: refreshLocation } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,7 +75,7 @@ const MapView = () => {
         <form onSubmit={handleSearch} className="flex items-center gap-2 bg-background rounded-lg shadow-lg p-2">
           <BackButton fallbackPath="/" />
           <Input
-            placeholder="Search on map..."
+            placeholder={t('search_on_map')}
             className="border-0 shadow-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

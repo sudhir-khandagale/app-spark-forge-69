@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface WishlistItem {
   id: string;
@@ -23,6 +24,7 @@ interface WishlistItem {
 }
 
 const Wishlist = () => {
+  const { t } = useTranslation();
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -196,7 +198,7 @@ const Wishlist = () => {
       <header className="sticky top-0 z-10 bg-background border-b border-border">
         <div className="flex items-center gap-4 p-4 max-w-lg mx-auto">
           <BackButton fallbackPath="/profile" />
-          <h1 className="text-xl font-bold">Wishlist</h1>
+          <h1 className="text-xl font-bold">{t('wishlist')}</h1>
         </div>
       </header>
 
@@ -206,12 +208,12 @@ const Wishlist = () => {
           {wishlistItems.length === 0 ? (
             <Card className="p-8 text-center">
               <Heart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-xl font-semibold mb-2">Your wishlist is empty</h2>
+              <h2 className="text-xl font-semibold mb-2">{t('empty_wishlist')}</h2>
               <p className="text-muted-foreground mb-4">
-                Save items you love for later
+                {t('save_items_for_later')}
               </p>
               <Link to="/">
-                <Button>Browse Products</Button>
+                <Button>{t('browse_products')}</Button>
               </Link>
             </Card>
           ) : (

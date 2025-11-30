@@ -19,6 +19,7 @@ import { InventoryAssistant } from '@/components/InventoryAssistant';
 import { InventoryOCRUpload } from '@/components/InventoryOCRUpload';
 import { SmartInventorySearch } from '@/components/SmartInventorySearch';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface InventoryItem {
   id: string;
@@ -36,6 +37,7 @@ interface InventoryItem {
 }
 
 export default function LiveInventory() {
+  const { t } = useTranslation();
   const { storeId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -335,8 +337,8 @@ export default function LiveInventory() {
           <div className="flex items-center gap-3">
             <BackButton fallbackPath="/profile" />
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">Live Inventory</h1>
-              <p className="text-sm text-muted-foreground">Real-time stock management</p>
+              <h1 className="text-2xl font-bold">{t('live_inventory')}</h1>
+              <p className="text-sm text-muted-foreground">{t('realtime_stock_management')}</p>
             </div>
             <Button onClick={() => setScannerOpen(true)} variant="outline" size="sm">
               <Scan className="h-4 w-4 mr-2" />

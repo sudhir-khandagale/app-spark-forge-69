@@ -8,8 +8,10 @@ import { FriendCard } from '@/components/profile/FriendCard';
 import { UserSearch } from '@/components/profile/UserSearch';
 import { useFriends } from '@/hooks/useFriends';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Friends = () => {
+  const { t } = useTranslation();
   const { friends, pendingRequests, loading, acceptFriendRequest, removeFriend, refreshFriends } = useFriends();
 
   return (
@@ -21,7 +23,7 @@ const Friends = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold">Friends</h1>
+          <h1 className="text-xl font-bold">{t('friends')}</h1>
         </div>
       </header>
 

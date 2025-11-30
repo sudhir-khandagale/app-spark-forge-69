@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface CartItem {
   id: string;
@@ -24,6 +25,7 @@ interface CartItem {
 }
 
 const Cart = () => {
+  const { t } = useTranslation();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [cartId, setCartId] = useState<string | null>(null);
@@ -173,7 +175,7 @@ const Cart = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold">Shopping Cart</h1>
+          <h1 className="text-xl font-bold">{t('cart')}</h1>
         </div>
       </header>
 
@@ -183,12 +185,12 @@ const Cart = () => {
           {cartItems.length === 0 ? (
             <Card className="p-8 text-center">
               <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
+              <h2 className="text-xl font-semibold mb-2">{t('empty_cart')}</h2>
               <p className="text-muted-foreground mb-4">
-                Start adding items to your cart
+                {t('start_adding_items')}
               </p>
               <Link to="/">
-                <Button>Start Shopping</Button>
+                <Button>{t('start_shopping')}</Button>
               </Link>
             </Card>
           ) : (
@@ -271,21 +273,21 @@ const Cart = () => {
               <Card className="p-4 sticky bottom-20">
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-muted-foreground">{t('subtotal')}</span>
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
+                    <span>{t('total')}</span>
                     <span className="text-primary">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
                 <Link to={`/checkout?from=cart`}>
                   <Button className="w-full" size="lg">
-                    Checkout
+                    {t('checkout')}
                   </Button>
                 </Link>
                 <p className="text-xs text-muted-foreground text-center mt-2">
-                  Items can be picked up from respective stores
+                  {t('pickup_from_stores')}
                 </p>
               </Card>
             </>

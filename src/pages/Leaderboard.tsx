@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, Trophy, Medal, Award, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Leaderboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { leaderboard, currentUserRank, loading } = useLeaderboard();
 
@@ -29,10 +31,10 @@ const Leaderboard = () => {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Trophy className="w-8 h-8 text-yellow-500" />
-              Leaderboard
+              {t('leaderboard')}
             </h1>
             {currentUserRank && (
-              <p className="text-muted-foreground">You're ranked #{currentUserRank}</p>
+              <p className="text-muted-foreground">{t('your_rank').replace('{rank}', currentUserRank.toString())}</p>
             )}
           </div>
         </div>

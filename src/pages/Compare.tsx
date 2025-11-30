@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useFavoriteStores } from '@/hooks/useFavoriteStores';
 import { formatPrice } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface StoreInventory {
   id: string;
@@ -40,6 +41,7 @@ interface Product {
 }
 
 const Compare = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [inventory, setInventory] = useState<StoreInventory[]>([]);
@@ -275,7 +277,7 @@ const Compare = () => {
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
           <div className="flex items-center gap-4">
             <BackButton fallbackPath={`/product/${id}`} />
-            <h1 className="text-xl font-bold">Compare Prices</h1>
+            <h1 className="text-xl font-bold">{t('compare_prices')}</h1>
           </div>
           <WishlistButton productId={id!} />
         </div>

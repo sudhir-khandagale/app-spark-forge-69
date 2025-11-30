@@ -6,8 +6,10 @@ import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capa
 import { Capacitor } from '@capacitor/core';
 import { toast } from '@/hooks/use-toast';
 import { useNativeFeatures } from '@/hooks/useNativeFeatures';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Scanner = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { haptic, isNative } = useNativeFeatures();
   const [isScanning, setIsScanning] = useState(false);
@@ -146,9 +148,9 @@ const Scanner = () => {
         <p className="text-white mb-4">
           {isNative 
             ? isScanning 
-              ? 'Scanning...' 
-              : 'Tap camera button to scan barcode'
-            : 'Camera scanning requires the mobile app'
+              ? t('scanning') 
+              : t('tap_to_scan')
+            : t('camera_requires_app')
           }
         </p>
         <Link to="/search">
@@ -158,7 +160,7 @@ const Scanner = () => {
             onClick={() => haptic.light()}
           >
             <Keyboard className="w-4 h-4 mr-2" />
-            Enter Code Manually
+            {t('enter_manually')}
           </Button>
         </Link>
       </div>
