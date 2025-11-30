@@ -1,4 +1,4 @@
-import BottomNav from "@/components/BottomNav";
+import RoleBasedBottomNav from "@/components/RoleBasedBottomNav";
 import { AchievementGrid } from "@/components/profile/AchievementGrid";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -19,7 +19,7 @@ const Achievements = () => {
 
         <AchievementGrid />
       </div>
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import WishlistButton from '@/components/WishlistButton';
 import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import { supabase } from '@/integrations/supabase/client';
@@ -484,7 +484,7 @@ const Compare = () => {
         </div>
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

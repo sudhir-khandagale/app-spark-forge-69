@@ -1,4 +1,4 @@
-import BottomNav from "@/components/BottomNav";
+import RoleBasedBottomNav from "@/components/RoleBasedBottomNav";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -88,7 +88,7 @@ const Leaderboard = () => {
           </CardContent>
         </Card>
       </div>
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

@@ -31,7 +31,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { PullToRefresh } from '@/components/PullToRefresh';
 
 interface ShoppingList {
@@ -190,7 +190,7 @@ const Lists = () => {
             ))}
           </div>
         </main>
-        <BottomNav />
+        <RoleBasedBottomNav />
       </div>
     );
   }
@@ -349,7 +349,7 @@ const Lists = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

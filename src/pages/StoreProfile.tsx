@@ -2,7 +2,7 @@ import { Phone, Navigation, Clock, Loader2, MapPin, Package, ShoppingBag } from 
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/BackButton';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import { useStore, useStoreInventory } from '@/hooks/useStores';
 import { supabase } from '@/integrations/supabase/client';
@@ -281,7 +281,7 @@ const StoreProfile = () => {
         </div>
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };
