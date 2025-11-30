@@ -49,11 +49,19 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       // Run all data fetches in parallel for faster loading
-      Promise.all([
-        fetchUserProfile(),
-        checkProfileCompletion(),
-        (isVendor || isAdmin) ? fetchVendorStores() : Promise.resolve(),
-      ]);
+      // Using Promise.all ensures they all complete before any dependent renders
+      const fetchData = async () => {
+        try {
+          await Promise.all([
+            fetchUserProfile(),
+            checkProfileCompletion(),
+            (isVendor || isAdmin) ? fetchVendorStores() : Promise.resolve(),
+          ]);
+        } catch (error) {
+          console.error('Error loading profile data:', error);
+        }
+      };
+      fetchData();
     }
   }, [user, isVendor, isAdmin]);
 
@@ -162,6 +170,9 @@ const Profile = () => {
       </div>
     );
   }
+
+  // Show loading skeleton while initial data loads
+  const isInitialLoading = !avatarUrl && !bannerUrl && loading;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background pb-20">
