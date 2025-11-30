@@ -34,54 +34,97 @@ export const useGeolocation = () => {
     try {
       setLocation(prev => ({ ...prev, loading: true, error: null }));
       
-      // Request permissions
-      const permission = await Geolocation.checkPermissions();
+      // Check if running in native app or web browser
+      const isNative = (window as any).Capacitor?.isNativePlatform?.();
       
-      if (permission.location === 'denied') {
-        const requested = await Geolocation.requestPermissions();
-        if (requested.location === 'denied') {
-          throw new Error('Location permission denied');
+      if (isNative) {
+        // Use Capacitor Geolocation for native apps
+        const permission = await Geolocation.checkPermissions();
+        
+        if (permission.location === 'denied') {
+          const requested = await Geolocation.requestPermissions();
+          if (requested.location === 'denied') {
+            throw new Error('Location permission denied');
+          }
         }
+
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 300000
+        });
+
+        const newLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          error: null,
+          loading: false,
+        };
+
+        setLocation(newLocation);
+        localStorage.setItem('userLocation', JSON.stringify({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }));
+
+        return {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+      } else {
+        // Use browser Geolocation API for web
+        if (!navigator.geolocation) {
+          throw new Error('Geolocation not supported');
+        }
+
+        return new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const newLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                error: null,
+                loading: false,
+              };
+
+              setLocation(newLocation);
+              localStorage.setItem('userLocation', JSON.stringify({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              }));
+
+              resolve({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              });
+            },
+            (error) => {
+              reject(new Error(error.message));
+            },
+            {
+              enableHighAccuracy: false,
+              timeout: 5000,
+              maximumAge: 300000
+            }
+          );
+        });
       }
-
-      // Get current position with optimized settings
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: false, // Use false for better mobile performance
-        timeout: 5000, // Reduced timeout
-        maximumAge: 300000 // Cache for 5 minutes
-      });
-
-      const newLocation = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        error: null,
-        loading: false,
-      };
-
-      setLocation(newLocation);
-      
-      // Cache location
-      localStorage.setItem('userLocation', JSON.stringify({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      }));
-
-      return {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
     } catch (error: any) {
       // Silent fail - use cached location if available
       const cached = localStorage.getItem('userLocation');
       if (cached) {
-        const { latitude, longitude } = JSON.parse(cached);
-        setLocation({
-          latitude,
-          longitude,
-          error: null,
-          loading: false,
-        });
-        return { latitude, longitude };
+        try {
+          const { latitude, longitude } = JSON.parse(cached);
+          setLocation({
+            latitude,
+            longitude,
+            error: null,
+            loading: false,
+          });
+          return { latitude, longitude };
+        } catch {
+          // Invalid cache
+        }
       }
 
       console.error('Geolocation error:', error?.message || 'Unknown error');
