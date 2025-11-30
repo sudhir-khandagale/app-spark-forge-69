@@ -13,7 +13,6 @@ const BottomNav = () => {
 
   const navItems = [
     { icon: Home, label: t('nav_home'), path: '/' },
-    { icon: Map, label: t('nav_map'), path: '/map' },
     { icon: ClipboardList, label: t('nav_lists'), path: '/lists' },
     { icon: ShoppingCart, label: t('nav_cart'), path: '/cart' },
     { icon: User, label: t('nav_profile'), path: '/profile' },

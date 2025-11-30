@@ -55,7 +55,27 @@ const Index = () => {
         setTimeout(() => reject(new Error('Query timeout')), 10000)
       );
 
-      // Step 1: Fetch trending products
+      // TWO-STEP APPROACH: Prevents query hang with cross-table filters
+      // Step 1: Fetch approved stores first
+      const storesPromise = supabase
+        .from('stores')
+        .select('id')
+        .eq('status', 'approved');
+
+      const { data: approvedStores, error: storesError } = await Promise.race([
+        storesPromise,
+        timeoutPromise
+      ]) as any;
+
+      if (storesError) throw storesError;
+      if (!approvedStores || approvedStores.length === 0) {
+        setTrendingProducts([]);
+        return;
+      }
+
+      const approvedStoreIds = approvedStores.map((s: any) => s.id);
+
+      // Step 2: Fetch trending products
       const productsPromise = supabase
         .from('products')
         .select('id, name, image_url, category, rating, review_count')
@@ -73,7 +93,7 @@ const Index = () => {
         return;
       }
 
-      // Step 2: Fetch inventory for these products with approved stores
+      // Step 3: Fetch inventory for trending products in approved stores
       const productIds = trendingProds.map((p: any) => p.id);
       const inventoryPromise = supabase
         .from('inventory')
@@ -82,15 +102,14 @@ const Index = () => {
           price,
           in_stock,
           store_id,
-          stores!inner (
+          stores (
             id,
-            name,
-            status
+            name
           )
         `)
         .in('product_id', productIds)
-        .eq('in_stock', true)
-        .eq('stores.status', 'approved');
+        .in('store_id', approvedStoreIds)
+        .eq('in_stock', true);
 
       const { data: inventory, error: inventoryError } = await Promise.race([
         inventoryPromise,
