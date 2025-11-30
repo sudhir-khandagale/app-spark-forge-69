@@ -344,9 +344,12 @@ export type Database = {
         Row: {
           created_at: string | null
           delivery_address: Json | null
+          delivery_charges: number | null
+          delivery_status: string | null
           id: string
           items: Json
           notes: string | null
+          payment_method: string | null
           payment_status: string | null
           pickup_scheduled: string | null
           razorpay_order_id: string | null
@@ -360,9 +363,12 @@ export type Database = {
         Insert: {
           created_at?: string | null
           delivery_address?: Json | null
+          delivery_charges?: number | null
+          delivery_status?: string | null
           id?: string
           items: Json
           notes?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           pickup_scheduled?: string | null
           razorpay_order_id?: string | null
@@ -376,9 +382,12 @@ export type Database = {
         Update: {
           created_at?: string | null
           delivery_address?: Json | null
+          delivery_charges?: number | null
+          delivery_status?: string | null
           id?: string
           items?: Json
           notes?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           pickup_scheduled?: string | null
           razorpay_order_id?: string | null
@@ -910,7 +919,9 @@ export type Database = {
           bank_account_name: string | null
           bank_account_number: string | null
           bank_ifsc_code: string | null
+          cod_available: boolean | null
           created_at: string | null
+          delivery_charges: number | null
           description: string | null
           email: string | null
           featured: boolean | null
@@ -920,6 +931,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
+          offers_delivery: boolean | null
           owner_id: string
           phone: string | null
           photo_urls: string[] | null
@@ -936,7 +948,9 @@ export type Database = {
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_ifsc_code?: string | null
+          cod_available?: boolean | null
           created_at?: string | null
+          delivery_charges?: number | null
           description?: string | null
           email?: string | null
           featured?: boolean | null
@@ -946,6 +960,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
+          offers_delivery?: boolean | null
           owner_id: string
           phone?: string | null
           photo_urls?: string[] | null
@@ -962,7 +977,9 @@ export type Database = {
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_ifsc_code?: string | null
+          cod_available?: boolean | null
           created_at?: string | null
+          delivery_charges?: number | null
           description?: string | null
           email?: string | null
           featured?: boolean | null
@@ -972,6 +989,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
+          offers_delivery?: boolean | null
           owner_id?: string
           phone?: string | null
           photo_urls?: string[] | null

@@ -45,6 +45,9 @@ export default function MerchantOnboarding() {
     bank_account_number: '',
     bank_ifsc_code: '',
     upi_id: '',
+    offers_delivery: false,
+    delivery_charges: '40',
+    cod_available: false,
     hours: {
       monday: { open: '09:00', close: '17:00' },
       tuesday: { open: '09:00', close: '17:00' },
@@ -58,7 +61,11 @@ export default function MerchantOnboarding() {
   });
 
   const handleInputChange = (field: string, value: string) => {
-    setStoreData(prev => ({ ...prev, [field]: value }));
+    if (field === 'offers_delivery' || field === 'cod_available') {
+      setStoreData(prev => ({ ...prev, [field]: value === 'true' }));
+    } else {
+      setStoreData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const isValidGoogleMapsUrl = (url: string): boolean => {
@@ -277,6 +284,9 @@ export default function MerchantOnboarding() {
           bank_account_number: storeData.bank_account_number || null,
           bank_ifsc_code: storeData.bank_ifsc_code || null,
           upi_id: storeData.upi_id || null,
+          offers_delivery: storeData.offers_delivery,
+          delivery_charges: storeData.offers_delivery ? parseFloat(storeData.delivery_charges) : 0,
+          cod_available: storeData.cod_available,
           status: isAdmin ? 'approved' : 'pending',
         })
         .select()
@@ -624,6 +634,60 @@ export default function MerchantOnboarding() {
                     <p className="text-xs text-muted-foreground">
                       {photoFiles.length}/5 photos uploaded
                     </p>
+                  </div>
+                </div>
+
+                {/* Delivery Settings */}
+                <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🚚</span>
+                    <Label className="text-lg font-semibold">Delivery Settings</Label>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="offers-delivery">Offer Home Delivery?</Label>
+                        <p className="text-xs text-muted-foreground">Customers can order for delivery</p>
+                      </div>
+                      <input
+                        id="offers-delivery"
+                        type="checkbox"
+                        checked={storeData.offers_delivery}
+                        onChange={(e) => handleInputChange('offers_delivery', e.target.checked.toString())}
+                        className="h-4 w-4"
+                      />
+                    </div>
+
+                    {storeData.offers_delivery && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="delivery-charges">Delivery Charges (₹)</Label>
+                          <Input
+                            id="delivery-charges"
+                            type="number"
+                            placeholder="40"
+                            value={storeData.delivery_charges}
+                            onChange={(e) => handleInputChange('delivery_charges', e.target.value)}
+                          />
+                          <p className="text-xs text-muted-foreground">Charged per order</p>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <Label htmlFor="cod-available">Accept Cash on Delivery (COD)?</Label>
+                            <p className="text-xs text-muted-foreground">Customer pays when order arrives</p>
+                          </div>
+                          <input
+                            id="cod-available"
+                            type="checkbox"
+                            checked={storeData.cod_available}
+                            onChange={(e) => handleInputChange('cod_available', e.target.checked.toString())}
+                            className="h-4 w-4"
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 

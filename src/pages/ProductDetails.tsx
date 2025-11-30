@@ -1,4 +1,4 @@
-import { Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale, Map } from 'lucide-react';
+import { Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale, Map, Truck, Banknote } from 'lucide-react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/BackButton';
@@ -359,6 +359,26 @@ const ProductDetails = () => {
                         ⭐ {product.store_rating.toFixed(1)}
                       </p>
                     )}
+                    
+                    {/* Delivery Info Badges */}
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      {(product as any).offers_delivery && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 rounded text-xs">
+                          <Truck className="h-3 w-3 text-primary" />
+                          <span className="font-medium">
+                            {(product as any).delivery_charges > 0 
+                              ? `₹${(product as any).delivery_charges}` 
+                              : 'Free Delivery'}
+                          </span>
+                        </div>
+                      )}
+                      {(product as any).cod_available && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-accent/10 rounded text-xs">
+                          <Banknote className="h-3 w-3 text-accent" />
+                          <span className="font-medium">COD</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-bold text-primary">{formatPrice(product.price)}</span>
