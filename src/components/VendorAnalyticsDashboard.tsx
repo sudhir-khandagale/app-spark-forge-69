@@ -5,9 +5,15 @@ import { useVendorAnalytics } from '@/hooks/useVendorAnalytics';
 
 interface VendorAnalyticsDashboardProps {
   storeId: string;
+  subscriptionTier?: string;
+  isLocked?: boolean;
 }
 
-export default function VendorAnalyticsDashboard({ storeId }: VendorAnalyticsDashboardProps) {
+export default function VendorAnalyticsDashboard({ 
+  storeId, 
+  subscriptionTier = 'free',
+  isLocked = false 
+}: VendorAnalyticsDashboardProps) {
   const { analytics, loading } = useVendorAnalytics(storeId, 30);
 
   if (loading) {

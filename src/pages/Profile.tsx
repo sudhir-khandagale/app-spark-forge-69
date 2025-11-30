@@ -1,10 +1,11 @@
-import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft, Edit, ShoppingBag, Check, Circle, BarChart3 } from 'lucide-react';
+import { LogOut, User, Store as StoreIcon, Settings as SettingsIcon, Heart, List, Plus, Shield, ArrowLeft, Edit, ShoppingBag, Check, Circle, BarChart3, Crown, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useState, useEffect, useCallback } from 'react';
 import RewardsDisplay from '@/components/RewardsDisplay';
@@ -17,6 +18,8 @@ import { LeaderboardCard } from '@/components/profile/LeaderboardCard';
 import { StreakCounter } from '@/components/profile/StreakCounter';
 import { LevelUpCelebration } from '@/components/profile/LevelUpCelebration';
 import { useUserLevel } from '@/hooks/useUserLevel';
+import { useVendorSubscription } from '@/hooks/useVendorSubscription';
+import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
 
 const Profile = () => {
   const { userLevel } = useUserLevel();
@@ -40,6 +43,8 @@ const Profile = () => {
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { subscription, loading: subLoading } = useVendorSubscription(user?.id);
 
   useEffect(() => {
     if (user) {
@@ -241,10 +246,28 @@ const Profile = () => {
         {(isVendor || isAdmin) && (
           <Card className="border-2 hover:shadow-lg transition-shadow">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <StoreIcon className="w-6 h-6 text-primary" />
-                My Stores
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <StoreIcon className="w-6 h-6 text-primary" />
+                  My Stores
+                </CardTitle>
+                {subscription && !subLoading && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant={subscription.tier === 'free' ? 'secondary' : 'default'}>
+                      {subscription.tier === 'free' && '⚡'}
+                      {subscription.tier === 'pro' && '⭐'}
+                      {subscription.tier === 'premium' && '👑'}
+                      {' '}
+                      {subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+              {subscription && !subLoading && (
+                <div className="text-sm text-muted-foreground">
+                  {subscription.storeCount}/{subscription.storeLimits[subscription.tier]} stores used
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid gap-3">
@@ -272,9 +295,35 @@ const Profile = () => {
                   </div>
                 ))}
               </div>
+
+              {subscription && !subLoading && subscription.storeCount >= subscription.storeLimits[subscription.tier] && !subscription.isAdmin && (
+                <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Lock className="h-5 w-5 text-primary mt-0.5" />
+                      <div className="flex-1 space-y-2">
+                        <p className="text-sm font-medium">Store Limit Reached</p>
+                        <p className="text-xs text-muted-foreground">
+                          Upgrade to {subscription.tier === 'free' ? 'Pro (3 stores)' : 'Premium (5 stores)'} to register more stores
+                        </p>
+                        <Button 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => setShowUpgradeModal(true)}
+                        >
+                          <Crown className="w-3 h-3 mr-1" />
+                          View Plans
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
               <Button 
                 variant="default" 
-                className="w-full" 
+                className="w-full"
+                disabled={subscription && !subLoading && subscription.storeCount >= subscription.storeLimits[subscription.tier] && !subscription.isAdmin}
                 onClick={() => navigate('/onboarding/merchant')}
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -339,6 +388,19 @@ const Profile = () => {
           levelName={userLevel.level_name}
           open={showLevelUp}
           onClose={() => setShowLevelUp(false)}
+        />
+      )}
+
+      {stores.length > 0 && (
+        <SubscriptionTiersModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
+          storeId={stores[0].id}
+          currentTier={subscription?.tier || 'free'}
+          onUpgrade={() => {
+            setShowUpgradeModal(false);
+            fetchVendorStores();
+          }}
         />
       )}
       

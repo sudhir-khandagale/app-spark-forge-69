@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Package, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Package, AlertCircle, Crown } from 'lucide-react';
+import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 
@@ -16,9 +17,8 @@ export default function AddProduct() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [productCount, setProductCount] = useState(0);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loadingCount, setLoadingCount] = useState(true);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const { subscription, loading: subLoading } = useVendorSubscription(userId, storeId);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -31,50 +31,28 @@ export default function AddProduct() {
   });
 
   useEffect(() => {
-    checkProductLimit();
-  }, [storeId]);
-
-  const checkProductLimit = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Check if user is admin
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
-
-      const userIsAdmin = roleData?.role === 'admin';
-      setIsAdmin(userIsAdmin);
-
-      // Count existing products for this store
-      const { count, error } = await supabase
-        .from('inventory')
-        .select('*', { count: 'exact', head: true })
-        .eq('store_id', storeId);
-
-      if (error) throw error;
-      setProductCount(count || 0);
-    } catch (error) {
-      console.error('Error checking product limit:', error);
-    } finally {
-      setLoadingCount(false);
-    }
-  };
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Free tier limit check (200 products for non-admins)
-    if (!isAdmin && productCount >= 200) {
-      toast({
-        title: 'Product Limit Reached',
-        description: 'Free tier allows 200 products per store. Upgrade your plan to add more products.',
-        variant: 'destructive',
-      });
-      return;
+    // Check tier-based product limit
+    if (subscription && !subscription.isAdmin) {
+      const productLimit = subscription.productLimits[subscription.tier];
+      if (subscription.productCount >= productLimit) {
+        const nextTier = subscription.tier === 'free' ? 'Pro (200 products)' : subscription.tier === 'pro' ? 'Premium (500 products)' : null;
+        toast({
+          title: 'Product Limit Reached',
+          description: nextTier 
+            ? `${subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)} tier allows ${productLimit} products per store. Upgrade to ${nextTier} to add more products.`
+            : `You've reached the maximum of ${productLimit} products per store.`,
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     setLoading(true);
@@ -96,7 +74,8 @@ export default function AddProduct() {
     }
   };
 
-  const limitReached = !isAdmin && productCount >= 200;
+  const limitReached = subscription && !subscription.isAdmin && subscription.productCount >= subscription.productLimits[subscription.tier];
+  const productLimit = subscription?.productLimits[subscription.tier] || 100;
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -107,17 +86,31 @@ export default function AddProduct() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Add New Product</h1>
-            <p className="text-sm text-muted-foreground">
-              {!isAdmin && `${productCount}/200 products used`}
-            </p>
+            {subscription && !subLoading && (
+              <p className="text-sm text-muted-foreground">
+                {subscription.productCount}/{productLimit} products used
+              </p>
+            )}
           </div>
         </div>
 
-        {limitReached && (
+        {limitReached && subscription && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              You've reached the free tier limit of 200 products. Upgrade your plan to add more products.
+            <AlertDescription className="flex items-center justify-between">
+              <span>
+                You've reached the {subscription.tier} tier limit of {productLimit} products per store.
+              </span>
+              {subscription.tier !== 'premium' && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => navigate('/profile')}
+                >
+                  <Crown className="w-3 h-3 mr-1" />
+                  Upgrade
+                </Button>
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -183,7 +176,7 @@ export default function AddProduct() {
                 </div>
               </div>
 
-              <Button type="submit" disabled={loading || limitReached || loadingCount} className="w-full">
+              <Button type="submit" disabled={loading || limitReached || subLoading} className="w-full">
                 {loading ? 'Adding Product...' : 'Add Product'}
               </Button>
             </form>
