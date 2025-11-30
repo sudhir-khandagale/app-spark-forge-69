@@ -50,51 +50,12 @@ const Index = () => {
     try {
       setLoadingTrending(true);
       
-      // Create timeout promise
+      // Simplified single-query approach with shorter timeout
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 10000)
+        setTimeout(() => reject(new Error('Query timeout')), 5000)
       );
 
-      // TWO-STEP APPROACH: Prevents query hang with cross-table filters
-      // Step 1: Fetch approved stores first
-      const storesPromise = supabase
-        .from('stores')
-        .select('id')
-        .eq('status', 'approved');
-
-      const { data: approvedStores, error: storesError } = await Promise.race([
-        storesPromise,
-        timeoutPromise
-      ]) as any;
-
-      if (storesError) throw storesError;
-      if (!approvedStores || approvedStores.length === 0) {
-        setTrendingProducts([]);
-        return;
-      }
-
-      const approvedStoreIds = approvedStores.map((s: any) => s.id);
-
-      // Step 2: Fetch trending products
-      const productsPromise = supabase
-        .from('products')
-        .select('id, name, image_url, category, rating, review_count')
-        .eq('trending', true)
-        .limit(8);
-
-      const { data: trendingProds, error: productsError } = await Promise.race([
-        productsPromise,
-        timeoutPromise
-      ]) as any;
-
-      if (productsError) throw productsError;
-      if (!trendingProds || trendingProds.length === 0) {
-        setTrendingProducts([]);
-        return;
-      }
-
-      // Step 3: Fetch inventory for trending products in approved stores
-      const productIds = trendingProds.map((p: any) => p.id);
+      // Single optimized query: get inventory with product and store data
       const inventoryPromise = supabase
         .from('inventory')
         .select(`
@@ -102,27 +63,41 @@ const Index = () => {
           price,
           in_stock,
           store_id,
-          stores (
+          products!inner (
             id,
-            name
+            name,
+            image_url,
+            category,
+            rating,
+            review_count,
+            trending
+          ),
+          stores!inner (
+            id,
+            name,
+            status
           )
         `)
-        .in('product_id', productIds)
-        .in('store_id', approvedStoreIds)
-        .eq('in_stock', true);
+        .eq('products.trending', true)
+        .eq('stores.status', 'approved')
+        .eq('in_stock', true)
+        .limit(8);
 
       const { data: inventory, error: inventoryError } = await Promise.race([
         inventoryPromise,
         timeoutPromise
       ]) as any;
 
-      if (inventoryError) throw inventoryError;
+      if (inventoryError) {
+        console.error('Query error:', inventoryError);
+        throw inventoryError;
+      }
 
-      // Match products with inventory
+      // Map unique products (take first store for each product)
       const productMap = new Map<string, TrendingProduct>();
       
       inventory?.forEach((inv: any) => {
-        const product = trendingProds.find((p: any) => p.id === inv.product_id);
+        const product = inv.products;
         if (product && !productMap.has(product.id)) {
           productMap.set(product.id, {
             id: product.id,
@@ -139,9 +114,21 @@ const Index = () => {
         }
       });
 
-      setTrendingProducts(Array.from(productMap.values()).slice(0, 4));
-    } catch (error) {
+      const products = Array.from(productMap.values()).slice(0, 4);
+      setTrendingProducts(products);
+
+      // If no products after successful query, show helpful message
+      if (products.length === 0) {
+        console.log('No trending products with inventory in approved stores');
+      }
+    } catch (error: any) {
       console.error('Error fetching trending products:', error);
+      // Show user-friendly error instead of empty state
+      toast({
+        title: 'Unable to load products',
+        description: 'Please refresh the page or try again later',
+        variant: 'destructive',
+      });
       setTrendingProducts([]);
     } finally {
       setLoadingTrending(false);
