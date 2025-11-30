@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { Card } from '@/components/ui/card';
 
 interface ListItem {
@@ -353,7 +353,7 @@ const ListDetails = () => {
             ))}
           </div>
         </main>
-        <BottomNav />
+        <RoleBasedBottomNav />
       </div>
     );
   }
@@ -367,7 +367,7 @@ const ListDetails = () => {
             <Button onClick={() => navigate('/lists')}>Back to Lists</Button>
           </div>
         </div>
-        <BottomNav />
+        <RoleBasedBottomNav />
       </div>
     );
   }
@@ -556,7 +556,7 @@ const ListDetails = () => {
         </div>
       )}
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

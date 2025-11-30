@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, User, Mail, Lock, Camera } from 'lucide-react';
 import { z } from 'zod';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { AvatarUpload } from '@/components/AvatarUpload';
 import { BannerUpload } from '@/components/BannerUpload';
 import { ProfileCompletion } from '@/components/ProfileCompletion';
@@ -578,7 +578,7 @@ const ProfileManagement = () => {
         </div>
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

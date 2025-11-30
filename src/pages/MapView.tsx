@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/BackButton';
 import { Input } from '@/components/ui/input';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import GoogleMap from '@/components/GoogleMap';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useState, useEffect } from 'react';
@@ -178,7 +178,7 @@ const MapView = () => {
         </div>
       )}
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

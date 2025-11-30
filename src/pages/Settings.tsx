@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/BackButton';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -255,7 +255,7 @@ const Settings = () => {
         </div>
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

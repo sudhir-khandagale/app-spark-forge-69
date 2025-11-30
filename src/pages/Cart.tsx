@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { formatPrice } from '@/lib/utils';
 
 interface CartItem {
@@ -293,7 +293,7 @@ const Cart = () => {
         </div>
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

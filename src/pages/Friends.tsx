@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from "@/components/RoleBasedBottomNav";
 import { FriendCard } from '@/components/profile/FriendCard';
 import { UserSearch } from '@/components/profile/UserSearch';
 import { useFriends } from '@/hooks/useFriends';
@@ -108,7 +108,7 @@ const Friends = () => {
         </div>
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

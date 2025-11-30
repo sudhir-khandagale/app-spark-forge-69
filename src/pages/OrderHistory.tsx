@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { ShoppingBag, Store, Calendar, FileText } from 'lucide-react';
 import { BackButton } from '@/components/BackButton';
 import { format } from 'date-fns';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { useToast } from '@/hooks/use-toast';
 
 interface Order {
@@ -197,7 +197,7 @@ export default function OrderHistory() {
         )}
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 }

@@ -2,10 +2,12 @@ import { Home, Map, ClipboardList, ShoppingCart, User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useNativeFeatures } from '@/hooks/useNativeFeatures';
+import { useCartCount } from '@/hooks/useCartCount';
 
 const BottomNav = () => {
   const location = useLocation();
   const { haptic } = useNativeFeatures();
+  const cartCount = useCartCount();
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -25,7 +27,7 @@ const BottomNav = () => {
               to={path}
               onClick={() => haptic.light()}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200",
+                "flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200 relative",
                 isActive
                   ? "text-accent scale-110"
                   : "text-muted-foreground hover:text-foreground hover:scale-105"
@@ -33,6 +35,12 @@ const BottomNav = () => {
             >
               <Icon className="w-6 h-6" />
               <span className="text-xs font-medium">{label}</span>
+              {/* Cart Badge */}
+              {label === 'Cart' && cartCount > 0 && (
+                <span className="absolute top-2 right-1/4 translate-x-1/2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </Link>
           );
         })}

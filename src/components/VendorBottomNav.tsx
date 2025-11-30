@@ -2,10 +2,37 @@ import { Home, Share2, User, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useNativeFeatures } from '@/hooks/useNativeFeatures';
+import { useVendorNotifications } from '@/hooks/useVendorNotifications';
+import { useStores } from '@/hooks/useStores';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
 
 const VendorBottomNav = () => {
   const location = useLocation();
   const { haptic } = useNativeFeatures();
+  const [storeId, setStoreId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStoreId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: store } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', user.id)
+        .eq('status', 'approved')
+        .single();
+
+      if (store) {
+        setStoreId(store.id);
+      }
+    };
+
+    fetchStoreId();
+  }, []);
+
+  const { unreadCount } = useVendorNotifications(storeId);
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -25,7 +52,7 @@ const VendorBottomNav = () => {
               to={path}
               onClick={() => haptic.light()}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200",
+                "flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200 relative",
                 isActive
                   ? "text-accent scale-110"
                   : "text-muted-foreground hover:text-foreground hover:scale-105"
@@ -33,6 +60,12 @@ const VendorBottomNav = () => {
             >
               <Icon className="w-6 h-6" />
               <span className="text-xs font-medium">{label}</span>
+              {/* Dashboard Notifications Badge */}
+              {label === 'Dashboard' && unreadCount > 0 && (
+                <span className="absolute top-2 right-1/4 translate-x-1/2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}
