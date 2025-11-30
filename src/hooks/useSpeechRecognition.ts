@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Map our language codes to Web Speech API language codes
 const languageCodeMap: Record<string, string> = {
@@ -31,6 +31,16 @@ export const useSpeechRecognition = ({
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+  
+  // Use refs to avoid recreating recognition instance when callbacks change
+  const onResultRef = useRef(onResult);
+  const onErrorRef = useRef(onError);
+
+  // Keep refs up to date
+  useEffect(() => {
+    onResultRef.current = onResult;
+    onErrorRef.current = onError;
+  }, [onResult, onError]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -64,7 +74,7 @@ export const useSpeechRecognition = ({
 
           if (finalTranscript) {
             setTranscript(finalTranscript);
-            onResult?.(finalTranscript);
+            onResultRef.current?.(finalTranscript);
           } else {
             setTranscript(interimTranscript);
           }
@@ -73,7 +83,7 @@ export const useSpeechRecognition = ({
         recognitionInstance.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
           setIsListening(false);
-          onError?.(event.error);
+          onErrorRef.current?.(event.error);
         };
 
         recognitionInstance.onend = () => {
@@ -83,7 +93,7 @@ export const useSpeechRecognition = ({
         setRecognition(recognitionInstance);
       }
     }
-  }, [language, onResult, onError]);
+  }, [language]); // Removed onResult and onError from dependencies
 
   const startListening = useCallback(() => {
     if (recognition && !isListening) {
