@@ -340,6 +340,44 @@ export type Database = {
         }
         Relationships: []
       }
+      order_notes: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_vendor: boolean
+          message: string
+          order_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_vendor?: boolean
+          message: string
+          order_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_vendor?: boolean
+          message?: string
+          order_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_notes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string | null
@@ -567,6 +605,8 @@ export type Database = {
           store_id: string
           updated_at: string | null
           user_id: string
+          vendor_responded_at: string | null
+          vendor_response: string | null
         }
         Insert: {
           comment?: string | null
@@ -578,6 +618,8 @@ export type Database = {
           store_id: string
           updated_at?: string | null
           user_id: string
+          vendor_responded_at?: string | null
+          vendor_response?: string | null
         }
         Update: {
           comment?: string | null
@@ -589,6 +631,8 @@ export type Database = {
           store_id?: string
           updated_at?: string | null
           user_id?: string
+          vendor_responded_at?: string | null
+          vendor_response?: string | null
         }
         Relationships: [
           {
