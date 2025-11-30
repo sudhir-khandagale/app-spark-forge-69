@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Download } from 'lucide-react';
+import { CheckCircle, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('order');
   const [receipt, setReceipt] = useState<any>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (orderId) {
@@ -22,6 +25,46 @@ export default function PaymentSuccess() {
       body: { orderId }
     });
     setReceipt(data);
+  };
+
+  const downloadInvoice = async () => {
+    if (!orderId) return;
+    
+    setDownloading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invoice', {
+        body: { orderId }
+      });
+
+      if (error) throw error;
+
+      if (data?.invoice?.html) {
+        // Create a blob and download
+        const blob = new Blob([data.invoice.html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Invoice_${data.invoice.receiptNumber}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast({
+          title: 'Invoice Downloaded',
+          description: 'Your invoice has been downloaded successfully',
+        });
+      }
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast({
+        title: 'Download Failed',
+        description: 'Failed to download invoice',
+        variant: 'destructive',
+      });
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -52,9 +95,30 @@ export default function PaymentSuccess() {
             </>
           )}
 
-          <Button onClick={() => navigate('/profile')} className="w-full">
-            Back to Profile
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              onClick={downloadInvoice} 
+              disabled={downloading || !orderId}
+              className="w-full"
+              variant="outline"
+            >
+              {downloading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                  Generating Invoice...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Download Invoice
+                </>
+              )}
+            </Button>
+
+            <Button onClick={() => navigate('/profile')} className="w-full">
+              Back to Profile
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

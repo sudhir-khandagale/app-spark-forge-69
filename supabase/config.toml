@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.smart-inventory-search]
 verify_jwt = true
+
+[functions.generate-invoice]
+verify_jwt = true
