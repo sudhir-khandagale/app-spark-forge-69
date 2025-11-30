@@ -831,6 +831,73 @@ export type Database = {
         }
         Relationships: []
       }
+      qr_redemptions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          product_id: string | null
+          qr_code: string
+          redeemed_at: string | null
+          reservation_id: string | null
+          scanned_at: string | null
+          scanned_by: string | null
+          status: string | null
+          store_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          product_id?: string | null
+          qr_code: string
+          redeemed_at?: string | null
+          reservation_id?: string | null
+          scanned_at?: string | null
+          scanned_by?: string | null
+          status?: string | null
+          store_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          product_id?: string | null
+          qr_code?: string
+          redeemed_at?: string | null
+          reservation_id?: string | null
+          scanned_at?: string | null
+          scanned_by?: string | null
+          status?: string | null
+          store_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_redemptions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_redemptions_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_redemptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservations: {
         Row: {
           contact_info: Json | null

@@ -1,10 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Search, MousePointer, ShoppingBag, TrendingUp, Package, AlertTriangle, DollarSign } from 'lucide-react';
+import { Eye, Search, MousePointer, ShoppingBag, TrendingUp, Package, AlertTriangle, DollarSign, QrCode } from 'lucide-react';
 import { useVendorAnalytics } from '@/hooks/useVendorAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface VendorAnalyticsDashboardProps {
   storeId: string;
@@ -26,15 +28,45 @@ export default function VendorAnalyticsDashboard({
   subscriptionTier = 'free',
   isLocked = false 
 }: VendorAnalyticsDashboardProps) {
+  const navigate = useNavigate();
   const { analytics, loading } = useVendorAnalytics(storeId, 30);
   const [inventoryStats, setInventoryStats] = useState<InventoryStats | null>(null);
   const [loadingInventory, setLoadingInventory] = useState(true);
+  const [qrStats, setQrStats] = useState({
+    totalScans: 0,
+    totalRedemptions: 0,
+    conversionRate: 0
+  });
 
   useEffect(() => {
     if (storeId) {
       fetchInventoryStats();
+      fetchQRStats();
     }
   }, [storeId]);
+
+  const fetchQRStats = async () => {
+    try {
+      const { data: qrData } = await supabase
+        .from('qr_redemptions')
+        .select('status')
+        .eq('store_id', storeId);
+
+      if (qrData) {
+        const totalScans = qrData.filter(q => q.status === 'scanned' || q.status === 'redeemed').length;
+        const totalRedemptions = qrData.filter(q => q.status === 'redeemed').length;
+        const conversionRate = totalScans > 0 ? (totalRedemptions / totalScans) * 100 : 0;
+
+        setQrStats({
+          totalScans,
+          totalRedemptions,
+          conversionRate
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching QR stats:', error);
+    }
+  };
 
   const fetchInventoryStats = async () => {
     try {
@@ -164,11 +196,19 @@ export default function VendorAnalyticsDashboard({
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            <CardTitle>Store Performance (Last 30 Days)</CardTitle>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                <CardTitle>Store Performance (Last 30 Days)</CardTitle>
+              </div>
+              <CardDescription>Track your store's visibility and engagement</CardDescription>
+            </div>
+            <Button onClick={() => navigate('/vendor/scan-qr')} size="sm">
+              <QrCode className="h-4 w-4 mr-2" />
+              Scan QR
+            </Button>
           </div>
-          <CardDescription>Track your store's visibility and engagement</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -184,6 +224,33 @@ export default function VendorAnalyticsDashboard({
                 </div>
               );
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* QR Code Conversion Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <QrCode className="h-5 w-5" />
+            QR Code Conversions
+          </CardTitle>
+          <CardDescription>Track customer visits and sales attribution</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">Total Scans</div>
+              <div className="text-2xl font-bold">{qrStats.totalScans}</div>
+            </div>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">Completed Sales</div>
+              <div className="text-2xl font-bold text-green-600">{qrStats.totalRedemptions}</div>
+            </div>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-1">Conversion Rate</div>
+              <div className="text-2xl font-bold">{qrStats.conversionRate.toFixed(1)}%</div>
+            </div>
           </div>
         </CardContent>
       </Card>

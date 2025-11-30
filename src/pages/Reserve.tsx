@@ -12,6 +12,8 @@ import { supabase } from '@/integrations/supabase/client';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { useState } from 'react';
 import { useUserActivity } from '@/hooks/useUserActivity';
+import { QRCodeDisplay } from '@/components/QRCodeDisplay';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const reservationSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -29,6 +31,13 @@ const Reserve = () => {
   const { toast } = useToast();
   const { logActivity } = useUserActivity();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState<{
+    code: string;
+    productName: string;
+    storeName: string;
+    expiresAt: string;
+  } | null>(null);
+  const [showQRDialog, setShowQRDialog] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
@@ -80,7 +89,7 @@ const Reserve = () => {
       const mockStoreId = '00000000-0000-0000-0000-000000000000';
       const mockInventoryId = '00000000-0000-0000-0000-000000000000';
 
-      const { error } = await supabase.from('reservations').insert({
+      const { data: reservation, error } = await supabase.from('reservations').insert({
         user_id: user.id,
         product_id: mockProductId,
         store_id: mockStoreId,
@@ -92,9 +101,22 @@ const Reserve = () => {
         },
         expires_at: calculateExpiryTime(data.pickupTime),
         status: 'pending'
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Generate QR code
+      const qrCode = `FLOWDUX-${reservation.id}-${Date.now()}`;
+      const { error: qrError } = await supabase.from('qr_redemptions').insert({
+        qr_code: qrCode,
+        product_id: mockProductId,
+        store_id: mockStoreId,
+        reservation_id: reservation.id,
+        user_id: user.id,
+        expires_at: calculateExpiryTime(data.pickupTime)
+      });
+
+      if (qrError) throw qrError;
 
       // Log activity
       await logActivity('reservation', {
@@ -102,12 +124,19 @@ const Reserve = () => {
         storeId: mockStoreId
       });
 
+      // Show QR code
+      setQrCodeData({
+        code: qrCode,
+        productName: "Sony WH-1000XM4",
+        storeName: "Tech Store Downtown",
+        expiresAt: calculateExpiryTime(data.pickupTime)
+      });
+      setShowQRDialog(true);
+
       toast({
         title: 'Reservation Confirmed',
-        description: 'Your item has been reserved. You will receive a confirmation email shortly.'
+        description: 'Your QR code is ready. Show it at the store to complete your purchase.'
       });
-
-      navigate('/profile');
     } catch (error) {
       console.error('Reservation error:', error);
       toast({
@@ -244,6 +273,28 @@ const Reserve = () => {
           </div>
         </form>
       </main>
+
+      <Dialog open={showQRDialog} onOpenChange={setShowQRDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reservation Confirmed!</DialogTitle>
+          </DialogHeader>
+          {qrCodeData && (
+            <QRCodeDisplay
+              qrCode={qrCodeData.code}
+              productName={qrCodeData.productName}
+              storeName={qrCodeData.storeName}
+              expiresAt={qrCodeData.expiresAt}
+            />
+          )}
+          <Button onClick={() => {
+            setShowQRDialog(false);
+            navigate('/profile');
+          }}>
+            Done
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       <RoleBasedBottomNav />
     </div>
