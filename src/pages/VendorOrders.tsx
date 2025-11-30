@@ -27,6 +27,18 @@ interface Order {
   items: any;
   delivery_time_slot: string | null;
   estimated_delivery: string | null;
+  tracking_number: string | null;
+  user_id: string;
+  delivery_address: {
+    name?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+  } | null;
+  customerName?: string;
+  customerPhone?: string;
 }
 
 export default function VendorOrders() {
@@ -43,8 +55,7 @@ export default function VendorOrders() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [storeId, setStoreId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-
-  const canAccessOrderManagement = subscription?.canAccessOrderManagement || subscription?.isAdmin;
+  const [editingTracking, setEditingTracking] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (user && (isVendor || isAdmin)) {
@@ -78,7 +89,7 @@ export default function VendorOrders() {
 
       setStoreId(store.id);
 
-      // Fetch orders
+      // Fetch orders with customer info
       const { data: ordersData, error } = await supabase
         .from('orders')
         .select('*')
@@ -86,7 +97,28 @@ export default function VendorOrders() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrders(ordersData || []);
+
+      // Fetch customer profiles for each order
+      if (ordersData && ordersData.length > 0) {
+        const userIds = [...new Set(ordersData.map(order => order.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, phone')
+          .in('id', userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        const ordersWithCustomerInfo = ordersData.map(order => ({
+          ...order,
+          delivery_address: order.delivery_address as Order['delivery_address'],
+          customerName: profileMap.get(order.user_id)?.display_name,
+          customerPhone: profileMap.get(order.user_id)?.phone,
+        })) as Order[];
+
+        setOrders(ordersWithCustomerInfo);
+      } else {
+        setOrders([]);
+      }
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({
@@ -140,6 +172,40 @@ export default function VendorOrders() {
     }
   };
 
+  const updateTrackingNumber = async (orderId: string) => {
+    const trackingNumber = editingTracking[orderId];
+    if (!trackingNumber?.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ tracking_number: trackingNumber.trim() })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Tracking Updated',
+        description: 'Tracking number saved successfully',
+      });
+
+      setEditingTracking(prev => {
+        const next = { ...prev };
+        delete next[orderId];
+        return next;
+      });
+
+      fetchStoreAndOrders();
+    } catch (error) {
+      console.error('Error updating tracking:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update tracking number',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'delivered':
@@ -185,14 +251,7 @@ export default function VendorOrders() {
         </div>
       </header>
 
-      <LockedFeatureOverlay
-        isLocked={!canAccessOrderManagement}
-        onUpgrade={() => setShowUpgradeModal(true)}
-        title="Order Management Locked"
-        description="Upgrade to Pro or Premium to access order management features"
-        requiredTier="pro"
-      >
-        <main className="p-4 space-y-4">
+      <main className="p-4 space-y-4">
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Card>
@@ -293,6 +352,34 @@ export default function VendorOrders() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {/* Customer Info */}
+                  <div className="space-y-2 pb-3 border-b">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Customer Details</p>
+                    {order.customerName && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Name: </span>
+                        <span className="font-medium">{order.customerName}</span>
+                      </div>
+                    )}
+                    {order.customerPhone && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Phone: </span>
+                        <a href={`tel:${order.customerPhone}`} className="font-medium text-primary hover:underline">
+                          {order.customerPhone}
+                        </a>
+                      </div>
+                    )}
+                    {order.delivery_address && (
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Address: </span>
+                        <span className="font-medium">
+                          {order.delivery_address.address}, {order.delivery_address.city}, {order.delivery_address.state} - {order.delivery_address.pincode}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Order Info */}
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Total Amount</span>
                     <span className="font-bold">₹{order.total_amount.toFixed(2)}</span>
@@ -305,7 +392,29 @@ export default function VendorOrders() {
                     </div>
                   )}
 
-                  <div className="flex gap-2">
+                  {/* Tracking Number */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Tracking Number</label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter tracking number"
+                        value={editingTracking[order.id] ?? order.tracking_number ?? ''}
+                        onChange={(e) => setEditingTracking(prev => ({ ...prev, [order.id]: e.target.value }))}
+                        className="flex-1"
+                      />
+                      {(editingTracking[order.id] !== undefined && editingTracking[order.id] !== order.tracking_number) && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => updateTrackingNumber(order.id)}
+                        >
+                          Save
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 flex-wrap pt-2">
                     {order.delivery_status === 'pending' && (
                       <Button size="sm" onClick={() => updateOrderStatus(order.id, 'confirmed')}>
                         Confirm
@@ -346,7 +455,6 @@ export default function VendorOrders() {
             ))
           )}
         </main>
-      </LockedFeatureOverlay>
 
       {/* Subscription Modal */}
       {storeId && (
