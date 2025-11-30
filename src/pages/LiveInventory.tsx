@@ -14,6 +14,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { InventoryScanner } from '@/components/InventoryScanner';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
+import { InventoryAssistant } from '@/components/InventoryAssistant';
+import { InventoryOCRUpload } from '@/components/InventoryOCRUpload';
+import { SmartInventorySearch } from '@/components/SmartInventorySearch';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface InventoryItem {
@@ -346,18 +349,15 @@ export default function LiveInventory() {
             </Button>
           </div>
 
+          <SmartInventorySearch
+            onSearch={setSearchQuery}
+            onFilterChange={setFilter as any}
+            currentFilter={filter}
+          />
+
           <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[150px]">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -368,6 +368,10 @@ export default function LiveInventory() {
                 ))}
               </SelectContent>
             </Select>
+            <InventoryOCRUpload
+              storeId={storeId || ''}
+              onUploadComplete={fetchInventory}
+            />
           </div>
         </div>
       </div>
@@ -723,6 +727,11 @@ export default function LiveInventory() {
         onOpenChange={setScannerOpen}
         storeId={storeId!}
         onStockUpdated={fetchInventory}
+      />
+
+      <InventoryAssistant
+        storeId={storeId || ''}
+        onInventoryUpdate={fetchInventory}
       />
 
       <RoleBasedBottomNav />
