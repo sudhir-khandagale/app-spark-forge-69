@@ -6,27 +6,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 const RoleBasedBottomNav = () => {
   const { isVendor, isAdmin, loading } = useUserRole();
 
-  // Show skeleton loader while loading to prevent flickering
-  if (loading) {
-    return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex flex-col items-center justify-center flex-1 h-full space-y-1">
-              <Skeleton className="w-6 h-6 rounded" />
-              <Skeleton className="w-12 h-3 rounded" />
-            </div>
-          ))}
-        </div>
-      </nav>
-    );
-  }
-
-  // Admins get user navigation (non-vendor)
+  // Optimized: Show default nav immediately for better UX, update when role loads
+  // This prevents blocking the entire bottom nav while auth is being checked
   if (isVendor && !isAdmin) {
     return <VendorBottomNav />;
   }
 
+  // Show customer nav by default (covers unauthenticated + customer cases)
+  // The loading skeleton was causing poor perceived performance
   return <BottomNav />;
 };
 

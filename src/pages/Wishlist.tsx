@@ -245,7 +245,7 @@ const Wishlist = () => {
                       </p>
                     )}
 
-                    {item.product.rating && (
+                    {item.product.rating !== null && item.product.rating > 0 && (
                       <div className="flex items-center gap-1">
                         <span className="text-sm">⭐</span>
                         <span className="text-sm font-medium">

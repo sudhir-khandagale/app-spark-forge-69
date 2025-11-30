@@ -243,13 +243,15 @@ const Index = () => {
                             </div>
                           )}
                           <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
-                          {product.rating && (
+                          {product.rating !== null && product.rating > 0 && (
                             <div className="flex items-center gap-1 mb-1">
                               <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                               <span className="text-xs">{product.rating.toFixed(1)}</span>
-                              <span className="text-xs text-muted-foreground">
-                                ({product.review_count})
-                              </span>
+                              {product.review_count !== null && product.review_count > 0 && (
+                                <span className="text-xs text-muted-foreground">
+                                  ({product.review_count})
+                                </span>
+                              )}
                             </div>
                           )}
                           {flashSale ? (
@@ -317,7 +319,7 @@ const Index = () => {
                             <div className="p-4">
                               <div className="flex items-start justify-between mb-2">
                                 <h3 className="font-semibold text-lg line-clamp-1">{store.name}</h3>
-                                {store.rating && (
+                                {store.rating !== null && store.rating > 0 && (
                                   <div className="flex items-center gap-1 text-sm">
                                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                                     <span className="font-medium">{store.rating.toFixed(1)}</span>
