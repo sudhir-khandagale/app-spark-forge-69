@@ -53,6 +53,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           cart_id: string
@@ -755,6 +785,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string | null
+          admin_notes: string | null
           avatar_url: string | null
           banner_url: string | null
           created_at: string | null
@@ -768,6 +800,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          account_status?: string | null
+          admin_notes?: string | null
           avatar_url?: string | null
           banner_url?: string | null
           created_at?: string | null
@@ -781,6 +815,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          account_status?: string | null
+          admin_notes?: string | null
           avatar_url?: string | null
           banner_url?: string | null
           created_at?: string | null
@@ -973,6 +1009,7 @@ export type Database = {
           bank_account_number: string | null
           bank_ifsc_code: string | null
           cod_available: boolean | null
+          commission_rate: number | null
           created_at: string | null
           delivery_charges: number | null
           description: string | null
@@ -1002,6 +1039,7 @@ export type Database = {
           bank_account_number?: string | null
           bank_ifsc_code?: string | null
           cod_available?: boolean | null
+          commission_rate?: number | null
           created_at?: string | null
           delivery_charges?: number | null
           description?: string | null
@@ -1031,6 +1069,7 @@ export type Database = {
           bank_account_number?: string | null
           bank_ifsc_code?: string | null
           cod_available?: boolean | null
+          commission_rate?: number | null
           created_at?: string | null
           delivery_charges?: number | null
           description?: string | null
