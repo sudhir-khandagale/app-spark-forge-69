@@ -5,7 +5,8 @@ import VendorBottomNav from '@/components/VendorBottomNav';
 const RoleBasedBottomNav = () => {
   const { isVendor, isAdmin, loading } = useUserRole();
 
-  if (loading) return null;
+  // Show default customer navigation while loading
+  if (loading) return <BottomNav />;
 
   // Admins get customer navigation
   if (isVendor && !isAdmin) {
