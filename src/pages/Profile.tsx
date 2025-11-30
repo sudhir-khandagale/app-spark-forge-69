@@ -20,8 +20,10 @@ import { LevelUpCelebration } from '@/components/profile/LevelUpCelebration';
 import { useUserLevel } from '@/hooks/useUserLevel';
 import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Profile = () => {
+  const { t } = useTranslation();
   const { userLevel } = useUserLevel();
   const [previousLevel, setPreviousLevel] = useState<number | null>(null);
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -156,12 +158,12 @@ const Profile = () => {
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
             <CardHeader>
-              <CardTitle>Not Logged In</CardTitle>
-              <CardDescription>Please login to view your profile</CardDescription>
+              <CardTitle>{t('not_logged_in')}</CardTitle>
+              <CardDescription>{t('login_to_view_profile')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Link to="/auth">
-                <Button className="w-full">Go to Login</Button>
+                <Button className="w-full">{t('go_to_login')}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -187,9 +189,9 @@ const Profile = () => {
                 </div>
                 <div className="flex-1 space-y-3">
                   <div>
-                    <h3 className="font-semibold text-lg">Complete Your Profile</h3>
+                    <h3 className="font-semibold text-lg">{t('complete_profile')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Unlock 50 bonus points and personalized features!
+                      {t('complete_profile_desc')}
                     </p>
                   </div>
                   <div className="space-y-2 text-sm">

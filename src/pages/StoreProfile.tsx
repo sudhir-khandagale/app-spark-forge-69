@@ -18,8 +18,10 @@ import { VendorPostCard } from '@/components/vendor/VendorPostCard';
 import { useVendorPosts } from '@/hooks/useVendorPosts';
 import { useVendorStories } from '@/hooks/useVendorStories';
 import VendorStoriesCarousel from '@/components/vendor/VendorStoriesCarousel';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const StoreProfile = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { logActivity } = useUserActivity();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -171,13 +173,13 @@ const StoreProfile = () => {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="products">
                 <Package className="h-4 w-4 mr-2" />
-                Products
+                {t('products')}
               </TabsTrigger>
               <TabsTrigger value="posts">
                 <ShoppingBag className="h-4 w-4 mr-2" />
-                Posts
+                {t('posts')}
               </TabsTrigger>
-              <TabsTrigger value="about">About</TabsTrigger>
+              <TabsTrigger value="about">{t('about')}</TabsTrigger>
             </TabsList>
 
             {/* Products Tab */}

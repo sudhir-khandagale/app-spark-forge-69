@@ -16,6 +16,7 @@ import { Package, Search, Filter, TrendingUp, Clock, CheckCircle2 } from 'lucide
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Order {
   id: string;
@@ -29,6 +30,7 @@ interface Order {
 }
 
 export default function VendorOrders() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isVendor, isAdmin } = useUserRole();
@@ -177,8 +179,8 @@ export default function VendorOrders() {
         <div className="p-4 flex items-center gap-3">
           <BackButton fallbackPath="/vendor/dashboard" />
           <div>
-            <h1 className="text-2xl font-bold">Order Management</h1>
-            <p className="text-sm text-muted-foreground">Manage your store orders</p>
+            <h1 className="text-2xl font-bold">{t('order_management')}</h1>
+            <p className="text-sm text-muted-foreground">{t('manage_store_orders')}</p>
           </div>
         </div>
       </header>

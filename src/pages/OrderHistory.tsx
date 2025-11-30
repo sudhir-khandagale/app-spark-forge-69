@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { useToast } from '@/hooks/use-toast';
 import { OrderTracking } from '@/components/OrderTracking';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Order {
   id: string;
@@ -31,6 +32,7 @@ interface Order {
 }
 
 export default function OrderHistory() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -129,8 +131,8 @@ export default function OrderHistory() {
         <div className="max-w-4xl mx-auto p-4 flex items-center gap-3">
           <BackButton fallbackPath="/profile" />
           <div>
-            <h1 className="text-2xl font-bold">Order History</h1>
-            <p className="text-sm text-muted-foreground">View your past purchases</p>
+            <h1 className="text-2xl font-bold">{t('order_history')}</h1>
+            <p className="text-sm text-muted-foreground">{t('view_past_purchases')}</p>
           </div>
         </div>
       </header>

@@ -17,6 +17,7 @@ import flowduxIcon from '@/assets/flowdux-icon.png';
 import { PullToRefresh } from '@/components/PullToRefresh';
 import { toast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/useTranslation';
+import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 
 interface TrendingProduct {
   id: string;

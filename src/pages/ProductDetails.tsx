@@ -14,8 +14,10 @@ import ProductReviews from '@/components/ProductReviews';
 import { formatPrice } from '@/lib/utils';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const ProductDetails = () => {
+  const { t } = useTranslation();
   const { logActivity } = useUserActivity();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -330,17 +332,17 @@ const ProductDetails = () => {
           </div>
 
           {/* Compare Prices Button */}
-          <Link to={`/compare/${id}`}>
+            <Link to={`/compare/${id}`}>
             <Button variant="outline" className="w-full" size="lg">
               <Scale className="w-4 h-4 mr-2" />
-              Compare Prices Across Stores
+              {t('compare_prices')}
             </Button>
           </Link>
 
           {/* Store Availability */}
           {product.store_name && (
             <div className="space-y-3">
-              <h2 className="font-semibold text-lg">Available At</h2>
+              <h2 className="font-semibold text-lg">{t('available_at')}</h2>
               <div className="p-4 bg-card border border-border rounded-lg space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
@@ -383,7 +385,7 @@ const ProductDetails = () => {
                   <div className="text-right">
                     <span className="text-2xl font-bold text-primary">{formatPrice(product.price)}</span>
                     <p className={`text-sm font-medium mt-1 ${product.in_stock ? 'text-accent' : 'text-destructive'}`}>
-                      {product.in_stock ? `In Stock (${product.quantity})` : 'Out of Stock'}
+                      {product.in_stock ? `${t('in_stock')} (${product.quantity})` : t('out_of_stock')}
                     </p>
                   </div>
                 </div>
@@ -446,13 +448,13 @@ const ProductDetails = () => {
               ) : (
                 <ShoppingCart className="w-4 h-4 mr-2" />
               )}
-              Add to Cart
+              {t('add_to_cart')}
             </Button>
             <Button
               className="flex-1 hover-scale"
               onClick={() => navigate(`/checkout?product=${id}&store=${product.store_id}`)}
             >
-              Buy Now
+              {t('buy_now')}
             </Button>
             <Button 
               variant="outline"

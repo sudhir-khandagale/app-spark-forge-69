@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { formatPrice } from '@/lib/utils';
 import { DeliveryTimeSlots } from '@/components/DeliveryTimeSlots';
+import { useTranslation } from '@/hooks/useTranslation';
 
 declare global {
   interface Window {
@@ -20,6 +21,7 @@ declare global {
 }
 
 const Checkout = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -306,7 +308,7 @@ const Checkout = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-bold">Checkout</h1>
+          <h1 className="text-xl font-bold">{t('checkout')}</h1>
         </div>
       </header>
 
@@ -314,7 +316,7 @@ const Checkout = () => {
         <div className="max-w-lg mx-auto space-y-6">
           {/* Order Summary */}
           <Card className="p-4">
-            <h2 className="font-semibold mb-3">Order Summary</h2>
+            <h2 className="font-semibold mb-3">{t('order_summary')}</h2>
             <div className="space-y-2 mb-4">
               {items.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-sm">
@@ -325,17 +327,17 @@ const Checkout = () => {
             </div>
             <div className="border-t pt-2 space-y-1">
               <div className="flex justify-between text-sm">
-                <span>Subtotal</span>
+                <span>{t('subtotal')}</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
               {deliveryCharges > 0 && (
                 <div className="flex justify-between text-sm text-primary">
-                  <span>Delivery Charges</span>
+                  <span>{t('delivery_charges')}</span>
                   <span>+{formatPrice(deliveryCharges)}</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                <span>Total</span>
+                <span>{t('total')}</span>
                 <span className="text-primary">{formatPrice(totalAmount)}</span>
               </div>
             </div>
@@ -343,17 +345,17 @@ const Checkout = () => {
 
           {/* Delivery Type */}
           <Card className="p-4">
-            <Label className="font-semibold mb-3 block">Delivery Method</Label>
+            <Label className="font-semibold mb-3 block">{t('delivery_method')}</Label>
             <RadioGroup value={deliveryType} onValueChange={(value: any) => setDeliveryType(value)}>
               <div className="flex items-center space-x-2 mb-2">
                 <RadioGroupItem value="pickup" id="pickup" />
-                <Label htmlFor="pickup">Pickup from Store</Label>
+                <Label htmlFor="pickup">{t('pickup_from_store')}</Label>
               </div>
               {storeSettings?.offers_delivery && (
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="delivery" id="delivery" />
                   <Label htmlFor="delivery">
-                    Home Delivery {storeSettings.delivery_charges > 0 && `(₹${storeSettings.delivery_charges})`}
+                    {t('home_delivery')} {storeSettings.delivery_charges > 0 && `(₹${storeSettings.delivery_charges})`}
                   </Label>
                 </div>
               )}
@@ -419,15 +421,15 @@ const Checkout = () => {
           </Card>
 
           {/* Checkout Button */}
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleCheckout}
-            disabled={processing || (deliveryType === 'delivery' && (!address.trim() || !deliveryTimeSlot))}
-          >
-            <CreditCard className="w-4 h-4 mr-2" />
-            {processing ? 'Processing...' : `Pay ${formatPrice(totalAmount)}`}
-          </Button>
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleCheckout}
+              disabled={processing || (deliveryType === 'delivery' && (!address.trim() || !deliveryTimeSlot))}
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              {processing ? t('processing') : `${t('pay')} ${formatPrice(totalAmount)}`}
+            </Button>
         </div>
       </main>
 

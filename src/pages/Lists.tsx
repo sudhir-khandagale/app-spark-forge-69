@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ interface ShoppingList {
 }
 
 const Lists = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [lists, setLists] = useState<ShoppingList[]>([]);
   const [loading, setLoading] = useState(true);
@@ -200,7 +202,7 @@ const Lists = () => {
       {/* Header */}
       <header className="p-4 border-b border-border">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Shopping Lists</h1>
+          <h1 className="text-2xl font-bold">{t('shopping_lists')}</h1>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button size="icon">

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64, storeId } = await req.json();
+    const { imageBase64, storeId, language = 'en' } = await req.json();
     const authHeader = req.headers.get('Authorization')!;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -33,7 +33,21 @@ serve(async (req) => {
       .single();
 
     if (!user || store?.owner_id !== user.id) {
-      throw new Error('Unauthorized');
+      const errorMessages: Record<string, string> = {
+        en: 'Unauthorized',
+        hi: 'अनधिकृत',
+        bn: 'অননুমোদিত',
+        te: 'అనధికారం',
+        mr: 'अनधिकृत',
+        ta: 'அங்கீகரிக்கப்படாதது',
+        gu: 'અનધિકૃત',
+        kn: 'ಅನಧಿಕೃತ',
+        ml: 'അനധികൃത',
+        pa: 'ਅਣਅਧਿਕਾਰਤ',
+        or: 'ଅନଧିକୃତ',
+        as: 'অননুমোদিত'
+      };
+      throw new Error(errorMessages[language] || errorMessages.en);
     }
 
     // Use Lovable AI Vision to extract inventory data
@@ -92,11 +106,43 @@ Only return the JSON array, no other text. If you can't find clear inventory dat
     }
 
     if (!Array.isArray(products) || products.length === 0) {
-      throw new Error('No inventory items found in the image. Please try a clearer photo.');
+      const noItemsMessages: Record<string, string> = {
+        en: 'No inventory items found in the image. Please try a clearer photo.',
+        hi: 'छवि में कोई इन्वेंट्री आइटम नहीं मिला। कृपया स्पष्ट फोटो का प्रयास करें।',
+        bn: 'ছবিতে কোনো ইনভেন্টরি আইটেম পাওয়া যায়নি। দয়া করে স্পষ্ট ছবি চেষ্টা করুন।',
+        te: 'చిత్రంలో ఇన్వెంటరీ ఐటెమ్‌లు కనుగొనబడలేదు. దయచేసి స్పష్టమైన ఫోటో ప్రయత్నించండి।',
+        mr: 'प्रतिमेत कोणतेही इन्व्हेंटरी आयटम आढळले नाहीत. कृपया स्पष्ट फोटो वापरा।',
+        ta: 'படத்தில் சரக்கு பொருட்கள் எதுவும் காணப்படவில்லை. தெளிவான புகைப்படத்தை முயற்சிக்கவும்.',
+        gu: 'છબીમાં કોઈ ઇન્વેન્ટરી આઇટમ મળ્યું નથી. કૃપા કરીને સ્પષ્ટ ફોટો અજમાવો.',
+        kn: 'ಚಿತ್ರದಲ್ಲಿ ದಾಸ್ತಾನು ಐಟಂಗಳು ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ಸ್ಪಷ್ಟ ಫೋಟೋ ಪ್ರಯತ್ನಿಸಿ.',
+        ml: 'ചിത്രത്തിൽ ഇൻവെന്ററി ഇനങ്ങൾ കണ്ടെത്തിയില്ല. വ്യക്തമായ ഫോട്ടോ ശ്രമിക്കുക.',
+        pa: 'ਤਸਵੀਰ ਵਿੱਚ ਕੋਈ ਇਨਵੈਂਟਰੀ ਆਈਟਮ ਨਹੀਂ ਮਿਲੀ। ਕਿਰਪਾ ਕਰਕੇ ਸਪੱਸ਼ਟ ਫੋਟੋ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।',
+        or: 'ଚିତ୍ରରେ କୌଣସି ଭଣ୍ଡାର ଆଇଟମ୍ ମିଳିଲା ନାହିଁ। ଦୟାକରି ସ୍ପଷ୍ଟ ଫଟୋ ଚେଷ୍ଟା କରନ୍ତୁ।',
+        as: 'ছবিত কোনো ইনভেণ্টৰী আইটেম পোৱা নগল। অনুগ্ৰহ কৰি স্পষ্ট ফটো চেষ্টা কৰক।'
+      };
+      throw new Error(noItemsMessages[language] || noItemsMessages.en);
     }
 
+    const successMessages: Record<string, string> = {
+      en: 'Successfully extracted inventory data',
+      hi: 'इन्वेंट्री डेटा सफलतापूर्वक निकाला गया',
+      bn: 'ইনভেন্টরি ডেটা সফলভাবে বের করা হয়েছে',
+      te: 'ఇన్వెంటరీ డేటా విజయవంతంగా సేకరించబడింది',
+      mr: 'इन्व्हेंटरी डेटा यशस्वीरित्या काढला',
+      ta: 'சரக்கு தரவு வெற்றிகரமாக எடுக்கப்பட்டது',
+      gu: 'ઇન્વેન્ટરી ડેટા સફળતાપૂર્વક કાઢવામાં આવ્યો',
+      kn: 'ದಾಸ್ತಾನು ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಹೊರತೆಗೆಯಲಾಗಿದೆ',
+      ml: 'ഇൻവെന്ററി ഡാറ്റ വിജയകരമായി എക്‌സ്ട്രാക്റ്റ് ചെയ്തു',
+      pa: 'ਇਨਵੈਂਟਰੀ ਡਾਟਾ ਸਫਲਤਾਪੂਰਵਕ ਐਕਸਟਰੈਕਟ ਕੀਤਾ ਗਿਆ',
+      or: 'ଭଣ୍ଡାର ତଥ୍ୟ ସଫଳତାର ସହ ବାହାର କରାଗଲା',
+      as: 'ইনভেণ্টৰী ডেটা সফলভাৱে উলিয়াই লোৱা হ'ল'
+    };
+
     return new Response(
-      JSON.stringify({ products }),
+      JSON.stringify({ 
+        products,
+        message: successMessages[language] || successMessages.en
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

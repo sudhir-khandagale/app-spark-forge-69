@@ -17,8 +17,11 @@ import { formatPrice } from '@/lib/utils';
 import { PullToRefresh } from '@/components/PullToRefresh';
 import { useUserActivity } from '@/hooks/useUserActivity';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/hooks/useTranslation';
+import { VoiceSearchButton } from '@/components/VoiceSearchButton';
 
 const Search = () => {
+  const { t } = useTranslation();
   const { logActivity } = useUserActivity();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -74,11 +77,12 @@ const Search = () => {
         <form onSubmit={handleSearch} className="flex items-center gap-3 p-4">
           <BackButton fallbackPath="/" />
           <Input
-            placeholder="Search for products..."
+            placeholder={t('search_products')}
             className="flex-1"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <VoiceSearchButton onTranscript={setQuery} />
           <Button variant="ghost" size="icon" type="button">
             <SlidersHorizontal className="w-5 h-5" />
           </Button>
@@ -93,7 +97,7 @@ const Search = () => {
             <div className="mb-4 space-y-3">
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm text-foreground">
-                  <span className="text-muted-foreground">Searching for:</span>{' '}
+                  <span className="text-muted-foreground">{t('searching_for')}:</span>{' '}
                   <span className="font-semibold text-foreground">"{query}"</span>
                 </p>
               </div>
@@ -128,7 +132,7 @@ const Search = () => {
           ) : results.length > 0 ? (
             <>
               <p className="text-sm font-medium text-foreground mb-4">
-                Found {results.length} {results.length === 1 ? 'result' : 'results'} near you
+                {t('found_results').replace('{count}', results.length.toString())}
               </p>
               <div className="space-y-3">
                 {sortedResults.map((result) => {
@@ -203,12 +207,12 @@ const Search = () => {
             </>
           ) : query ? (
             <div className="text-center py-12">
-              <p className="text-foreground font-medium">No products found for "{query}"</p>
-              <p className="text-sm text-muted-foreground mt-2">Try a different search term</p>
+              <p className="text-foreground font-medium">{t('no_results')}</p>
+              <p className="text-sm text-muted-foreground mt-2">{t('try_different_search')}</p>
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Search for products to see results</p>
+              <p className="text-muted-foreground">{t('search_to_see_results')}</p>
             </div>
           )}
           </div>

@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, storeId } = await req.json();
+    const { query, storeId, language = 'en' } = await req.json();
     
     const authHeader = req.headers.get('Authorization')!;
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -27,7 +27,21 @@ serve(async (req) => {
     // Verify user owns the store
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      const unauthorizedMessages: Record<string, string> = {
+        en: 'Unauthorized',
+        hi: 'अनधिकृत',
+        bn: 'অননুমোদিত',
+        te: 'అనధికారం',
+        mr: 'अनधिकृत',
+        ta: 'அங்கீகரிக்கப்படாதது',
+        gu: 'અનધિકૃત',
+        kn: 'ಅನಧಿಕೃತ',
+        ml: 'അനധികൃത',
+        pa: 'ਅਣਅਧਿਕਾਰਤ',
+        or: 'ଅନଧିକୃତ',
+        as: 'অননুমোদিত'
+      };
+      return new Response(JSON.stringify({ error: unauthorizedMessages[language] || unauthorizedMessages.en }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -109,9 +123,25 @@ Return ONLY valid JSON with extracted filters. If no filters found, return {}.`
 
     console.log('Parsed filters:', filters);
 
+    const successMessages: Record<string, string> = {
+      en: 'Search query parsed successfully',
+      hi: 'खोज क्वेरी सफलतापूर्वक पार्स की गई',
+      bn: 'সার্চ ক্যোয়ারী সফলভাবে পার্স করা হয়েছে',
+      te: 'శోధన ప్రశ్న విజయవంతంగా పార్స్ చేయబడింది',
+      mr: 'शोध क्वेरी यशस्वीरित्या पार्स केली',
+      ta: 'தேடல் வினவல் வெற்றிகரமாக பாகுபடுத்தப்பட்டது',
+      gu: 'શોધ ક્વેરી સફળતાપૂર્વક પાર્સ કરી',
+      kn: 'ಹುಡುಕಾಟ ಪ್ರಶ್ನೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪಾರ್ಸ್ ಮಾಡಲಾಗಿದೆ',
+      ml: 'തിരയൽ ചോദ്യം വിജയകരമായി പാർസ് ചെയ്തു',
+      pa: 'ਖੋਜ ਕੁਐਰੀ ਸਫਲਤਾਪੂਰਵਕ ਪਾਰਸ ਕੀਤੀ ਗਈ',
+      or: 'ସନ୍ଧାନ ପ୍ରଶ୍ନ ସଫଳତାର ସହ ପାର୍ସ କରାଗଲା',
+      as: 'সন্ধান প্ৰশ্ন সফলভাৱে পাৰ্ছ কৰা হ'ল'
+    };
+
     return new Response(JSON.stringify({ 
       filters,
-      originalQuery: query 
+      originalQuery: query,
+      message: successMessages[language] || successMessages.en
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
