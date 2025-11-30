@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, storeId } = await req.json();
+    const { message, storeId, language = 'en-IN' } = await req.json();
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
     
@@ -43,6 +43,11 @@ serve(async (req) => {
       .eq('store_id', storeId)
       .limit(100);
 
+    // Determine response language
+    const languageInstruction = language.startsWith('en') 
+      ? '' 
+      : `\n\nIMPORTANT: Respond in ${language} language. All your responses should be in the user's selected language.`;
+
     const systemPrompt = `You are an AI inventory assistant for a local store. Help vendors manage their inventory efficiently.
 
 Current Inventory Summary:
@@ -56,7 +61,7 @@ Available Actions:
 5. INSIGHTS: Provide inventory insights
 6. RESTOCK_RECOMMENDATIONS: Suggest what to restock
 
-Respond in a friendly, helpful manner. When performing actions, return structured JSON with the action type and parameters.`;
+Respond in a friendly, helpful manner. When performing actions, return structured JSON with the action type and parameters.${languageInstruction}`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

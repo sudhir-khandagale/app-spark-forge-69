@@ -5,15 +5,18 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { LanguageSelector } from '@/components/LanguageSelector';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const Settings = () => {
   const { user } = useUserRole();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [searchRadius, setSearchRadius] = useState<number>(10);
   const [loading, setLoading] = useState(true);
   const { latitude, longitude, error: locationError, loading: locationLoading, refresh } = useGeolocation();
@@ -213,16 +216,15 @@ const Settings = () => {
           <div>
             <h2 className="font-semibold mb-3 flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              Preferences
+              {t('language')}
             </h2>
             <div className="space-y-3">
-              <div className="p-3 bg-card border border-border rounded-lg">
-                <Label className="block mb-2">Language</Label>
-                <select className="w-full p-2 bg-background border border-input rounded-md">
-                  <option>English</option>
-                  <option>Spanish</option>
-                  <option>French</option>
-                </select>
+              <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
+                <div>
+                  <Label htmlFor="language">{t('select_language')}</Label>
+                  <p className="text-xs text-muted-foreground mt-1">22 Indian languages supported</p>
+                </div>
+                <LanguageSelector />
               </div>
               <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
                 <Label className="cursor-pointer">

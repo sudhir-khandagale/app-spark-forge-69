@@ -353,6 +353,10 @@ export default function LiveInventory() {
             onSearch={setSearchQuery}
             onFilterChange={setFilter as any}
             currentFilter={filter}
+            storeId={storeId || ''}
+            onSmartFiltersChange={(filters) => {
+              console.log('Smart filters applied:', filters);
+            }}
           />
 
           <div className="flex gap-2">
