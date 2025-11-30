@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { InventoryAssistant } from '@/components/InventoryAssistant';
 import { useTranslation } from '@/hooks/useTranslation';
+import { SmartInventoryUpload } from '@/components/SmartInventoryUpload';
 
 interface InventorySummary {
   total_products: number;
@@ -380,6 +381,22 @@ export default function VendorDashboard() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Smart Inventory Upload */}
+        {subscription && (
+          <LockedFeatureOverlay
+            isLocked={!subscription.canAccessBulkUpload}
+            onUpgrade={() => setShowUpgradeModal(true)}
+            title="Smart Upload Locked"
+            description="Upgrade to Pro or Premium to use AI-powered bulk inventory upload"
+            requiredTier="pro"
+          >
+            <SmartInventoryUpload 
+              storeId={storeId}
+              onSuccess={fetchStoreData}
+            />
+          </LockedFeatureOverlay>
+        )}
 
         {/* Analytics */}
         {subscription && (
