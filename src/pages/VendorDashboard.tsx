@@ -8,7 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
-import { ArrowLeft, Package, TrendingUp, DollarSign, AlertTriangle, Crown } from 'lucide-react';
+import { ArrowLeft, Package, TrendingUp, DollarSign, AlertTriangle, Crown, Lock } from 'lucide-react';
+import { useVendorSubscription } from '@/hooks/useVendorSubscription';
+import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 
@@ -35,6 +37,7 @@ export default function VendorDashboard() {
   const [inventorySummary, setInventorySummary] = useState<InventorySummary | null>(null);
   const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { subscription, loading: subLoading } = useVendorSubscription(user?.id, storeId);
 
   useEffect(() => {
     if (!roleLoading && user && (isVendor || isAdmin)) {
@@ -156,20 +159,39 @@ export default function VendorDashboard() {
 
       <div className="p-4 space-y-4">
         {/* Subscription Upgrade Card */}
-        {subscriptionTier === 'free' && (
+        {subscription && !subscription.canAccessAnalytics && (
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-primary" />
-                <CardTitle>Upgrade Your Plan</CardTitle>
+                <CardTitle>Unlock Premium Features</CardTitle>
               </div>
               <CardDescription>
-                Unlock advanced analytics, flash sales, and priority support
+                Upgrade to Pro to access advanced analytics, flash sales, bulk uploads, and priority support
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span>Analytics Dashboard</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span>Flash Sales</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span>Bulk Upload</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span>Priority Support</span>
+                </div>
+              </div>
               <Button onClick={() => setShowUpgradeModal(true)} className="w-full">
-                View Plans
+                <Crown className="w-4 h-4 mr-2" />
+                Upgrade to Pro
               </Button>
             </CardContent>
           </Card>
@@ -219,7 +241,21 @@ export default function VendorDashboard() {
         </Card>
 
         {/* Analytics */}
-        <VendorAnalyticsDashboard storeId={storeId} />
+        {subscription && (
+          <LockedFeatureOverlay
+            isLocked={!subscription.canAccessAnalytics}
+            onUpgrade={() => setShowUpgradeModal(true)}
+            title="Analytics Locked"
+            description="Upgrade to Pro or Premium to access detailed analytics and insights"
+            requiredTier="pro"
+          >
+            <VendorAnalyticsDashboard 
+              storeId={storeId} 
+              subscriptionTier={subscription.tier}
+              isLocked={!subscription.canAccessAnalytics}
+            />
+          </LockedFeatureOverlay>
+        )}
       </div>
 
       {/* Subscription Modal */}

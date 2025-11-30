@@ -24,13 +24,16 @@ const tiers = [
     color: 'text-gray-600',
     bgColor: 'bg-gray-50 dark:bg-gray-900',
     features: [
+      '1 Store',
+      'Up to 100 products per store',
       'Basic inventory management',
-      'Up to 50 products',
       'Store profile page',
       'Customer reviews',
       'Manual stock updates'
     ],
     limits: {
+      stores: 1,
+      products: 100,
       analytics: false,
       flash_sales: false,
       bulk_upload: false,
@@ -47,14 +50,18 @@ const tiers = [
     bgColor: 'bg-blue-50 dark:bg-blue-950',
     badge: 'Most Popular',
     features: [
-      'Everything in Free',
+      'Up to 3 Stores',
+      'Up to 200 products per store',
       'Advanced analytics dashboard',
       'Flash sales & promotions',
-      'Bulk CSV upload (500 products)',
+      'Bulk CSV upload',
       'Priority email support',
-      'Performance insights'
+      'Performance insights',
+      'Revenue tracking'
     ],
     limits: {
+      stores: 3,
+      products: 200,
       analytics: true,
       flash_sales: true,
       bulk_upload: true,
@@ -71,16 +78,21 @@ const tiers = [
     bgColor: 'bg-purple-50 dark:bg-purple-950',
     badge: 'Best Value',
     features: [
-      'Everything in Pro',
-      'Unlimited products',
+      'Up to 5 Stores',
+      'Up to 500 products per store',
+      'Full analytics suite',
       'Featured store listing',
       'Competitive intelligence',
+      'Flash sales & promotions',
+      'Bulk uploads & imports',
       '24/7 priority support',
       'Custom branding options',
       'API access',
       'Dedicated account manager'
     ],
     limits: {
+      stores: 5,
+      products: 500,
       analytics: true,
       flash_sales: true,
       bulk_upload: true,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft, AlertCircle, Link as LinkIcon } from 'lucide-react';
+import { Store, Phone, Mail, Clock, ImagePlus, X, ArrowLeft, AlertCircle, Link as LinkIcon, Crown } from 'lucide-react';
+import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import flowduxIcon from '@/assets/flowdux-icon.png';
@@ -22,6 +23,14 @@ export default function MerchantOnboarding() {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [mapsUrlError, setMapsUrlError] = useState('');
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const { subscription, loading: subLoading } = useVendorSubscription(userId);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+  }, []);
 
   const [storeData, setStoreData] = useState({
     name: '',
@@ -211,8 +220,8 @@ export default function MerchantOnboarding() {
 
       const isAdmin = existingRole?.role === 'admin';
 
-      // Free tier limit: Check if vendor already has a store (only for non-admins)
-      if (!isAdmin) {
+      // Check tier-based store limits (only for non-admins)
+      if (!isAdmin && subscription) {
         const { data: existingStores, error: checkError } = await supabase
           .from('stores')
           .select('id')
@@ -220,10 +229,15 @@ export default function MerchantOnboarding() {
 
         if (checkError) throw checkError;
 
-        if (existingStores && existingStores.length >= 1) {
+        const storeLimit = subscription.storeLimits[subscription.tier];
+        
+        if (existingStores && existingStores.length >= storeLimit) {
+          const nextTier = subscription.tier === 'free' ? 'Pro (3 stores)' : subscription.tier === 'pro' ? 'Premium (5 stores)' : null;
           toast({
             title: 'Store Limit Reached',
-            description: 'Free tier allows 1 store. Upgrade your plan to register more stores.',
+            description: nextTier 
+              ? `${subscription.tier.charAt(0).toUpperCase() + subscription.tier.slice(1)} tier allows ${storeLimit} store${storeLimit > 1 ? 's' : ''}. Upgrade to ${nextTier} to register more stores.`
+              : `You've reached the maximum of ${storeLimit} stores.`,
             variant: 'destructive',
           });
           setLoading(false);
