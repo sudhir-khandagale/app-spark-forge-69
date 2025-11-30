@@ -12,7 +12,7 @@ import { BackButton } from '@/components/BackButton';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
-import { Package, Search, Filter, TrendingUp, Clock, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Package, Search, Filter, TrendingUp, Clock, CheckCircle2, MessageSquare, FileText, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -59,6 +59,7 @@ export default function VendorOrders() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [editingTracking, setEditingTracking] = useState<{ [key: string]: string }>({});
   const [notesOrderId, setNotesOrderId] = useState<string | null>(null);
+  const [generatingInvoice, setGeneratingInvoice] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && (isVendor || isAdmin)) {
@@ -206,6 +207,40 @@ export default function VendorOrders() {
         description: 'Failed to update tracking number',
         variant: 'destructive',
       });
+    }
+  };
+
+  const generateInvoice = async (orderId: string) => {
+    setGeneratingInvoice(orderId);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-invoice', {
+        body: { orderId },
+      });
+
+      if (error) throw error;
+
+      if (data?.invoice?.html) {
+        // Open invoice in new window for printing
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+          printWindow.document.write(data.invoice.html);
+          printWindow.document.close();
+          
+          toast({
+            title: 'Invoice Generated',
+            description: 'Invoice opened in new window',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate invoice',
+        variant: 'destructive',
+      });
+    } finally {
+      setGeneratingInvoice(null);
     }
   };
 
@@ -426,6 +461,20 @@ export default function VendorOrders() {
                     >
                       <MessageSquare className="h-4 w-4" />
                       Notes
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => generateInvoice(order.id)}
+                      disabled={generatingInvoice === order.id}
+                      className="gap-2"
+                    >
+                      {generatingInvoice === order.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
+                      ) : (
+                        <FileText className="h-4 w-4" />
+                      )}
+                      Invoice
                     </Button>
                     {order.delivery_status === 'pending' && (
                       <Button size="sm" onClick={() => updateOrderStatus(order.id, 'confirmed')}>

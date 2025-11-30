@@ -53,6 +53,7 @@ const VendorFeed = lazy(() => import("./pages/VendorFeed"));
 const LiveInventory = lazy(() => import("./pages/LiveInventory"));
 const VendorDashboard = lazy(() => import("./pages/VendorDashboard"));
 const VendorOrders = lazy(() => import("./pages/VendorOrders"));
+const VendorEarnings = lazy(() => import("./pages/VendorEarnings"));
 
 // Loading fallback
 const PageLoader = () => (
@@ -124,6 +125,7 @@ const App = () => (
               <Route path="/vendor/dashboard" element={<ProtectedRoute><VendorDashboard /></ProtectedRoute>} />
               <Route path="/vendor/dashboard/:storeId" element={<ProtectedRoute><VendorDashboard /></ProtectedRoute>} />
               <Route path="/vendor/orders" element={<ProtectedRoute><VendorOrders /></ProtectedRoute>} />
+              <Route path="/vendor/earnings" element={<ProtectedRoute><VendorEarnings /></ProtectedRoute>} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
               </Routes>
