@@ -12,11 +12,13 @@ import { BackButton } from '@/components/BackButton';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
-import { Package, Search, Filter, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
+import { Package, Search, Filter, TrendingUp, Clock, CheckCircle2, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import OrderNotes from '@/components/OrderNotes';
 
 interface Order {
   id: string;
@@ -56,6 +58,7 @@ export default function VendorOrders() {
   const [storeId, setStoreId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [editingTracking, setEditingTracking] = useState<{ [key: string]: string }>({});
+  const [notesOrderId, setNotesOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && (isVendor || isAdmin)) {
@@ -415,6 +418,15 @@ export default function VendorOrders() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-2 flex-wrap pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setNotesOrderId(order.id)}
+                      className="gap-2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Notes
+                    </Button>
                     {order.delivery_status === 'pending' && (
                       <Button size="sm" onClick={() => updateOrderStatus(order.id, 'confirmed')}>
                         Confirm
@@ -455,6 +467,18 @@ export default function VendorOrders() {
             ))
           )}
         </main>
+
+      {/* Order Notes Dialog */}
+      <Dialog open={!!notesOrderId} onOpenChange={(open) => !open && setNotesOrderId(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Communication</DialogTitle>
+          </DialogHeader>
+          {notesOrderId && user && (
+            <OrderNotes orderId={notesOrderId} isVendor={true} userId={user.id} />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Subscription Modal */}
       {storeId && (

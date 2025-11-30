@@ -3,9 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Star, Trash2 } from 'lucide-react';
+import { Star, Trash2, MessageSquare, Store } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { useUserRole } from '@/hooks/useUserRole';
 import {
   AlertDialog,
@@ -26,24 +27,48 @@ interface Review {
   comment: string | null;
   photo_urls: string[] | null;
   created_at: string;
+  vendor_response: string | null;
+  vendor_responded_at: string | null;
+  store_id: string;
 }
 
 interface ProductReviewsProps {
   productId: string;
+  storeId?: string;
   refreshTrigger?: number;
 }
 
-export default function ProductReviews({ productId, refreshTrigger }: ProductReviewsProps) {
+export default function ProductReviews({ productId, storeId, refreshTrigger }: ProductReviewsProps) {
   const { toast } = useToast();
-  const { isAdmin } = useUserRole();
+  const { user, isAdmin, isVendor } = useUserRole();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [averageRating, setAverageRating] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState('');
+  const [isVendorOfStore, setIsVendorOfStore] = useState(false);
 
   useEffect(() => {
     fetchReviews();
-  }, [productId, refreshTrigger]);
+    checkVendorOwnership();
+  }, [productId, refreshTrigger, storeId, user]);
+
+  const checkVendorOwnership = async () => {
+    if (!user || !storeId || !isVendor) {
+      setIsVendorOfStore(false);
+      return;
+    }
+
+    const { data } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('id', storeId)
+      .eq('owner_id', user.id)
+      .single();
+
+    setIsVendorOfStore(!!data);
+  };
 
   const fetchReviews = async () => {
     try {
@@ -133,6 +158,38 @@ export default function ProductReviews({ productId, refreshTrigger }: ProductRev
       });
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleRespondToReview = async (reviewId: string) => {
+    if (!responseText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('product_reviews')
+        .update({
+          vendor_response: responseText.trim(),
+          vendor_responded_at: new Date().toISOString(),
+        })
+        .eq('id', reviewId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Response posted successfully',
+      });
+
+      setRespondingTo(null);
+      setResponseText('');
+      fetchReviews();
+    } catch (error) {
+      console.error('Error responding to review:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to post response',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -255,6 +312,68 @@ export default function ProductReviews({ productId, refreshTrigger }: ProductRev
                           className="w-full aspect-square object-cover rounded-lg"
                         />
                       ))}
+                    </div>
+                  )}
+
+                  {/* Vendor Response */}
+                  {review.vendor_response && (
+                    <div className="mt-4 ml-8 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                      <div className="flex items-start gap-2 mb-2">
+                        <Store className="h-4 w-4 text-primary mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-primary">Store Owner</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(review.vendor_responded_at!).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-foreground/90">{review.vendor_response}</p>
+                    </div>
+                  )}
+
+                  {/* Vendor Response Form */}
+                  {isVendorOfStore && !review.vendor_response && (
+                    <div className="mt-4">
+                      {respondingTo === review.id ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            placeholder="Write your response to this review..."
+                            value={responseText}
+                            onChange={(e) => setResponseText(e.target.value)}
+                            rows={3}
+                            className="resize-none"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleRespondToReview(review.id)}
+                              disabled={!responseText.trim()}
+                            >
+                              Post Response
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setRespondingTo(null);
+                                setResponseText('');
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setRespondingTo(review.id)}
+                          className="gap-2"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          Respond to Review
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>

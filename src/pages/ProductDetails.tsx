@@ -419,7 +419,8 @@ const ProductDetails = () => {
           {/* Product Reviews */}
           <div className="space-y-3">
             <ProductReviews 
-              productId={id!} 
+              productId={id!}
+              storeId={storeId || product?.store_id}
               refreshTrigger={reviewRefresh}
             />
             {(storeId || product?.store_id) && (
