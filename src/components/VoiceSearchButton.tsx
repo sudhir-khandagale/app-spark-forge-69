@@ -2,7 +2,6 @@ import { Mic, MicOff } from 'lucide-react';
 import { Button } from './ui/button';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useTranslation } from '@/hooks/useTranslation';
-import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface VoiceSearchButtonProps {
@@ -14,20 +13,19 @@ export const VoiceSearchButton = ({ onTranscript, className }: VoiceSearchButton
   const { t, language } = useTranslation();
   const { 
     isListening, 
-    transcript, 
     isSupported, 
     startListening, 
     stopListening 
   } = useSpeechRecognition({
-    onResult: onTranscript,
+    onResult: (text) => {
+      console.log('Voice search result:', text);
+      onTranscript(text);
+    },
+    onError: (error) => {
+      console.error('Voice recognition error:', error);
+    },
     language: language,
   });
-
-  useEffect(() => {
-    if (transcript) {
-      onTranscript(transcript);
-    }
-  }, [transcript, onTranscript]);
 
   if (!isSupported) {
     return null;

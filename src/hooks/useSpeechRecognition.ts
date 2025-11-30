@@ -1,5 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 
+// Map our language codes to Web Speech API language codes
+const languageCodeMap: Record<string, string> = {
+  en: 'en-US',
+  hi: 'hi-IN',
+  bn: 'bn-IN',
+  te: 'te-IN',
+  mr: 'mr-IN',
+  ta: 'ta-IN',
+  gu: 'gu-IN',
+  kn: 'kn-IN',
+  ml: 'ml-IN',
+  pa: 'pa-IN',
+  or: 'or-IN',
+  as: 'as-IN',
+};
+
 interface UseSpeechRecognitionProps {
   onResult?: (transcript: string) => void;
   onError?: (error: string) => void;
@@ -9,7 +25,7 @@ interface UseSpeechRecognitionProps {
 export const useSpeechRecognition = ({ 
   onResult, 
   onError,
-  language = 'en-IN' 
+  language = 'en' 
 }: UseSpeechRecognitionProps = {}) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -24,7 +40,9 @@ export const useSpeechRecognition = ({
         const recognitionInstance = new SpeechRecognition();
         recognitionInstance.continuous = false;
         recognitionInstance.interimResults = true;
-        recognitionInstance.lang = language;
+        // Map language code to Web Speech API format
+        recognitionInstance.lang = languageCodeMap[language] || 'en-US';
+        console.log('Voice recognition language set to:', recognitionInstance.lang);
 
         recognitionInstance.onstart = () => {
           setIsListening(true);
