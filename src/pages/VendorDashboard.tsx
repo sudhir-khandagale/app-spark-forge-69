@@ -272,41 +272,41 @@ export default function VendorDashboard() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Subscription Upgrade Card */}
+        {/* Premium Features Preview */}
         {subscription && !subscription.canAccessAnalytics && (
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Crown className="h-5 w-5 text-primary" />
-                <CardTitle>Unlock Premium Features</CardTitle>
+          <Card className="border-muted">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Premium Features</CardTitle>
+                <Button 
+                  size="sm" 
+                  variant="default"
+                  onClick={() => setShowUpgradeModal(true)}
+                >
+                  <Crown className="w-3 h-3 mr-1" />
+                  Upgrade
+                </Button>
               </div>
-              <CardDescription>
-                Upgrade to Pro to access advanced analytics, flash sales, bulk uploads, and priority support
-              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-muted-foreground" />
-                  <span>Analytics Dashboard</span>
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                  <span className="text-muted-foreground">Analytics</span>
+                  <Badge variant="secondary" className="text-xs">Pro</Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-muted-foreground" />
-                  <span>Flash Sales</span>
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                  <span className="text-muted-foreground">Flash Sales</span>
+                  <Badge variant="secondary" className="text-xs">Pro</Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-muted-foreground" />
-                  <span>Bulk Upload</span>
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                  <span className="text-muted-foreground">Bulk Upload</span>
+                  <Badge variant="secondary" className="text-xs">Pro</Badge>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-muted-foreground" />
-                  <span>Priority Support</span>
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                  <span className="text-muted-foreground">Priority Support</span>
+                  <Badge variant="secondary" className="text-xs">Premium</Badge>
                 </div>
               </div>
-              <Button onClick={() => setShowUpgradeModal(true)} className="w-full">
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade to Pro
-              </Button>
             </CardContent>
           </Card>
         )}
