@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { EmailVerification } from '@/components/EmailVerification';
 import flowduxIcon from '@/assets/flowdux-icon.png';
 import { z } from 'zod';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const emailSchema = z.string().email({ message: "Please enter a valid email address" });
 
@@ -30,6 +31,7 @@ const Auth = () => {
   const [signupEmailError, setSignupEmailError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   // Helper function to redirect based on user role
   const redirectByRole = async (userId: string) => {
@@ -267,7 +269,7 @@ const Auth = () => {
               <img src={flowduxIcon} alt="Flowdux Logo" className="h-20 mx-auto rounded-xl" />
             </div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
-              Welcome to Flowdux
+              {t('welcome_to_flowdux')}
             </h1>
             <p className="text-muted-foreground">
               Find products at local stores instantly
@@ -276,14 +278,14 @@ const Auth = () => {
 
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="login">{t('login')}</TabsTrigger>
+              <TabsTrigger value="signup">{t('signup')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email">{t('email')}</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -302,13 +304,13 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="login-password">{t('password')}</Label>
                     <button
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
                       className="text-xs text-primary hover:underline"
                     >
-                      Forgot Password?
+                      {t('forgot_password')}
                     </button>
                   </div>
                   <Input
@@ -325,7 +327,7 @@ const Auth = () => {
                   className="w-full" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Logging in...' : 'Login'}
+                  {isLoading ? `${t('loading')}` : t('login')}
                 </Button>
               </form>
             </TabsContent>
@@ -373,15 +375,15 @@ const Auth = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>I want to sign up as</Label>
+                  <Label>{t('select_role')}</Label>
                   <RadioGroup value={signupRole} onValueChange={(value: 'customer' | 'vendor') => setSignupRole(value)}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="customer" id="customer" />
-                      <Label htmlFor="customer" className="font-normal">User</Label>
+                      <Label htmlFor="customer" className="font-normal">{t('role_customer')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="vendor" id="vendor" />
-                      <Label htmlFor="vendor" className="font-normal">Vendor (Shop Owner)</Label>
+                      <Label htmlFor="vendor" className="font-normal">{t('role_vendor')}</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -391,11 +393,11 @@ const Auth = () => {
                   className="w-full" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creating account...' : 'Sign Up'}
+                  {isLoading ? `${t('loading')}` : t('signup')}
                 </Button>
 
                 <p className="text-sm text-muted-foreground text-center">
-                  Already have an account? Switch to the Login tab.
+                  {t('already_have_account')}
                 </p>
               </form>
             </TabsContent>
@@ -406,7 +408,7 @@ const Auth = () => {
               to="/" 
               className="text-sm text-muted-foreground hover:text-accent transition-colors"
             >
-              Continue as Guest
+              {t('continue_as_guest')}
             </Link>
           </div>
         </div>
@@ -416,14 +418,14 @@ const Auth = () => {
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
+            <DialogTitle>{t('reset_password')}</DialogTitle>
             <DialogDescription>
               Enter your email address and we'll send you a link to reset your password.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleForgotPassword} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="forgot-email">Email</Label>
+              <Label htmlFor="forgot-email">{t('email')}</Label>
               <Input
                 id="forgot-email"
                 type="email"
@@ -443,10 +445,10 @@ const Auth = () => {
                 }}
                 className="flex-1"
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
+                {isLoading ? `${t('processing')}` : t('send_reset_link')}
               </Button>
             </div>
           </form>

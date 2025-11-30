@@ -121,7 +121,7 @@ const Settings = () => {
       <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="flex items-center gap-3 p-4">
           <BackButton fallbackPath="/profile" />
-          <h1 className="text-xl font-bold">Settings</h1>
+          <h1 className="text-xl font-bold">{t('settings')}</h1>
         </div>
       </header>
 
@@ -132,7 +132,7 @@ const Settings = () => {
           <div>
             <h2 className="font-semibold mb-3 flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              Notifications
+              {t('notifications')}
             </h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
@@ -237,13 +237,13 @@ const Settings = () => {
 
           {/* Account */}
           <div>
-            <h2 className="font-semibold mb-3">Account</h2>
+            <h2 className="font-semibold mb-3">{t('account_settings')}</h2>
             <div className="space-y-2">
               <Button variant="ghost" className="w-full justify-start">
-                Privacy Policy
+                {t('privacy')}
               </Button>
               <Button variant="ghost" className="w-full justify-start">
-                Terms of Service
+                {t('terms_of_service')}
               </Button>
               <Button variant="ghost" className="w-full justify-start text-destructive">
                 Delete Account
@@ -252,7 +252,7 @@ const Settings = () => {
           </div>
 
           <div className="pt-4 text-center text-sm text-muted-foreground">
-            Version 1.0.0
+            {t('version')} 1.0.0
           </div>
         </div>
       </main>
