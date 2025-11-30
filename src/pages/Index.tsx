@@ -51,55 +51,57 @@ const Index = () => {
   const fetchTrendingProducts = async (): Promise<void> => {
     try {
       setLoadingTrending(true);
-      const { data: products } = await supabase
-        .from('products')
-        .select('id, name, image_url, category, rating, review_count, trending')
-        .eq('trending', true)
-        .order('rating', { ascending: false })
-        .order('review_count', { ascending: false })
-        .limit(6);
+      
+      // Fetch products with inventory in a single query
+      const { data: inventory, error } = await supabase
+        .from('inventory')
+        .select(`
+          product_id,
+          price,
+          in_stock,
+          products!inner (
+            id,
+            name,
+            image_url,
+            category,
+            rating,
+            review_count,
+            trending
+          ),
+          stores!inner (
+            id,
+            name,
+            status
+          )
+        `)
+        .eq('products.trending', true)
+        .eq('in_stock', true)
+        .eq('stores.status', 'approved')
+        .limit(4);
 
-      if (!products) return;
+      if (error) throw error;
 
-      const productsWithStores = await Promise.all(
-        products.map(async (product) => {
-          const { data: inventory } = await supabase
-            .from('inventory')
-            .select(`
-              store_id,
-              price,
-              in_stock,
-              stores (id, name, status)
-            `)
-            .eq('product_id', product.id)
-            .eq('in_stock', true)
-            .limit(3);
-
-          const validStores = inventory
-            ?.filter((inv: any) => inv.stores?.status === 'approved')
-            .map((inv: any) => ({
-              id: inv.stores.id,
-              name: inv.stores.name,
-              price: inv.price,
-              in_stock: inv.in_stock
-            })) || [];
-
-          return { ...product, stores: validStores };
-        })
-      );
-
-      setTrendingProducts(productsWithStores.filter(p => p.stores.length > 0));
-      toast({
-        title: 'Refreshed',
-        description: 'Products updated successfully'
+      // Group by product
+      const productMap = new Map<string, TrendingProduct>();
+      inventory?.forEach((inv: any) => {
+        const product = inv.products;
+        if (!productMap.has(product.id)) {
+          productMap.set(product.id, {
+            ...product,
+            stores: []
+          });
+        }
+        productMap.get(product.id)?.stores.push({
+          id: inv.stores.id,
+          name: inv.stores.name,
+          price: inv.price,
+          in_stock: inv.in_stock
+        });
       });
+
+      setTrendingProducts(Array.from(productMap.values()).slice(0, 4));
     } catch (error) {
       console.error('Error fetching trending products:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to refresh products',
-        variant: 'destructive'
-      });
     } finally {
       setLoadingTrending(false);
     }
