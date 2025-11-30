@@ -51,6 +51,7 @@ const Index = () => {
   const fetchTrendingProducts = async (): Promise<void> => {
     try {
       setLoadingTrending(true);
+      console.log('Fetching trending products...');
       
       // Fetch products with inventory in a single query
       const { data: inventory, error } = await supabase
@@ -77,9 +78,14 @@ const Index = () => {
         .eq('products.trending', true)
         .eq('in_stock', true)
         .eq('stores.status', 'approved')
-        .limit(4);
+        .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Inventory data:', inventory);
 
       // Group by product
       const productMap = new Map<string, TrendingProduct>();
@@ -99,10 +105,14 @@ const Index = () => {
         });
       });
 
-      setTrendingProducts(Array.from(productMap.values()).slice(0, 4));
+      const products = Array.from(productMap.values()).slice(0, 4);
+      console.log('Processed products:', products);
+      setTrendingProducts(products);
     } catch (error) {
       console.error('Error fetching trending products:', error);
+      setTrendingProducts([]); // Set empty array on error
     } finally {
+      console.log('Setting loading to false');
       setLoadingTrending(false);
     }
   };
