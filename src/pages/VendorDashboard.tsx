@@ -13,6 +13,7 @@ import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
+import { InventoryAssistant } from '@/components/InventoryAssistant';
 
 interface InventorySummary {
   total_products: number;
@@ -375,6 +376,9 @@ export default function VendorDashboard() {
           fetchStoreData();
         }}
       />
+
+      {/* AI Assistant */}
+      {storeId && <InventoryAssistant storeId={storeId} onInventoryUpdate={fetchStoreData} />}
 
       <RoleBasedBottomNav />
     </div>
