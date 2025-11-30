@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { InventoryScanner } from '@/components/InventoryScanner';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface InventoryItem {
   id: string;
@@ -53,6 +54,9 @@ export default function LiveInventory() {
   const [tempPrice, setTempPrice] = useState('');
   const [tempThreshold, setTempThreshold] = useState('');
   const [tempCategory, setTempCategory] = useState('');
+  
+  // Success animation state
+  const [successId, setSuccessId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInventory();
@@ -122,6 +126,10 @@ export default function LiveInventory() {
         .eq('id', inventoryId);
 
       if (error) throw error;
+
+      // Trigger success animation
+      setSuccessId(inventoryId);
+      setTimeout(() => setSuccessId(null), 600);
 
       toast({
         title: 'Success',
@@ -493,109 +501,212 @@ export default function LiveInventory() {
                         </div>
                       </div>
 
-                      {/* Stock, Price, Threshold Controls */}
-                      <div className="grid grid-cols-3 gap-3 pt-3 border-t">
-                        {/* Stock Quantity */}
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Stock</Label>
-                          {editingQuantity === item.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                value={tempQuantity}
-                                onChange={(e) => setTempQuantity(e.target.value)}
-                                className="h-8 text-sm"
-                                autoFocus
-                              />
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveQuantity(item.id)}>
-                                <Check className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingQuantity(null)}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => startEditQuantity(item)} className="text-lg font-bold hover:text-primary flex items-center gap-1">
-                                {item.quantity}
-                                <Edit2 className="h-3 w-3" />
-                              </button>
-                              <div className="flex gap-1 ml-auto">
+                      {/* Stock, Price, Threshold Controls - Enhanced */}
+                      <div className="space-y-3 pt-4 border-t">
+                        {/* Stock Row */}
+                        <motion.div 
+                          className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border"
+                          animate={successId === item.id ? { 
+                            boxShadow: ['0 0 0 0 rgba(16, 185, 129, 0)', '0 0 0 8px rgba(16, 185, 129, 0.3)', '0 0 0 0 rgba(16, 185, 129, 0)']
+                          } : {}}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <Label className="text-sm font-medium min-w-[60px]">Stock</Label>
+                          <AnimatePresence mode="wait">
+                            {editingQuantity === item.id ? (
+                              <motion.div 
+                                key="editing"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex items-center gap-2 flex-1 justify-end"
+                              >
+                                <Input
+                                  type="number"
+                                  value={tempQuantity}
+                                  onChange={(e) => setTempQuantity(e.target.value)}
+                                  className="h-12 text-base max-w-[100px]"
+                                  autoFocus
+                                />
+                                <Button 
+                                  size="icon" 
+                                  variant="default" 
+                                  className="h-11 w-11" 
+                                  onClick={() => saveQuantity(item.id)}
+                                >
+                                  <Check className="h-5 w-5" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-11 w-11" 
+                                  onClick={() => setEditingQuantity(null)}
+                                >
+                                  <X className="h-5 w-5" />
+                                </Button>
+                              </motion.div>
+                            ) : (
+                              <motion.div 
+                                key="display"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex items-center gap-2"
+                              >
                                 <Button
                                   size="icon"
                                   variant="outline"
                                   onClick={() => updateStock(item.id, item.quantity - 1)}
                                   disabled={updatingId === item.id || item.quantity === 0}
-                                  className="h-7 w-7"
+                                  className="h-11 w-11 hover:bg-destructive/10 hover:border-destructive"
                                 >
-                                  <Minus className="h-3 w-3" />
+                                  <Minus className="h-5 w-5" />
                                 </Button>
+                                <motion.span
+                                  key={item.quantity}
+                                  initial={{ scale: 1.2, color: '#10b981' }}
+                                  animate={{ scale: 1, color: 'inherit' }}
+                                  transition={{ duration: 0.3 }}
+                                  className="text-2xl font-bold min-w-[60px] text-center"
+                                >
+                                  {item.quantity}
+                                </motion.span>
                                 <Button
                                   size="icon"
                                   variant="outline"
                                   onClick={() => updateStock(item.id, item.quantity + 1)}
                                   disabled={updatingId === item.id}
-                                  className="h-7 w-7"
+                                  className="h-11 w-11 hover:bg-primary/10 hover:border-primary"
                                 >
-                                  <Plus className="h-3 w-3" />
+                                  <Plus className="h-5 w-5" />
                                 </Button>
-                              </div>
-                            </div>
-                          )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  className="h-11 w-11"
+                                  onClick={() => startEditQuantity(item)}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+
+                        {/* Price Row */}
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border">
+                          <Label className="text-sm font-medium min-w-[60px]">Price</Label>
+                          <AnimatePresence mode="wait">
+                            {editingPrice === item.id ? (
+                              <motion.div 
+                                key="editing"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex items-center gap-2 flex-1 justify-end"
+                              >
+                                <Input
+                                  type="number"
+                                  value={tempPrice}
+                                  onChange={(e) => setTempPrice(e.target.value)}
+                                  className="h-12 text-base max-w-[100px]"
+                                  autoFocus
+                                />
+                                <Button 
+                                  size="icon" 
+                                  variant="default" 
+                                  className="h-11 w-11" 
+                                  onClick={() => savePrice(item.id)}
+                                >
+                                  <Check className="h-5 w-5" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-11 w-11" 
+                                  onClick={() => setEditingPrice(null)}
+                                >
+                                  <X className="h-5 w-5" />
+                                </Button>
+                              </motion.div>
+                            ) : (
+                              <motion.div 
+                                key="display"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex items-center gap-2"
+                              >
+                                <span className="text-xl font-bold">₹{item.price}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  className="h-11 w-11"
+                                  onClick={() => startEditPrice(item)}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
 
-                        {/* Price */}
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Price</Label>
-                          {editingPrice === item.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                value={tempPrice}
-                                onChange={(e) => setTempPrice(e.target.value)}
-                                className="h-8 text-sm"
-                                autoFocus
-                              />
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => savePrice(item.id)}>
-                                <Check className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingPrice(null)}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <button onClick={() => startEditPrice(item)} className="text-sm font-semibold hover:text-primary flex items-center gap-1">
-                              ₹{item.price}
-                              <Edit2 className="h-3 w-3" />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Threshold */}
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Alert at</Label>
-                          {editingThreshold === item.id ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                value={tempThreshold}
-                                onChange={(e) => setTempThreshold(e.target.value)}
-                                className="h-8 text-sm"
-                                autoFocus
-                              />
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => saveThreshold(item.id)}>
-                                <Check className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingThreshold(null)}>
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <button onClick={() => startEditThreshold(item)} className="text-sm font-semibold hover:text-primary flex items-center gap-1">
-                              {item.low_stock_threshold}
-                              <Edit2 className="h-3 w-3" />
-                            </button>
-                          )}
+                        {/* Threshold Row */}
+                        <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border">
+                          <Label className="text-sm font-medium min-w-[60px]">Alert at</Label>
+                          <AnimatePresence mode="wait">
+                            {editingThreshold === item.id ? (
+                              <motion.div 
+                                key="editing"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex items-center gap-2 flex-1 justify-end"
+                              >
+                                <Input
+                                  type="number"
+                                  value={tempThreshold}
+                                  onChange={(e) => setTempThreshold(e.target.value)}
+                                  className="h-12 text-base max-w-[100px]"
+                                  autoFocus
+                                />
+                                <Button 
+                                  size="icon" 
+                                  variant="default" 
+                                  className="h-11 w-11" 
+                                  onClick={() => saveThreshold(item.id)}
+                                >
+                                  <Check className="h-5 w-5" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className="h-11 w-11" 
+                                  onClick={() => setEditingThreshold(null)}
+                                >
+                                  <X className="h-5 w-5" />
+                                </Button>
+                              </motion.div>
+                            ) : (
+                              <motion.div 
+                                key="display"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="flex items-center gap-2"
+                              >
+                                <span className="text-xl font-bold">{item.low_stock_threshold}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  className="h-11 w-11"
+                                  onClick={() => startEditThreshold(item)}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       </div>
                     </div>
