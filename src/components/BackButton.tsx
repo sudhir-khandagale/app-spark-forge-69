@@ -12,10 +12,10 @@ export const BackButton = ({ fallbackPath = '/', className }: BackButtonProps) =
   const navigate = useNavigate();
   
   const handleBack = () => {
-    // Check if there's navigation history
-    if (window.history.length > 2) {
+    // Try to navigate back, if it fails go to fallback
+    try {
       navigate(-1);
-    } else {
+    } catch {
       navigate(fallbackPath);
     }
   };
@@ -27,6 +27,7 @@ export const BackButton = ({ fallbackPath = '/', className }: BackButtonProps) =
       onClick={handleBack}
       className={cn("h-11 w-11", className)}
       aria-label="Go back"
+      type="button"
     >
       <ArrowLeft className="h-5 w-5" />
     </Button>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Navigation, ShoppingCart, Store, TrendingUp, Loader2, Star } from 'lucide-react';
+import { MapPin, Navigation, ShoppingCart, Store, TrendingUp, Loader2, Star } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/BackButton';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
@@ -252,11 +253,7 @@ const Compare = () => {
       <div className="flex flex-col min-h-screen pb-16">
         <header className="sticky top-0 z-10 bg-background border-b border-border">
           <div className="flex items-center gap-4 p-4 max-w-4xl mx-auto">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/" />
             <h1 className="text-xl font-bold">Product Not Found</h1>
           </div>
         </header>
@@ -277,11 +274,7 @@ const Compare = () => {
       <header className="sticky top-0 z-10 bg-background border-b border-border">
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
           <div className="flex items-center gap-4">
-            <Link to={`/product/${id}`}>
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath={`/product/${id}`} />
             <h1 className="text-xl font-bold">Compare Prices</h1>
           </div>
           <WishlistButton productId={id!} />
