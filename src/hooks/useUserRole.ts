@@ -5,7 +5,11 @@ import { User } from '@supabase/supabase-js';
 type UserRole = 'customer' | 'vendor' | 'admin' | null;
 
 export const useUserRole = () => {
-  const [role, setRole] = useState<UserRole>(null);
+  // Initialize from localStorage cache to prevent flickering
+  const [role, setRole] = useState<UserRole>(() => {
+    const cached = localStorage.getItem('userRole');
+    return (cached as UserRole) || null;
+  });
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +21,16 @@ export const useUserRole = () => {
         .eq('user_id', userId)
         .single();
       
-      setRole(data?.role as UserRole || null);
+      const userRole = data?.role as UserRole || null;
+      setRole(userRole);
+      
+      // Cache the role in localStorage
+      if (userRole) {
+        localStorage.setItem('userRole', userRole);
+      } else {
+        localStorage.removeItem('userRole');
+      }
+      
       setLoading(false);
     };
 
@@ -31,6 +44,8 @@ export const useUserRole = () => {
           setUser(null);
           setRole(null);
           setLoading(false);
+          // Clear cache on logout
+          localStorage.removeItem('userRole');
         }
       }
     );

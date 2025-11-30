@@ -38,7 +38,6 @@ const VendorBottomNav = () => {
 
   const navItems = [
     { icon: Home, label: t('nav_home'), path: '/' },
-    { icon: Package, label: 'Inventory', path: storeId ? `/inventory/${storeId}` : '/vendor/dashboard' },
     { icon: LayoutDashboard, label: t('nav_dashboard'), path: '/vendor/dashboard' },
     { icon: Share2, label: t('nav_feed'), path: '/vendor-feed' },
     { icon: User, label: t('nav_profile'), path: '/profile' },
