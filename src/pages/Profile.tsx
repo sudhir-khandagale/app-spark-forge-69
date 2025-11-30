@@ -48,11 +48,12 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
-      fetchUserProfile();
-      checkProfileCompletion();
-      if (isVendor || isAdmin) {
-        fetchVendorStores();
-      }
+      // Run all data fetches in parallel for faster loading
+      Promise.all([
+        fetchUserProfile(),
+        checkProfileCompletion(),
+        (isVendor || isAdmin) ? fetchVendorStores() : Promise.resolve(),
+      ]);
     }
   }, [user, isVendor, isAdmin]);
 

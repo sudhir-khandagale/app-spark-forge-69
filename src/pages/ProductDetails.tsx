@@ -368,44 +368,9 @@ const ProductDetails = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    {product.in_stock && (
-                      <>
-                        <Button 
-                          variant="outline"
-                          className="flex-1"
-                          onClick={handleAddToCart}
-                          disabled={isAddingToCart}
-                        >
-                          {isAddingToCart ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <ShoppingCart className="w-4 h-4 mr-2" />
-                          )}
-                          Add to Cart
-                        </Button>
-                        <Button
-                          className="flex-1"
-                          onClick={() => navigate(`/checkout?product=${id}&store=${product.store_id}`)}
-                        >
-                          Buy Now
-                        </Button>
-                      </>
-                    )}
-                    <Button 
-                      variant="outline"
-                      className={product.in_stock ? "flex-1" : "w-full"}
-                      onClick={handleOpenInMaps}
-                    >
-                      <Map className="w-4 h-4 mr-2" />
-                      Open in Maps
-                    </Button>
-                  </div>
-                  <Link to={`/store/${product.store_id}`}>
-                    <Button variant="outline" className="w-full">View Store</Button>
-                  </Link>
-                </div>
+                <Link to={`/store/${product.store_id}`}>
+                  <Button variant="outline" className="w-full">View Store</Button>
+                </Link>
 
                 {product.store_latitude && product.store_longitude && 
                  product.store_latitude !== 0 && product.store_longitude !== 0 && (
@@ -445,6 +410,41 @@ const ProductDetails = () => {
           </div>
         </div>
       </main>
+
+      {/* Sticky Action Bar */}
+      {product.in_stock && (
+        <div className="fixed bottom-16 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border p-3 z-30 animate-fade-in">
+          <div className="max-w-lg mx-auto flex gap-2">
+            <Button 
+              variant="outline"
+              className="flex-1 hover-scale"
+              onClick={handleAddToCart}
+              disabled={isAddingToCart}
+            >
+              {isAddingToCart ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <ShoppingCart className="w-4 h-4 mr-2" />
+              )}
+              Add to Cart
+            </Button>
+            <Button
+              className="flex-1 hover-scale"
+              onClick={() => navigate(`/checkout?product=${id}&store=${product.store_id}`)}
+            >
+              Buy Now
+            </Button>
+            <Button 
+              variant="outline"
+              size="icon"
+              className="hover-scale"
+              onClick={handleOpenInMaps}
+            >
+              <Map className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <RoleBasedBottomNav />
     </div>
