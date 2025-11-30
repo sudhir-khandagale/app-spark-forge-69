@@ -24,12 +24,10 @@ interface TrendingProduct {
   category: string | null;
   rating: number | null;
   review_count: number | null;
-  stores: {
-    id: string;
-    name: string;
-    price: number;
-    in_stock: boolean;
-  }[];
+  store_name: string;
+  store_id: string;
+  price: number;
+  in_stock: boolean;
 }
 
 const Index = () => {
@@ -51,68 +49,82 @@ const Index = () => {
   const fetchTrendingProducts = async (): Promise<void> => {
     try {
       setLoadingTrending(true);
-      console.log('Fetching trending products...');
       
-      // Fetch products with inventory in a single query
-      const { data: inventory, error } = await supabase
+      // Create timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Query timeout')), 10000)
+      );
+
+      // Step 1: Fetch trending products
+      const productsPromise = supabase
+        .from('products')
+        .select('id, name, image_url, category, rating, review_count')
+        .eq('trending', true)
+        .limit(8);
+
+      const { data: trendingProds, error: productsError } = await Promise.race([
+        productsPromise,
+        timeoutPromise
+      ]) as any;
+
+      if (productsError) throw productsError;
+      if (!trendingProds || trendingProds.length === 0) {
+        setTrendingProducts([]);
+        return;
+      }
+
+      // Step 2: Fetch inventory for these products with approved stores
+      const productIds = trendingProds.map((p: any) => p.id);
+      const inventoryPromise = supabase
         .from('inventory')
         .select(`
           product_id,
           price,
           in_stock,
-          products!inner (
-            id,
-            name,
-            image_url,
-            category,
-            rating,
-            review_count,
-            trending
-          ),
+          store_id,
           stores!inner (
             id,
             name,
             status
           )
         `)
-        .eq('products.trending', true)
+        .in('product_id', productIds)
         .eq('in_stock', true)
-        .eq('stores.status', 'approved')
-        .limit(10);
+        .eq('stores.status', 'approved');
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      const { data: inventory, error: inventoryError } = await Promise.race([
+        inventoryPromise,
+        timeoutPromise
+      ]) as any;
 
-      console.log('Inventory data:', inventory);
+      if (inventoryError) throw inventoryError;
 
-      // Group by product
+      // Match products with inventory
       const productMap = new Map<string, TrendingProduct>();
+      
       inventory?.forEach((inv: any) => {
-        const product = inv.products;
-        if (!productMap.has(product.id)) {
+        const product = trendingProds.find((p: any) => p.id === inv.product_id);
+        if (product && !productMap.has(product.id)) {
           productMap.set(product.id, {
-            ...product,
-            stores: []
+            id: product.id,
+            name: product.name,
+            image_url: product.image_url,
+            category: product.category,
+            rating: product.rating,
+            review_count: product.review_count,
+            store_name: inv.stores.name,
+            store_id: inv.store_id,
+            price: inv.price,
+            in_stock: inv.in_stock
           });
         }
-        productMap.get(product.id)?.stores.push({
-          id: inv.stores.id,
-          name: inv.stores.name,
-          price: inv.price,
-          in_stock: inv.in_stock
-        });
       });
 
-      const products = Array.from(productMap.values()).slice(0, 4);
-      console.log('Processed products:', products);
-      setTrendingProducts(products);
+      setTrendingProducts(Array.from(productMap.values()).slice(0, 4));
     } catch (error) {
       console.error('Error fetching trending products:', error);
-      setTrendingProducts([]); // Set empty array on error
+      setTrendingProducts([]);
     } finally {
-      console.log('Setting loading to false');
       setLoadingTrending(false);
     }
   };
@@ -230,11 +242,11 @@ const Index = () => {
                               size="sm"
                               showTimer={false}
                             />
-                          ) : product.stores.length > 0 ? (
+                          ) : (
                             <p className="text-sm font-semibold text-primary">
-                              {formatPrice(product.stores[0].price)}
+                              {formatPrice(product.price)}
                             </p>
-                          ) : null}
+                          )}
                         </CardContent>
                       </Card>
                     </Link>
