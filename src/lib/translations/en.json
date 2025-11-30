@@ -52,5 +52,13 @@
   "voice_chat_enabled": "Voice chat enabled",
   "voice_chat_disabled": "Voice chat disabled",
   "auto_read_responses": "Auto-read responses",
-  "stop_speaking": "Stop Speaking"
+  "stop_speaking": "Stop Speaking",
+  "nav_home": "Home",
+  "nav_lists": "Lists",
+  "nav_cart": "Cart",
+  "nav_profile": "Profile",
+  "nav_map": "Map",
+  "nav_dashboard": "Dashboard",
+  "nav_feed": "Feed",
+  "nav_inventory": "Inventory"
 }

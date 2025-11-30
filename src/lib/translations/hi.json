@@ -52,5 +52,13 @@
   "voice_chat_enabled": "आवाज चैट सक्षम",
   "voice_chat_disabled": "आवाज चैट अक्षम",
   "auto_read_responses": "स्वचालित रूप से प्रतिक्रियाएं पढ़ें",
-  "stop_speaking": "बोलना बंद करें"
+  "stop_speaking": "बोलना बंद करें",
+  "nav_home": "होम",
+  "nav_lists": "सूची",
+  "nav_cart": "कार्ट",
+  "nav_profile": "प्रोफ़ाइल",
+  "nav_map": "नक्शा",
+  "nav_dashboard": "डैशबोर्ड",
+  "nav_feed": "फ़ीड",
+  "nav_inventory": "इन्वेंटरी"
 }
