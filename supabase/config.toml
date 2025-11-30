@@ -11,3 +11,9 @@ verify_jwt = true
 
 [functions.razorpay-webhook]
 verify_jwt = false
+
+[functions.inventory-assistant]
+verify_jwt = true
+
+[functions.inventory-ocr]
+verify_jwt = true
