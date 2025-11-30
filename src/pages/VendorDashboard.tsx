@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
 import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
-import { Package, AlertTriangle, Crown, Lock, Store, BarChart } from 'lucide-react';
+import { Package, AlertTriangle, Crown, Lock, Store, BarChart, DollarSign } from 'lucide-react';
 import { useVendorSubscription } from '@/hooks/useVendorSubscription';
 import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
 import { useToast } from '@/hooks/use-toast';
@@ -234,6 +234,14 @@ export default function VendorDashboard() {
                   >
                     {t('orders')}
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={() => navigate('/vendor/earnings')}
+                  >
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Earnings
+                  </Button>
                 </CardContent>
               </Card>
             ))
@@ -346,12 +354,29 @@ export default function VendorDashboard() {
                 <p className="text-2xl font-bold text-destructive">{inventorySummary?.out_of_stock_items || 0}</p>
               </div>
             </div>
+            <div className="flex gap-2 mt-4">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => navigate(`/inventory/${storeId}`)}
+              >
+                {t('update_stock')}
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => navigate('/vendor/orders')}
+              >
+                Orders
+              </Button>
+            </div>
             <Button 
-              variant="outline" 
-              className="w-full mt-4"
-              onClick={() => navigate(`/inventory/${storeId}`)}
+              variant="default" 
+              className="w-full mt-2"
+              onClick={() => navigate('/vendor/earnings')}
             >
-              {t('update_stock')}
+              <DollarSign className="w-4 h-4 mr-2" />
+              View Earnings
             </Button>
           </CardContent>
         </Card>
