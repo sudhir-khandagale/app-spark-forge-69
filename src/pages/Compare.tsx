@@ -301,7 +301,7 @@ const Compare = () => {
               {product.category && (
                 <p className="text-sm text-muted-foreground mb-1">{product.category}</p>
               )}
-              {product.rating && (
+              {product.rating !== null && product.rating > 0 && (
                 <div className="flex items-center gap-1">
                   <span className="text-sm">⭐</span>
                   <span className="text-sm font-medium">{product.rating.toFixed(1)}</span>
@@ -418,7 +418,7 @@ const Compare = () => {
                           {item.store.address}
                         </p>
                         <div className="flex items-center gap-3 mt-2">
-                          {item.store.rating && (
+                          {item.store.rating !== null && item.store.rating > 0 && (
                             <span className="text-sm">⭐ {item.store.rating.toFixed(1)}</span>
                           )}
                           {item.distance && (
