@@ -48,7 +48,7 @@ const Auth = () => {
         .maybeSingle();
       
       if (storeData) {
-        navigate(`/dashboard/store/${storeData.id}`);
+        navigate(`/vendor/dashboard/${storeData.id}`);
       } else {
         navigate('/admin');
       }
@@ -61,7 +61,7 @@ const Auth = () => {
         .maybeSingle();
       
       if (storeData) {
-        navigate(`/dashboard/store/${storeData.id}`);
+        navigate(`/vendor/dashboard/${storeData.id}`);
       } else {
         navigate('/onboarding/merchant');
       }
