@@ -3,10 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/BackButton';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Minus, Package, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Search, Scan, Download, Edit2, Check, X, Filter } from 'lucide-react';
+import { Plus, Minus, Package, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Search, Scan, Download, Edit2, Check, X, Filter } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -332,9 +333,7 @@ export default function LiveInventory() {
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container max-w-4xl mx-auto p-4 space-y-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <BackButton fallbackPath="/profile" />
             <div className="flex-1">
               <h1 className="text-2xl font-bold">Live Inventory</h1>
               <p className="text-sm text-muted-foreground">Real-time stock management</p>
