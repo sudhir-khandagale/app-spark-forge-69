@@ -155,7 +155,7 @@ export default function ProductReviews({ productId, refreshTrigger }: ProductRev
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Customer Reviews</CardTitle>
+          <CardTitle>User Reviews</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -173,7 +173,7 @@ export default function ProductReviews({ productId, refreshTrigger }: ProductRev
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Customer Reviews</CardTitle>
+          <CardTitle>User Reviews</CardTitle>
           {reviews.length > 0 && (
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />

@@ -22,7 +22,7 @@ const RoleBasedBottomNav = () => {
     );
   }
 
-  // Admins get customer navigation
+  // Admins get user navigation (non-vendor)
   if (isVendor && !isAdmin) {
     return <VendorBottomNav />;
   }

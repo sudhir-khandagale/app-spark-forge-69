@@ -361,7 +361,7 @@ export default function MerchantOnboarding() {
           <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
             <div className="text-4xl mb-3">📊</div>
             <h3 className="font-semibold mb-1">Free Analytics</h3>
-            <p className="text-sm text-muted-foreground">Track sales & customer insights</p>
+            <p className="text-sm text-muted-foreground">Track sales & user insights</p>
           </Card>
           <Card className="text-center p-6 hover:shadow-lg transition-shadow cursor-pointer border-2">
             <div className="text-4xl mb-3">🔔</div>

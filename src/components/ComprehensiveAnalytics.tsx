@@ -233,7 +233,7 @@ export default function ComprehensiveAnalytics({ storeId }: ComprehensiveAnalyti
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Eye className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">Customer Engagement</CardTitle>
+                  <CardTitle className="text-lg">User Engagement</CardTitle>
                 </div>
                 <CardDescription>How customers interact with your store</CardDescription>
               </CardHeader>
@@ -419,7 +419,7 @@ export default function ComprehensiveAnalytics({ storeId }: ComprehensiveAnalyti
                   <TrendingUp className="h-5 w-5 text-primary" />
                   <CardTitle className="text-lg">Most Viewed Products</CardTitle>
                 </div>
-                <CardDescription>By customer interest</CardDescription>
+                <CardDescription>By user interest</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">

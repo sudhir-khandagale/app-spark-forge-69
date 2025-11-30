@@ -222,7 +222,7 @@ const Profile = () => {
           socialLinks={socialLinks}
         />
         
-        {/* Customer-only features */}
+        {/* User-only features (non-vendor) */}
         {!isVendor && (
           <>
             <div className="grid md:grid-cols-2 gap-6">

@@ -28,7 +28,7 @@ const tiers = [
       'Up to 100 products per store',
       'Basic inventory management',
       'Store profile page',
-      'Customer reviews',
+      'User reviews',
       'Manual stock updates'
     ],
     limits: {
