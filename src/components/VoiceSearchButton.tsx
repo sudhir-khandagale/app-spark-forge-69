@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useTranslation } from '@/hooks/useTranslation';
 import { cn } from '@/lib/utils';
+import { useCallback } from 'react';
 
 interface VoiceSearchButtonProps {
   onTranscript: (text: string) => void;
@@ -11,19 +12,24 @@ interface VoiceSearchButtonProps {
 
 export const VoiceSearchButton = ({ onTranscript, className }: VoiceSearchButtonProps) => {
   const { t, language } = useTranslation();
+  
+  const handleResult = useCallback((text: string) => {
+    console.log('Voice search result:', text);
+    onTranscript(text);
+  }, [onTranscript]);
+
+  const handleError = useCallback((error: string) => {
+    console.error('Voice recognition error:', error);
+  }, []);
+
   const { 
     isListening, 
     isSupported, 
     startListening, 
     stopListening 
   } = useSpeechRecognition({
-    onResult: (text) => {
-      console.log('Voice search result:', text);
-      onTranscript(text);
-    },
-    onError: (error) => {
-      console.error('Voice recognition error:', error);
-    },
+    onResult: handleResult,
+    onError: handleError,
     language: language,
   });
 
