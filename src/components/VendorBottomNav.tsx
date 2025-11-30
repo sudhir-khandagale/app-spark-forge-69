@@ -1,4 +1,4 @@
-import { Home, Package, Share2, User } from 'lucide-react';
+import { Home, Package, Share2, User, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useNativeFeatures } from '@/hooks/useNativeFeatures';
@@ -42,9 +42,16 @@ const VendorBottomNav = () => {
     return `/inventory/${storeId}`;
   };
 
+  const getDashboardPath = () => {
+    if (loadingStore) return '#';
+    if (!storeId) return '/onboarding/merchant';
+    return `/dashboard/${storeId}`;
+  };
+
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Package, label: 'Inventory', path: getInventoryPath(), badge: lowStockCount, disabled: loadingStore },
+    { icon: LayoutDashboard, label: 'Dashboard', path: getDashboardPath(), disabled: loadingStore },
     { icon: Share2, label: 'Feed', path: '/vendor-feed' },
     { icon: User, label: 'Profile', path: '/profile' },
   ];

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus } from 'lucide-react';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { SEOHead } from '@/components/SEOHead';
 import { useVendorPosts } from '@/hooks/useVendorPosts';
 import { VendorPostCard } from '@/components/vendor/VendorPostCard';
@@ -112,7 +112,7 @@ const VendorFeed = () => {
         />
       )}
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </>
   );
 };
