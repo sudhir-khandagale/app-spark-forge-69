@@ -174,6 +174,10 @@ const Index = () => {
                   }
                 }}
               />
+              <VoiceSearchButton 
+                onTranscript={setSearchQuery} 
+                className="shrink-0"
+              />
               <Button 
                 size="icon" 
                 variant="secondary"

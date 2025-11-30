@@ -44,6 +44,7 @@ const Profile = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [socialLinks, setSocialLinks] = useState<Record<string, string>>({});
+  const [displayName, setDisplayName] = useState<string>('');
   const [showProfileCompletion, setShowProfileCompletion] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { subscription, loading: subLoading } = useVendorSubscription(user?.id);
@@ -100,7 +101,7 @@ const Profile = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('avatar_url, banner_url, social_links')
+        .select('avatar_url, banner_url, social_links, display_name')
         .eq('id', user?.id)
         .single();
 
@@ -109,6 +110,7 @@ const Profile = () => {
         setAvatarUrl(data.avatar_url);
         setBannerUrl(data.banner_url);
         setSocialLinks((data.social_links as Record<string, string>) || {});
+        setDisplayName(data.display_name || user?.email || '');
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -231,7 +233,7 @@ const Profile = () => {
 
         <ProfileHeader 
           avatarUrl={avatarUrl || undefined} 
-          displayName={user?.email}
+          displayName={displayName || user?.email || 'User'}
           bannerUrl={bannerUrl || undefined}
           socialLinks={socialLinks}
         />
