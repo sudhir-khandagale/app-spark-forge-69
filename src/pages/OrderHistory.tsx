@@ -5,11 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingBag, Store, Calendar, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ShoppingBag, Store, Calendar, FileText, Truck, Clock } from 'lucide-react';
 import { BackButton } from '@/components/BackButton';
 import { format } from 'date-fns';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { useToast } from '@/hooks/use-toast';
+import { OrderTracking } from '@/components/OrderTracking';
 
 interface Order {
   id: string;
@@ -17,6 +19,8 @@ interface Order {
   items: any;
   total_amount: number;
   payment_status: string;
+  delivery_status: string | null;
+  delivery_time_slot: string | null;
   receipt_number: string | null;
   created_at: string;
   pickup_scheduled: string | null;
@@ -31,6 +35,7 @@ export default function OrderHistory() {
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trackingOrderId, setTrackingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     loadOrders();
@@ -169,7 +174,35 @@ export default function OrderHistory() {
                   </div>
                 )}
 
+                {/* Delivery Info */}
+                {order.delivery_status && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Truck className="w-4 h-4 text-primary" />
+                    <span className="text-muted-foreground">Status:</span>
+                    <Badge variant="secondary">
+                      {order.delivery_status.replace(/_/g, ' ')}
+                    </Badge>
+                  </div>
+                )}
+
+                {order.delivery_time_slot && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span className="text-muted-foreground">Delivery Slot:</span>
+                    <span className="font-medium">{order.delivery_time_slot}</span>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setTrackingOrderId(order.id)}
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    Track Order
+                  </Button>
                   {order.receipt_number && (
                     <Button
                       variant="outline"
@@ -178,24 +211,25 @@ export default function OrderHistory() {
                       onClick={() => downloadReceipt(order.receipt_number!)}
                     >
                       <FileText className="w-4 h-4 mr-2" />
-                      View Receipt
+                      Receipt
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => navigate(`/store/${order.store_id}`)}
-                  >
-                    <Store className="w-4 h-4 mr-2" />
-                    View Store
-                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))
         )}
       </main>
+
+      {/* Order Tracking Dialog */}
+      <Dialog open={!!trackingOrderId} onOpenChange={() => setTrackingOrderId(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Order Tracking</DialogTitle>
+          </DialogHeader>
+          {trackingOrderId && <OrderTracking orderId={trackingOrderId} />}
+        </DialogContent>
+      </Dialog>
 
       <RoleBasedBottomNav />
     </div>

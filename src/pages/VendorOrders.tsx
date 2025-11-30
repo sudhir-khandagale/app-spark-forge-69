@@ -1,0 +1,366 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useVendorSubscription } from '@/hooks/useVendorSubscription';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BackButton } from '@/components/BackButton';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
+import LockedFeatureOverlay from '@/components/LockedFeatureOverlay';
+import SubscriptionTiersModal from '@/components/SubscriptionTiersModal';
+import { Package, Search, Filter, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+interface Order {
+  id: string;
+  created_at: string;
+  total_amount: number;
+  payment_status: string;
+  delivery_status: string;
+  items: any;
+  delivery_time_slot: string | null;
+  estimated_delivery: string | null;
+}
+
+export default function VendorOrders() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user, isVendor, isAdmin } = useUserRole();
+  const { subscription } = useVendorSubscription(user?.id);
+  
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [storeId, setStoreId] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const canAccessOrderManagement = subscription?.canAccessOrderManagement || subscription?.isAdmin;
+
+  useEffect(() => {
+    if (user && (isVendor || isAdmin)) {
+      fetchStoreAndOrders();
+    }
+  }, [user, isVendor, isAdmin]);
+
+  useEffect(() => {
+    filterOrders();
+  }, [orders, searchQuery, statusFilter]);
+
+  const fetchStoreAndOrders = async () => {
+    try {
+      // Get user's store
+      const { data: store } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', user?.id)
+        .eq('status', 'approved')
+        .single();
+
+      if (!store) {
+        toast({
+          title: 'No Store Found',
+          description: 'Please register your store first',
+          variant: 'destructive',
+        });
+        navigate('/onboarding/merchant');
+        return;
+      }
+
+      setStoreId(store.id);
+
+      // Fetch orders
+      const { data: ordersData, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('store_id', store.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOrders(ordersData || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load orders',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterOrders = () => {
+    let filtered = orders;
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.delivery_status === statusFilter);
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(order => 
+        order.id.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredOrders(filtered);
+  };
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ delivery_status: newStatus })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Status Updated',
+        description: `Order status changed to ${newStatus.replace(/_/g, ' ')}`,
+      });
+
+      fetchStoreAndOrders();
+    } catch (error) {
+      console.error('Error updating order:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update order status',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-green-500/10 text-green-600';
+      case 'out_for_delivery':
+        return 'bg-blue-500/10 text-blue-600';
+      case 'shipped':
+      case 'processing':
+        return 'bg-yellow-500/10 text-yellow-600';
+      case 'confirmed':
+        return 'bg-purple-500/10 text-purple-600';
+      case 'cancelled':
+        return 'bg-destructive/10 text-destructive';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const stats = {
+    total: orders.length,
+    pending: orders.filter(o => o.delivery_status === 'pending').length,
+    processing: orders.filter(o => ['confirmed', 'processing', 'shipped'].includes(o.delivery_status)).length,
+    completed: orders.filter(o => o.delivery_status === 'delivered').length,
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
+        <div className="p-4 flex items-center gap-3">
+          <BackButton fallbackPath="/vendor/dashboard" />
+          <div>
+            <h1 className="text-2xl font-bold">Order Management</h1>
+            <p className="text-sm text-muted-foreground">Manage your store orders</p>
+          </div>
+        </div>
+      </header>
+
+      <LockedFeatureOverlay
+        isLocked={!canAccessOrderManagement}
+        onUpgrade={() => setShowUpgradeModal(true)}
+        title="Order Management Locked"
+        description="Upgrade to Pro or Premium to access order management features"
+        requiredTier="pro"
+      >
+        <main className="p-4 space-y-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="w-4 h-4 text-primary" />
+                  <p className="text-xs text-muted-foreground">Total</p>
+                </div>
+                <p className="text-2xl font-bold">{stats.total}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-yellow-500" />
+                  <p className="text-xs text-muted-foreground">Pending</p>
+                </div>
+                <p className="text-2xl font-bold text-yellow-500">{stats.pending}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-blue-500" />
+                  <p className="text-xs text-muted-foreground">Processing</p>
+                </div>
+                <p className="text-2xl font-bold text-blue-500">{stats.processing}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <p className="text-xs text-muted-foreground">Completed</p>
+                </div>
+                <p className="text-2xl font-bold text-green-500">{stats.completed}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Search className="w-5 h-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search by order ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-muted-foreground" />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Orders</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="processing">Processing</SelectItem>
+                    <SelectItem value="shipped">Shipped</SelectItem>
+                    <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                    <SelectItem value="delivered">Delivered</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Orders List */}
+          {filteredOrders.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No orders found</p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredOrders.map((order) => (
+              <Card key={order.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-base">
+                        Order #{order.id.slice(0, 8)}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(order.created_at), 'MMM dd, yyyy • hh:mm a')}
+                      </p>
+                    </div>
+                    <Badge className={cn(getStatusColor(order.delivery_status))}>
+                      {order.delivery_status?.replace(/_/g, ' ')}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Total Amount</span>
+                    <span className="font-bold">₹{order.total_amount.toFixed(2)}</span>
+                  </div>
+
+                  {order.delivery_time_slot && (
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Delivery Slot: </span>
+                      <span className="font-medium">{order.delivery_time_slot}</span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    {order.delivery_status === 'pending' && (
+                      <Button size="sm" onClick={() => updateOrderStatus(order.id, 'confirmed')}>
+                        Confirm
+                      </Button>
+                    )}
+                    {order.delivery_status === 'confirmed' && (
+                      <Button size="sm" onClick={() => updateOrderStatus(order.id, 'processing')}>
+                        Start Processing
+                      </Button>
+                    )}
+                    {order.delivery_status === 'processing' && (
+                      <Button size="sm" onClick={() => updateOrderStatus(order.id, 'shipped')}>
+                        Mark Shipped
+                      </Button>
+                    )}
+                    {order.delivery_status === 'shipped' && (
+                      <Button size="sm" onClick={() => updateOrderStatus(order.id, 'out_for_delivery')}>
+                        Out for Delivery
+                      </Button>
+                    )}
+                    {order.delivery_status === 'out_for_delivery' && (
+                      <Button size="sm" onClick={() => updateOrderStatus(order.id, 'delivered')}>
+                        Mark Delivered
+                      </Button>
+                    )}
+                    {!['delivered', 'cancelled'].includes(order.delivery_status) && (
+                      <Button 
+                        size="sm" 
+                        variant="destructive" 
+                        onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </main>
+      </LockedFeatureOverlay>
+
+      {/* Subscription Modal */}
+      {storeId && (
+        <SubscriptionTiersModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
+          storeId={storeId}
+          currentTier={subscription?.tier || 'free'}
+          onUpgrade={() => {
+            setShowUpgradeModal(false);
+            fetchStoreAndOrders();
+          }}
+        />
+      )}
+
+      <RoleBasedBottomNav />
+    </div>
+  );
+}

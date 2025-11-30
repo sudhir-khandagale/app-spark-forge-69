@@ -18,6 +18,7 @@ interface VendorSubscription {
   canAccessAnalytics: boolean;
   canAccessFlashSales: boolean;
   canAccessBulkUpload: boolean;
+  canAccessOrderManagement: boolean;
   isAdmin: boolean;
 }
 
@@ -99,6 +100,7 @@ export const useVendorSubscription = (userId?: string, storeId?: string) => {
         canAccessAnalytics: isAdmin || tier === 'pro' || tier === 'premium',
         canAccessFlashSales: isAdmin || tier === 'pro' || tier === 'premium',
         canAccessBulkUpload: isAdmin || tier === 'pro' || tier === 'premium',
+        canAccessOrderManagement: isAdmin || tier === 'pro' || tier === 'premium',
         isAdmin
       };
 

@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import { formatPrice } from '@/lib/utils';
+import { DeliveryTimeSlots } from '@/components/DeliveryTimeSlots';
 
 declare global {
   interface Window {
@@ -35,6 +36,8 @@ const Checkout = () => {
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
   const [storeSettings, setStoreSettings] = useState<any>(null);
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState<string>('');
+  const [estimatedDelivery, setEstimatedDelivery] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -165,6 +168,8 @@ const Checkout = () => {
           delivery_address: deliveryType === 'delivery' ? { address } : null,
           delivery_charges: deliveryCharges,
           payment_method: paymentMethod,
+          delivery_time_slot: deliveryType === 'delivery' ? deliveryTimeSlot : null,
+          estimated_delivery: deliveryType === 'delivery' ? estimatedDelivery?.toISOString() : null,
           notes,
         })
         .select()
@@ -355,14 +360,24 @@ const Checkout = () => {
             </RadioGroup>
 
             {deliveryType === 'delivery' && (
-              <div className="mt-4 space-y-2">
-                <Label htmlFor="address">Delivery Address</Label>
-                <Textarea
-                  id="address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Enter your delivery address"
-                  rows={3}
+              <div className="mt-4 space-y-4">
+                <div>
+                  <Label htmlFor="address">Delivery Address</Label>
+                  <Textarea
+                    id="address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter your delivery address"
+                    rows={3}
+                    className="mt-2"
+                  />
+                </div>
+                <DeliveryTimeSlots 
+                  onSelect={(slot, estimated) => {
+                    setDeliveryTimeSlot(slot);
+                    setEstimatedDelivery(estimated);
+                  }}
+                  selectedSlot={deliveryTimeSlot}
                 />
               </div>
             )}
@@ -408,7 +423,7 @@ const Checkout = () => {
             className="w-full"
             size="lg"
             onClick={handleCheckout}
-            disabled={processing || (deliveryType === 'delivery' && !address.trim())}
+            disabled={processing || (deliveryType === 'delivery' && (!address.trim() || !deliveryTimeSlot))}
           >
             <CreditCard className="w-4 h-4 mr-2" />
             {processing ? 'Processing...' : `Pay ${formatPrice(totalAmount)}`}
