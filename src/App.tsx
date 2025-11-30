@@ -33,7 +33,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Reserve = lazy(() => import("./pages/Reserve"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const MerchantOnboarding = lazy(() => import("./pages/MerchantOnboarding"));
-const StoreDashboard = lazy(() => import("./pages/StoreDashboard"));
+const StoreDashboardRedirect = lazy(() => import("./components/StoreDashboardRedirect"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminSetup = lazy(() => import("./pages/AdminSetup"));
 const Cart = lazy(() => import("./pages/Cart"));
@@ -102,7 +102,8 @@ const App = () => (
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/reserve/:id" element={<ProtectedRoute><Reserve /></ProtectedRoute>} />
               <Route path="/onboarding/merchant" element={<ProtectedRoute><MerchantOnboarding /></ProtectedRoute>} />
-              <Route path="/dashboard/store/:storeId" element={<ProtectedRoute><StoreDashboard /></ProtectedRoute>} />
+              {/* Redirect old route to new unified dashboard */}
+              <Route path="/dashboard/store/:storeId" element={<StoreDashboardRedirect />} />
               <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
               <Route path="/admin-setup" element={<AdminSetup />} />
               <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
