@@ -111,7 +111,7 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate }: InventoryAssi
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-accent hover:scale-110 transition-transform z-[60] relative"
+        className="fixed bottom-[88px] right-4 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-accent hover:scale-110 transition-transform z-[60] relative"
         size="icon"
       >
         <Sparkles className="h-6 w-6" />
@@ -123,7 +123,7 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate }: InventoryAssi
   }
 
   return (
-    <Card className="fixed bottom-24 right-6 w-[calc(100vw-2rem)] max-w-96 h-[500px] flex flex-col shadow-2xl z-[60] border-primary/20">
+    <Card className="fixed bottom-[88px] right-4 w-[calc(100vw-2rem)] max-w-96 h-[500px] flex flex-col shadow-2xl z-[60] border-primary/20">
       <div className="bg-gradient-to-r from-primary to-accent p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-white" />
