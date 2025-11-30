@@ -2,7 +2,7 @@ import { Share2, MapPin, Phone, Navigation, Loader2, ShoppingCart, Scale, Map } 
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/BackButton';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import WishlistButton from '@/components/WishlistButton';
 import { useProduct } from '@/hooks/useProducts';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -446,7 +446,7 @@ const ProductDetails = () => {
         </div>
       </main>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };

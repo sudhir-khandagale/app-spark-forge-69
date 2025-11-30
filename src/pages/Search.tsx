@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/BackButton';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import BottomNav from '@/components/BottomNav';
+import RoleBasedBottomNav from '@/components/RoleBasedBottomNav';
 import WishlistButton from '@/components/WishlistButton';
 import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import FlashSaleBadge from '@/components/FlashSaleBadge';
@@ -215,7 +215,7 @@ const Search = () => {
         </main>
       </PullToRefresh>
 
-      <BottomNav />
+      <RoleBasedBottomNav />
     </div>
   );
 };
