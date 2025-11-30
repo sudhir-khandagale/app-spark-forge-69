@@ -1,6 +1,7 @@
-import { ArrowLeft, Phone, Navigation, Clock, Loader2, MapPin, Package, ShoppingBag } from 'lucide-react';
+import { Phone, Navigation, Clock, Loader2, MapPin, Package, ShoppingBag } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/BackButton';
 import BottomNav from '@/components/BottomNav';
 import FavoriteStoreButton from '@/components/FavoriteStoreButton';
 import { useStore, useStoreInventory } from '@/hooks/useStores';
@@ -64,11 +65,7 @@ const StoreProfile = () => {
       <div className="flex flex-col min-h-screen pb-16">
         <header className="sticky top-0 z-40 bg-background border-b">
           <div className="flex items-center justify-between p-4">
-            <Link to="/search">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/search" />
           </div>
         </header>
         <main className="flex-1 p-4">
@@ -84,11 +81,7 @@ const StoreProfile = () => {
       <div className="flex flex-col min-h-screen pb-16">
         <header className="sticky top-0 z-40 bg-background border-b">
           <div className="flex items-center justify-between p-4">
-            <Link to="/search">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <BackButton fallbackPath="/search" />
           </div>
         </header>
         <main className="flex-1 p-4 flex items-center justify-center">
@@ -105,11 +98,7 @@ const StoreProfile = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center justify-between p-4">
-          <Link to="/search">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+          <BackButton fallbackPath="/search" />
           <FavoriteStoreButton storeId={id!} />
         </div>
       </header>

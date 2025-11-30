@@ -1,5 +1,5 @@
-import { ArrowLeft } from 'lucide-react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { BackButton } from '@/components/BackButton';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -125,11 +125,7 @@ const Reserve = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="flex items-center gap-3 p-4">
-          <Link to={`/product/${id || '1'}`}>
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+          <BackButton fallbackPath={`/product/${id || '1'}`} />
           <h1 className="text-xl font-bold">Reserve Item</h1>
         </div>
       </header>

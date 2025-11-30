@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, SlidersHorizontal, Loader2, Scale, Star } from 'lucide-react';
+import { SlidersHorizontal, Loader2, Scale, Star } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/BackButton';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import BottomNav from '@/components/BottomNav';
@@ -71,11 +72,7 @@ const Search = () => {
       {/* Header - extends to top with safe area */}
       <header className="sticky top-0 z-40 bg-background border-b border-border -mt-[env(safe-area-inset-top)] pt-[env(safe-area-inset-top)]">
         <form onSubmit={handleSearch} className="flex items-center gap-3 p-4">
-          <Link to="/">
-            <Button variant="ghost" size="icon" type="button">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+          <BackButton fallbackPath="/" />
           <Input
             placeholder="Search for products..."
             className="flex-1"

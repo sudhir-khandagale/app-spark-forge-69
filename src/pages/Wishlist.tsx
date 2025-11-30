@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart, ShoppingCart, Trash2 } from 'lucide-react';
+import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
+import { BackButton } from '@/components/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -194,11 +195,7 @@ const Wishlist = () => {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background border-b border-border">
         <div className="flex items-center gap-4 p-4 max-w-lg mx-auto">
-          <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+          <BackButton fallbackPath="/profile" />
           <h1 className="text-xl font-bold">Wishlist</h1>
         </div>
       </header>

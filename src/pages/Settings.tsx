@@ -1,6 +1,6 @@
-import { ArrowLeft, Bell, MapPin, Globe } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Bell, MapPin, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/BackButton';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import BottomNav from '@/components/BottomNav';
@@ -117,11 +117,7 @@ const Settings = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background border-b border-border">
         <div className="flex items-center gap-3 p-4">
-          <Link to="/profile">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+          <BackButton fallbackPath="/profile" />
           <h1 className="text-xl font-bold">Settings</h1>
         </div>
       </header>

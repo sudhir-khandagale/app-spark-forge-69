@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, ArrowLeft, AlertCircle, CheckCircle, XCircle, Minus, Loader2, Crown, Lock, Sparkles } from 'lucide-react';
+import { Package, Upload, Plus, Edit, Trash2, FileSpreadsheet, ImagePlus, Store, X, AlertCircle, CheckCircle, XCircle, Minus, Loader2, Crown, Lock, Sparkles } from 'lucide-react';
+import { BackButton } from '@/components/BackButton';
 import { VendorNotifications } from '@/components/VendorNotifications';
 import VendorAnalyticsDashboard from '@/components/VendorAnalyticsDashboard';
 import ComprehensiveAnalytics from '@/components/ComprehensiveAnalytics';
