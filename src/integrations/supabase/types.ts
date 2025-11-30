@@ -346,6 +346,8 @@ export type Database = {
           delivery_address: Json | null
           delivery_charges: number | null
           delivery_status: string | null
+          delivery_time_slot: string | null
+          estimated_delivery: string | null
           id: string
           items: Json
           notes: string | null
@@ -365,6 +367,8 @@ export type Database = {
           delivery_address?: Json | null
           delivery_charges?: number | null
           delivery_status?: string | null
+          delivery_time_slot?: string | null
+          estimated_delivery?: string | null
           id?: string
           items: Json
           notes?: string | null
@@ -384,6 +388,8 @@ export type Database = {
           delivery_address?: Json | null
           delivery_charges?: number | null
           delivery_status?: string | null
+          delivery_time_slot?: string | null
+          estimated_delivery?: string | null
           id?: string
           items?: Json
           notes?: string | null

@@ -225,6 +225,13 @@ export default function VendorDashboard() {
                       Analytics
                     </Button>
                   </div>
+                  <Button
+                    variant="default"
+                    className="w-full mt-2"
+                    onClick={() => navigate('/vendor/orders')}
+                  >
+                    View Orders
+                  </Button>
                 </CardContent>
               </Card>
             ))

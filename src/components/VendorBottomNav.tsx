@@ -1,4 +1,4 @@
-import { Home, Share2, User, LayoutDashboard } from 'lucide-react';
+import { Home, Share2, User, LayoutDashboard, Package } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useNativeFeatures } from '@/hooks/useNativeFeatures';
@@ -38,6 +38,7 @@ const VendorBottomNav = () => {
 
   const navItems = [
     { icon: Home, label: t('nav_home'), path: '/' },
+    { icon: storeId ? Package : LayoutDashboard, label: storeId ? 'Inventory' : t('nav_dashboard'), path: storeId ? `/inventory/${storeId}` : '/vendor/dashboard' },
     { icon: LayoutDashboard, label: t('nav_dashboard'), path: '/vendor/dashboard' },
     { icon: Share2, label: t('nav_feed'), path: '/vendor-feed' },
     { icon: User, label: t('nav_profile'), path: '/profile' },
