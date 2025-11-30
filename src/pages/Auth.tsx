@@ -12,6 +12,8 @@ import { EmailVerification } from '@/components/EmailVerification';
 import flowduxIcon from '@/assets/flowdux-icon.png';
 import { z } from 'zod';
 import { useTranslation } from '@/hooks/useTranslation';
+import { checkPasswordStrength, checkPasswordBreach, PasswordStrength } from '@/lib/passwordValidation';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 
 const emailSchema = z.string().email({ message: "Please enter a valid email address" });
 
@@ -29,6 +31,8 @@ const Auth = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [signupEmailError, setSignupEmailError] = useState<string | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength | null>(null);
+  const [checkingBreach, setCheckingBreach] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -204,16 +208,34 @@ const Auth = () => {
       return;
     }
 
-    if (signupPassword.length < 6) {
+    // Check password strength
+    const strength = checkPasswordStrength(signupPassword);
+    if (!strength.isValid) {
       toast({
         title: "Weak Password",
-        description: "Password must be at least 6 characters",
+        description: strength.feedback[0] || "Password does not meet security requirements",
         variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
+    setCheckingBreach(true);
+
+    // Check for breached password
+    const isBreached = await checkPasswordBreach(signupPassword);
+    setCheckingBreach(false);
+
+    if (isBreached) {
+      toast({
+        title: "Compromised Password",
+        description: "This password has been found in data breaches. Please choose a different password.",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
+
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -368,10 +390,23 @@ const Auth = () => {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="At least 6 characters"
+                    placeholder="Create a strong password"
                     value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
+                    onChange={(e) => {
+                      setSignupPassword(e.target.value);
+                      if (e.target.value) {
+                        setPasswordStrength(checkPasswordStrength(e.target.value));
+                      } else {
+                        setPasswordStrength(null);
+                      }
+                    }}
                   />
+                  {passwordStrength && signupPassword && (
+                    <PasswordStrengthIndicator 
+                      strength={passwordStrength}
+                      showRequirements={true}
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -391,9 +426,9 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={isLoading}
+                  disabled={isLoading || checkingBreach}
                 >
-                  {isLoading ? `${t('loading')}` : t('signup')}
+                  {checkingBreach ? 'Checking password security...' : isLoading ? `${t('loading')}` : t('signup')}
                 </Button>
 
                 <p className="text-sm text-muted-foreground text-center">
