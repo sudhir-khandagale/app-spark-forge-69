@@ -359,6 +359,7 @@ export type Database = {
           receipt_number: string | null
           store_id: string
           total_amount: number
+          tracking_number: string | null
           updated_at: string | null
           user_id: string
         }
@@ -380,6 +381,7 @@ export type Database = {
           receipt_number?: string | null
           store_id: string
           total_amount: number
+          tracking_number?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -401,6 +403,7 @@ export type Database = {
           receipt_number?: string | null
           store_id?: string
           total_amount?: number
+          tracking_number?: string | null
           updated_at?: string | null
           user_id?: string
         }
