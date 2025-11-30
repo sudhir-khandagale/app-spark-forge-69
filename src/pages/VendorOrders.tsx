@@ -55,7 +55,8 @@ export default function VendorOrders() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [storeId, setStoreId] = useState<string | null>(null);
+  const [stores, setStores] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [editingTracking, setEditingTracking] = useState<{ [key: string]: string }>({});
   const [notesOrderId, setNotesOrderId] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export default function VendorOrders() {
     if (user && (isVendor || isAdmin)) {
       fetchStoreAndOrders();
     }
-  }, [user, isVendor, isAdmin]);
+  }, [user, isVendor, isAdmin, selectedStoreId]);
 
   useEffect(() => {
     filterOrders();
@@ -73,15 +74,16 @@ export default function VendorOrders() {
 
   const fetchStoreAndOrders = async () => {
     try {
-      // Get user's store
-      const { data: store } = await supabase
+      // Get all user's stores
+      const { data: storesData, error: storeError } = await supabase
         .from('stores')
-        .select('id')
+        .select('id, name')
         .eq('owner_id', user?.id)
-        .eq('status', 'approved')
-        .single();
+        .eq('status', 'approved');
 
-      if (!store) {
+      if (storeError) throw storeError;
+
+      if (!storesData || storesData.length === 0) {
         toast({
           title: 'No Store Found',
           description: 'Please register your store first',
@@ -91,13 +93,19 @@ export default function VendorOrders() {
         return;
       }
 
-      setStoreId(store.id);
+      setStores(storesData);
+      
+      // Set selected store if not already set
+      const activeStoreId = selectedStoreId || storesData[0].id;
+      if (!selectedStoreId) {
+        setSelectedStoreId(activeStoreId);
+      }
 
-      // Fetch orders with customer info
+      // Fetch orders with customer info for the selected store
       const { data: ordersData, error } = await supabase
         .from('orders')
         .select('*')
-        .eq('store_id', store.id)
+        .eq('store_id', activeStoreId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -280,12 +288,32 @@ export default function VendorOrders() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="p-4 flex items-center gap-3">
-          <BackButton fallbackPath="/vendor/dashboard" />
-          <div>
-            <h1 className="text-2xl font-bold">{t('order_management')}</h1>
-            <p className="text-sm text-muted-foreground">{t('manage_store_orders')}</p>
+        <div className="p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <BackButton fallbackPath="/vendor/dashboard" />
+            <div>
+              <h1 className="text-2xl font-bold">{t('order_management')}</h1>
+              <p className="text-sm text-muted-foreground">{t('manage_store_orders')}</p>
+            </div>
           </div>
+          
+          {stores.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Store:</span>
+              <Select value={selectedStoreId || undefined} onValueChange={setSelectedStoreId}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select store" />
+                </SelectTrigger>
+                <SelectContent>
+                  {stores.map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      {store.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </header>
 
@@ -530,11 +558,11 @@ export default function VendorOrders() {
       </Dialog>
 
       {/* Subscription Modal */}
-      {storeId && (
+      {selectedStoreId && (
         <SubscriptionTiersModal
           open={showUpgradeModal}
           onOpenChange={setShowUpgradeModal}
-          storeId={storeId}
+          storeId={selectedStoreId}
           currentTier={subscription?.tier || 'free'}
           onUpgrade={() => {
             setShowUpgradeModal(false);
