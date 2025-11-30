@@ -1,4 +1,4 @@
-import { Home, Share2, User, LayoutDashboard } from 'lucide-react';
+import { Home, Share2, User, LayoutDashboard, Package } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useNativeFeatures } from '@/hooks/useNativeFeatures';
@@ -6,10 +6,12 @@ import { useVendorNotifications } from '@/hooks/useVendorNotifications';
 import { useStores } from '@/hooks/useStores';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const VendorBottomNav = () => {
   const location = useLocation();
   const { haptic } = useNativeFeatures();
+  const { t } = useTranslation();
   const [storeId, setStoreId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,10 +37,11 @@ const VendorBottomNav = () => {
   const { unreadCount } = useVendorNotifications(storeId);
 
   const navItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/vendor/dashboard' },
-    { icon: Share2, label: 'Feed', path: '/vendor-feed' },
-    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: Home, label: t('nav_home'), path: '/' },
+    { icon: Package, label: t('nav_inventory'), path: storeId ? `/inventory/${storeId}` : '#' },
+    { icon: LayoutDashboard, label: t('nav_dashboard'), path: '/vendor/dashboard' },
+    { icon: Share2, label: t('nav_feed'), path: '/vendor-feed' },
+    { icon: User, label: t('nav_profile'), path: '/profile' },
   ];
 
   return (
@@ -61,7 +64,7 @@ const VendorBottomNav = () => {
               <Icon className="w-6 h-6" />
               <span className="text-xs font-medium">{label}</span>
               {/* Dashboard Notifications Badge */}
-              {label === 'Dashboard' && unreadCount > 0 && (
+              {label === t('nav_dashboard') && unreadCount > 0 && (
                 <span className="absolute top-2 right-1/4 translate-x-1/2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
