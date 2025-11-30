@@ -1,4 +1,4 @@
-import { Phone, Navigation, Clock, Loader2, MapPin, Package, ShoppingBag } from 'lucide-react';
+import { Phone, Navigation, Clock, Loader2, MapPin, Package, ShoppingBag, Truck, Banknote } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/BackButton';
@@ -138,6 +138,28 @@ const StoreProfile = () => {
             isFollowing={isFollowing}
             onFollow={() => toggleFollow((store as any).owner_id)}
           />
+
+          {/* Delivery Info Badges */}
+          {((store as any)?.offers_delivery || (store as any)?.cod_available) && (
+            <div className="flex gap-2 flex-wrap">
+              {(store as any)?.offers_delivery && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/20">
+                  <Truck className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">
+                    {(store as any).delivery_charges > 0 
+                      ? `Delivery: ₹${(store as any).delivery_charges}` 
+                      : 'Free Delivery'}
+                  </span>
+                </div>
+              )}
+              {(store as any)?.cod_available && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-accent/10 rounded-lg border border-accent/20">
+                  <Banknote className="h-4 w-4 text-accent" />
+                  <span className="text-sm font-medium">COD Available</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Achievements */}
           {!achievementsLoading && achievements.length > 0 && (

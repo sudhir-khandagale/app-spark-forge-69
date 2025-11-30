@@ -33,6 +33,8 @@ const Checkout = () => {
   const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('pickup');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
+  const [storeSettings, setStoreSettings] = useState<any>(null);
 
   useEffect(() => {
     fetchItems();
@@ -107,6 +109,22 @@ const Checkout = () => {
           }]);
         }
       }
+
+      // Fetch store delivery settings
+      if (storeId) {
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('offers_delivery, delivery_charges, cod_available')
+          .eq('id', storeId)
+          .single();
+        
+        setStoreSettings(storeData);
+        
+        // Set default delivery type based on store settings
+        if (!storeData?.offers_delivery) {
+          setDeliveryType('pickup');
+        }
+      }
     } catch (error) {
       console.error('Error fetching items:', error);
       toast({
@@ -119,7 +137,11 @@ const Checkout = () => {
     }
   };
 
-  const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryCharges = (deliveryType === 'delivery' && storeSettings?.offers_delivery) 
+    ? (storeSettings.delivery_charges || 0) 
+    : 0;
+  const totalAmount = subtotal + deliveryCharges;
 
   const handleCheckout = async () => {
     setProcessing(true);
@@ -141,12 +163,56 @@ const Checkout = () => {
           })),
           total_amount: totalAmount,
           delivery_address: deliveryType === 'delivery' ? { address } : null,
+          delivery_charges: deliveryCharges,
+          payment_method: paymentMethod,
           notes,
         })
         .select()
         .single();
 
       if (orderError) throw orderError;
+
+      // If COD, skip Razorpay and complete order directly
+      if (paymentMethod === 'cod') {
+        await supabase
+          .from('orders')
+          .update({
+            payment_status: 'cod_pending',
+          })
+          .eq('id', order.id);
+
+        // Clear cart if from cart
+        if (fromCart) {
+          const { data: cart } = await supabase
+            .from('carts')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+
+          if (cart) {
+            await supabase
+              .from('cart_items')
+              .delete()
+              .eq('cart_id', cart.id);
+          }
+        }
+
+        // Award points
+        await supabase.rpc('award_points', {
+          p_user_id: user.id,
+          p_points: 20,
+          p_action_type: 'purchase',
+          p_description: 'Completed COD purchase',
+        });
+
+        toast({
+          title: 'Order Placed Successfully!',
+          description: 'Pay when you receive your order.',
+        });
+
+        navigate(`/payment-success?order=${order.id}`);
+        return;
+      }
 
       // Create Razorpay order via edge function
       const { data: razorpayOrder } = await supabase.functions.invoke('razorpay-order', {
@@ -252,9 +318,21 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
-            <div className="border-t pt-2 flex justify-between font-bold">
-              <span>Total</span>
-              <span className="text-primary">{formatPrice(totalAmount)}</span>
+            <div className="border-t pt-2 space-y-1">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              {deliveryCharges > 0 && (
+                <div className="flex justify-between text-sm text-primary">
+                  <span>Delivery Charges</span>
+                  <span>+{formatPrice(deliveryCharges)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                <span>Total</span>
+                <span className="text-primary">{formatPrice(totalAmount)}</span>
+              </div>
             </div>
           </Card>
 
@@ -266,10 +344,14 @@ const Checkout = () => {
                 <RadioGroupItem value="pickup" id="pickup" />
                 <Label htmlFor="pickup">Pickup from Store</Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="delivery" id="delivery" />
-                <Label htmlFor="delivery">Home Delivery</Label>
-              </div>
+              {storeSettings?.offers_delivery && (
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="delivery" id="delivery" />
+                  <Label htmlFor="delivery">
+                    Home Delivery {storeSettings.delivery_charges > 0 && `(₹${storeSettings.delivery_charges})`}
+                  </Label>
+                </div>
+              )}
             </RadioGroup>
 
             {deliveryType === 'delivery' && (
@@ -284,6 +366,29 @@ const Checkout = () => {
                 />
               </div>
             )}
+          </Card>
+
+          {/* Payment Method */}
+          <Card className="p-4">
+            <Label className="font-semibold mb-3 block">💳 Payment Method</Label>
+            <RadioGroup value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
+              <div className="flex items-center space-x-2 mb-3 p-3 border rounded-lg">
+                <RadioGroupItem value="online" id="online" />
+                <div className="flex-1">
+                  <Label htmlFor="online" className="font-medium">Pay Online (Razorpay)</Label>
+                  <p className="text-xs text-muted-foreground">Credit/Debit Card, UPI, Net Banking</p>
+                </div>
+              </div>
+              {storeSettings?.cod_available && (
+                <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                  <RadioGroupItem value="cod" id="cod" />
+                  <div className="flex-1">
+                    <Label htmlFor="cod" className="font-medium">Cash on Delivery (COD)</Label>
+                    <p className="text-xs text-muted-foreground">Pay when you receive the order</p>
+                  </div>
+                </div>
+              )}
+            </RadioGroup>
           </Card>
 
           {/* Additional Notes */}
