@@ -747,13 +747,19 @@ export default function StoreDashboard() {
         )}
 
         <Tabs defaultValue="inventory" className="w-full">
-          <TabsList className="w-full overflow-x-auto flex justify-start lg:grid lg:grid-cols-9 gap-1 h-auto flex-nowrap p-1">
+          <TabsList className="w-full overflow-x-auto flex justify-start gap-1 h-auto flex-nowrap p-1">
             <TabsTrigger value="inventory" className="whitespace-nowrap px-4">
               Inventory
             </TabsTrigger>
             <TabsTrigger value="social" className="whitespace-nowrap px-4">
               <Sparkles className="h-3 w-3 mr-1.5 shrink-0" />
               Social
+            </TabsTrigger>
+            <TabsTrigger value="challenges" className="whitespace-nowrap px-4">
+              Challenges
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="whitespace-nowrap px-4">
+              Leaderboard
             </TabsTrigger>
             <TabsTrigger value="plans" className="whitespace-nowrap px-3 sm:px-4">
               <Crown className="h-3 w-3 mr-1.5 shrink-0" />
@@ -1868,15 +1874,15 @@ export default function StoreDashboard() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="challenges" className="space-y-6">
+            <VendorChallenges storeId={storeId!} />
+          </TabsContent>
+
+          <TabsContent value="leaderboard" className="space-y-6">
+            <VendorLeaderboard />
+          </TabsContent>
+
         </Tabs>
-
-        <TabsContent value="challenges" className="space-y-6">
-          <VendorChallenges storeId={storeId!} />
-        </TabsContent>
-
-        <TabsContent value="leaderboard" className="space-y-6">
-          <VendorLeaderboard />
-        </TabsContent>
       </div>
 
       <CreateStoryModal 
