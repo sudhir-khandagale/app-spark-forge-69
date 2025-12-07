@@ -21,7 +21,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 
-// Lazy load non-critical routes  
+// Lazy load non-critical routes with prefetch hints
 const MapView = lazy(() => import("./pages/MapView"));
 const ProductDetails = lazy(() => import("./pages/ProductDetails"));
 const StoreProfile = lazy(() => import("./pages/StoreProfile"));
@@ -56,11 +56,15 @@ const VendorOrders = lazy(() => import("./pages/VendorOrders"));
 const VendorEarnings = lazy(() => import("./pages/VendorEarnings"));
 const VendorScanQR = lazy(() => import("./pages/VendorScanQR"));
 
-// Loading fallback
+// Lazy load heavy vendor components
+const AddProduct = lazy(() => import("./pages/AddProduct"));
+
+// Optimized loading fallback with skeleton dimensions matching content
 const PageLoader = () => (
-  <div className="flex flex-col min-h-screen p-4 space-y-4">
-    <Skeleton className="h-12 w-full" />
-    <Skeleton className="h-64 w-full" />
+  <div className="flex flex-col min-h-screen p-4 space-y-4" role="status" aria-label="Loading page">
+    <div className="h-12 w-full bg-muted animate-pulse rounded-lg" style={{ height: 48 }} />
+    <div className="h-64 w-full bg-muted animate-pulse rounded-lg" style={{ height: 256 }} />
+    <div className="h-32 w-full bg-muted animate-pulse rounded-lg" style={{ height: 128 }} />
   </div>
 );
 
@@ -128,6 +132,7 @@ const App = () => (
               <Route path="/vendor/orders" element={<ProtectedRoute><VendorOrders /></ProtectedRoute>} />
               <Route path="/vendor/earnings" element={<ProtectedRoute><VendorEarnings /></ProtectedRoute>} />
               <Route path="/vendor/scan-qr" element={<ProtectedRoute><VendorScanQR /></ProtectedRoute>} />
+              <Route path="/add-product/:storeId" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
               <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
               </Routes>

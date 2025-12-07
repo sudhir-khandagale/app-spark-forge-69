@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface OptimizedImageProps {
@@ -13,32 +13,35 @@ interface OptimizedImageProps {
 }
 
 /**
- * OptimizedImage Component - Phase 1 Performance Enhancement
+ * OptimizedImage Component - Performance Enhanced
  * 
  * Features:
  * - WebP/AVIF format support with fallback
  * - Lazy loading with IntersectionObserver
  * - Responsive images with <picture> element
  * - Priority loading for hero/LCP images
- * - Skeleton loading state
+ * - Skeleton loading state with explicit dimensions
+ * - Memoized to prevent unnecessary re-renders
  */
-export const OptimizedImage = ({ 
+export const OptimizedImage = memo(({ 
   src, 
   alt, 
   className = '', 
   fallback = '/placeholder.svg',
-  width,
-  height,
+  width = 300,
+  height = 300,
   priority = false,
   sizes = '100vw'
 }: OptimizedImageProps) => {
   const [imageSrc, setImageSrc] = useState<string>(priority ? src : fallback);
   const [isLoading, setIsLoading] = useState(!priority);
+  const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Generate WebP and AVIF versions of the image URL
   const getOptimizedSrc = (originalSrc: string, format: 'webp' | 'avif') => {
-    if (originalSrc.startsWith('data:') || originalSrc.startsWith('blob:')) {
+    if (!originalSrc || originalSrc.startsWith('data:') || originalSrc.startsWith('blob:')) {
       return null; // Can't optimize data URLs
     }
     
@@ -73,7 +76,12 @@ export const OptimizedImage = ({
       return;
     }
 
-    const observer = new IntersectionObserver(
+    // Cleanup previous observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -86,22 +94,34 @@ export const OptimizedImage = ({
             img.onerror = () => {
               setImageSrc(fallback);
               setIsLoading(false);
+              setHasError(true);
             };
-            observer.disconnect();
+            observerRef.current?.disconnect();
           }
         });
       },
       {
-        rootMargin: '100px', // Start loading 100px before entering viewport
+        rootMargin: '200px', // Start loading 200px before entering viewport
+        threshold: 0.01,
       }
     );
 
     if (imgRef.current) {
-      observer.observe(imgRef.current);
+      observerRef.current.observe(imgRef.current);
     }
 
-    return () => observer.disconnect();
+    return () => {
+      observerRef.current?.disconnect();
+    };
   }, [src, fallback, priority]);
+
+  // Handle image load error
+  const handleError = () => {
+    if (!hasError) {
+      setImageSrc(fallback);
+      setHasError(true);
+    }
+  };
 
   // For priority images, use regular img with fetchpriority
   if (priority) {
@@ -116,19 +136,26 @@ export const OptimizedImage = ({
           width={width}
           height={height}
           className={className}
-          // @ts-ignore - fetchpriority is valid but not in TS types yet
-          fetchpriority="high"
+          fetchPriority="high"
           decoding="async"
+          onError={handleError}
+          style={{ contentVisibility: 'auto' }}
         />
       </picture>
     );
   }
 
-  // For non-priority images, use lazy loading
+  // For non-priority images, use lazy loading with explicit dimensions
   return (
-    <div className={`relative ${className}`}>
+    <div 
+      className={`relative ${className}`} 
+      style={{ width: width || 'auto', height: height || 'auto', minHeight: height }}
+    >
       {isLoading && (
-        <Skeleton className={`absolute inset-0 ${className}`} />
+        <Skeleton 
+          className="absolute inset-0" 
+          style={{ width: '100%', height: '100%' }}
+        />
       )}
       <picture>
         {avifSrc && <source srcSet={avifSrc} type="image/avif" sizes={sizes} />}
@@ -142,8 +169,12 @@ export const OptimizedImage = ({
           className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
           loading="lazy"
           decoding="async"
+          onError={handleError}
+          style={{ contentVisibility: 'auto' }}
         />
       </picture>
     </div>
   );
-};
+});
+
+OptimizedImage.displayName = 'OptimizedImage';

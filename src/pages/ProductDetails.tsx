@@ -282,10 +282,15 @@ const ProductDetails = () => {
           <img 
             src={product.image_url} 
             alt={product.name}
+            width={400}
+            height={256}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="text-muted-foreground">No image available</div>
+          <div className="text-muted-foreground" style={{ width: 400, height: 256, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>No image available</div>
         )}
       </div>
 
