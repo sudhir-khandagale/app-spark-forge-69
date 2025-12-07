@@ -8,120 +8,139 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Flowdux Brand Colors - Navy Blue + Vibrant Orange (Social Media Style) */
-    --background: 0 0% 100%;
-    --foreground: 215 60% 25%;
+    /* Flowdux Brand Colors - Vibrant Purple + Cyan Blue */
+    --background: 233 67% 98%; /* #F8F9FE - Off-white with purple tint */
+    --foreground: 240 29% 14%; /* #1A1A2E - Almost black, navy tint */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 60% 25%;
+    --card: 0 0% 100%; /* #FFFFFF - Pure white for cards */
+    --card-foreground: 240 29% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 60% 25%;
+    --popover-foreground: 240 29% 14%;
 
-    /* Primary - Dark Navy Blue (#1E3A5F) */
-    --primary: 215 60% 25%;
+    /* Primary - Vibrant Purple (#6C5CE7) */
+    --primary: 248 76% 64%;
     --primary-foreground: 0 0% 100%;
-
-    /* Secondary - Warm Orange (#F5923A) */
-    --secondary: 28 90% 60%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 20% 50%;
-
-    /* Accent - Vibrant Orange (#F47920) */
-    --accent: 24 95% 55%;
-    --accent-foreground: 0 0% 100%;
     
-    --success: 142 71% 45%;
+    /* Primary variants */
+    --primary-dark: 248 56% 53%; /* #5448C8 - Deep Purple */
+    --primary-light: 245 98% 81%; /* #A29BFE - Soft Purple */
+
+    /* Secondary - Surface Elevated (#FAFAFF) */
+    --secondary: 240 100% 99%;
+    --secondary-foreground: 240 29% 14%;
+
+    --muted: 233 50% 96%;
+    --muted-foreground: 210 7% 46%; /* #6C757D - Gray for secondary info */
+
+    /* Accent - Cyan Blue (#00D4FF) */
+    --accent: 187 100% 50%;
+    --accent-foreground: 240 29% 14%;
+    --accent-dark: 195 100% 40%; /* #0099CC - Deep Cyan */
+    
+    /* Success - Turquoise green (#00D9A8) */
+    --success: 166 100% 43%;
     --success-foreground: 0 0% 100%;
     
-    /* Warning - Bright Amber */
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    /* Warning - Amber (#FFB800) */
+    --warning: 43 100% 50%;
+    --warning-foreground: 240 29% 14%;
 
-    --destructive: 0 84% 60%;
+    /* Error/Destructive - Coral red (#FF4757) */
+    --destructive: 355 100% 64%;
     --destructive-foreground: 0 0% 100%;
+    
+    /* Info - Electric blue (#5352ED) */
+    --info: 240 82% 63%;
+    --info-foreground: 0 0% 100%;
 
-    --border: 215 20% 90%;
-    --input: 215 20% 90%;
-    --ring: 24 95% 55%;
+    /* Text hint color */
+    --hint: 210 10% 71%; /* #ADB5BD - Light gray for hints */
+
+    --border: 248 30% 90%;
+    --input: 248 30% 92%;
+    --ring: 187 100% 50%; /* Cyan ring */
 
     --radius: 0.75rem;
     
-    /* Gradient Colors for Social Media Vibe */
-    --gradient-start: 24 95% 55%; /* Orange */
-    --gradient-end: 215 60% 25%; /* Navy */
+    /* Gradient Colors */
+    --gradient-start: 248 76% 64%; /* Purple */
+    --gradient-end: 187 100% 50%; /* Cyan */
     --gradient-pink: 330 85% 65%; /* Pink accent */
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 194 68% 52%;
+    --sidebar-background: 240 100% 99%;
+    --sidebar-foreground: 240 29% 14%;
+    --sidebar-primary: 248 76% 64%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 233 50% 96%;
+    --sidebar-accent-foreground: 240 29% 14%;
+    --sidebar-border: 248 30% 90%;
+    --sidebar-ring: 187 100% 50%;
   }
 
   .dark {
-    --background: 215 60% 8%;
+    --background: 240 29% 8%; /* Dark navy background */
     --foreground: 0 0% 98%;
 
-    --card: 215 60% 12%;
+    --card: 240 29% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 215 60% 12%;
+    --popover: 240 29% 12%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary - Dark Navy Blue */
-    --primary: 215 60% 25%;
+    /* Primary - Vibrant Purple (brighter in dark mode) */
+    --primary: 248 76% 68%;
     --primary-foreground: 0 0% 100%;
+    --primary-dark: 248 56% 58%;
+    --primary-light: 245 98% 85%;
 
-    /* Secondary - Warm Orange */
-    --secondary: 28 90% 60%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary */
+    --secondary: 240 29% 18%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 215 30% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 20% 18%;
+    --muted-foreground: 210 10% 65%;
 
-    /* Accent - Vibrant Orange */
-    --accent: 24 95% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Cyan Blue (brighter in dark mode) */
+    --accent: 187 100% 55%;
+    --accent-foreground: 240 29% 8%;
+    --accent-dark: 195 100% 45%;
     
-    --success: 142 71% 45%;
+    /* Success */
+    --success: 166 100% 48%;
     --success-foreground: 0 0% 100%;
     
-    /* Warning - Bright Amber */
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    /* Warning */
+    --warning: 43 100% 55%;
+    --warning-foreground: 240 29% 14%;
 
-    --destructive: 0 63% 40%;
+    /* Destructive */
+    --destructive: 355 100% 60%;
     --destructive-foreground: 0 0% 98%;
+    
+    /* Info */
+    --info: 240 82% 68%;
+    --info-foreground: 0 0% 100%;
 
-    --border: 215 30% 20%;
-    --input: 215 30% 20%;
-    --ring: 24 95% 55%;
+    --hint: 210 10% 50%;
+
+    --border: 240 20% 22%;
+    --input: 240 20% 22%;
+    --ring: 187 100% 55%;
     
     /* Gradient Colors for Dark Mode */
-    --gradient-start: 24 95% 55%;
-    --gradient-end: 215 60% 25%;
-    --gradient-pink: 330 85% 65%;
-    --sidebar-background: 208 45% 12%;
-    --sidebar-foreground: 200 35% 98%;
-    --sidebar-primary: 194 68% 52%;
+    --gradient-start: 248 76% 68%;
+    --gradient-end: 187 100% 55%;
+    --gradient-pink: 330 85% 70%;
+
+    --sidebar-background: 240 29% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 248 76% 68%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 208 35% 22%;
-    --sidebar-accent-foreground: 200 35% 98%;
-    --sidebar-border: 208 35% 22%;
-    --sidebar-ring: 194 68% 52%;
+    --sidebar-accent: 240 20% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 20% 22%;
+    --sidebar-ring: 187 100% 55%;
   }
 }
 
