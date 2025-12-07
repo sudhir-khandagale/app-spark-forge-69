@@ -135,14 +135,65 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        // Enhanced code splitting for better caching
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-query': ['@tanstack/react-query'],
-          'ui-radix': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs', '@radix-ui/react-toast'],
-          'ui-components': ['lucide-react', 'sonner'],
-          'supabase': ['@supabase/supabase-js'],
-          'maps': ['@googlemaps/js-api-loader'],
+        // Enhanced code splitting for better caching and smaller initial bundle
+        manualChunks: (id) => {
+          // Core React - most critical
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'vendor-react-core';
+          }
+          // Router - needed for navigation
+          if (id.includes('react-router')) {
+            return 'vendor-router';
+          }
+          // React Query - data fetching
+          if (id.includes('@tanstack/react-query')) {
+            return 'vendor-query';
+          }
+          // Supabase - backend
+          if (id.includes('@supabase')) {
+            return 'vendor-supabase';
+          }
+          // Radix UI - split by component for better tree-shaking
+          if (id.includes('@radix-ui/react-dialog') || id.includes('@radix-ui/react-dropdown-menu')) {
+            return 'ui-dialogs';
+          }
+          if (id.includes('@radix-ui/react-select') || id.includes('@radix-ui/react-tabs')) {
+            return 'ui-forms';
+          }
+          if (id.includes('@radix-ui/react-toast') || id.includes('@radix-ui/react-tooltip')) {
+            return 'ui-feedback';
+          }
+          if (id.includes('@radix-ui')) {
+            return 'ui-radix-other';
+          }
+          // Icons - separate chunk
+          if (id.includes('lucide-react')) {
+            return 'ui-icons';
+          }
+          // Charts - lazy loaded
+          if (id.includes('recharts')) {
+            return 'vendor-charts';
+          }
+          // Animation
+          if (id.includes('framer-motion')) {
+            return 'vendor-motion';
+          }
+          // Maps - lazy loaded
+          if (id.includes('@googlemaps') || id.includes('google.maps')) {
+            return 'vendor-maps';
+          }
+          // QR code - lazy loaded
+          if (id.includes('qrcode')) {
+            return 'vendor-qr';
+          }
+          // Date utilities
+          if (id.includes('date-fns')) {
+            return 'vendor-date';
+          }
+          // Form handling
+          if (id.includes('react-hook-form') || id.includes('zod')) {
+            return 'vendor-forms';
+          }
         },
         // Add hash to filenames for cache busting
         entryFileNames: 'assets/[name].[hash].js',
@@ -150,15 +201,17 @@ export default defineConfig(({ mode }) => ({
         assetFileNames: 'assets/[name].[hash].[ext]',
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 500, // Warn on smaller chunks
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: mode === 'production',
         drop_debugger: mode === 'production',
         // Additional compression for smaller bundles
-        passes: 2,
-        pure_funcs: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
+        passes: 3,
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info', 'console.debug', 'console.warn'] : [],
+        dead_code: true,
+        unused: true,
       },
       mangle: {
         safari10: true, // Fix Safari 10 issues
@@ -170,7 +223,9 @@ export default defineConfig(({ mode }) => ({
     // Enable compression
     cssCodeSplit: true,
     sourcemap: mode !== 'production',
-    // Increase chunk size limit before warning
-    reportCompressedSize: false, // Faster builds
+    // Faster builds
+    reportCompressedSize: false,
+    // Target modern browsers for smaller bundles
+    target: 'es2020',
   },
 }));

@@ -144,7 +144,14 @@ const Index = () => {
       <header className="bg-gradient-primary -mt-[env(safe-area-inset-top)] pt-[calc(env(safe-area-inset-top)+1rem)] px-4 pb-4">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <img src={flowduxIcon} alt="Flowdux Logo" className="h-10 rounded-xl shadow-lg" />
+            <img 
+              src={flowduxIcon} 
+              alt="Flowdux Logo" 
+              width={40} 
+              height={40} 
+              className="h-10 w-10 rounded-xl shadow-lg" 
+              fetchPriority="high"
+            />
             <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
               <MapPin className="w-4 h-4 mr-2" />
               {latitude && longitude ? t('location_required').split(' ')[0] : t('enable_location')}
@@ -220,11 +227,15 @@ const Index = () => {
                               <img
                                 src={product.image_url}
                                 alt={product.name}
+                                width={150}
+                                height={150}
+                                loading="lazy"
+                                decoding="async"
                                 className="w-full h-full object-cover"
                               />
                             </div>
                           ) : (
-                            <div className="aspect-square w-full bg-muted rounded-md mb-2 flex items-center justify-center">
+                            <div className="aspect-square w-full bg-muted rounded-md mb-2 flex items-center justify-center" style={{ width: 150, height: 150 }}>
                               <StoreIcon className="w-8 h-8 text-muted-foreground" />
                             </div>
                           )}
@@ -288,6 +299,10 @@ const Index = () => {
                                 <img
                                   src={store.photo_urls[0]}
                                   alt={store.name}
+                                  width={400}
+                                  height={160}
+                                  loading="lazy"
+                                  decoding="async"
                                   className="w-full h-full object-cover rounded-t-lg"
                                 />
                                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
@@ -295,7 +310,7 @@ const Index = () => {
                                 </div>
                               </div>
                             ) : (
-                              <div className="relative h-40 w-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center rounded-t-lg">
+                              <div className="relative h-40 w-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center rounded-t-lg" style={{ height: 160 }}>
                                 <StoreIcon className="w-16 h-16 text-primary/40" />
                                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
                                   FEATURED
