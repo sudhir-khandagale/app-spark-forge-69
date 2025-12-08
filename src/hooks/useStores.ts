@@ -27,10 +27,10 @@ export const useStores = (latitude?: number, longitude?: number) => {
   useEffect(() => {
     const fetchStores = async () => {
       try {
+        // Use the public view to avoid exposing sensitive banking information
         const { data, error } = await supabase
-          .from('stores')
+          .from('stores_public')
           .select('*')
-          .eq('status', 'approved')
           .order('rating', { ascending: false, nullsFirst: false });
 
         if (error) throw error;
@@ -62,8 +62,9 @@ export const useStore = (storeId: string) => {
   useEffect(() => {
     const fetchStore = async () => {
       try {
+        // Use the public view to avoid exposing sensitive banking information
         const { data, error } = await supabase
-          .from('stores')
+          .from('stores_public')
           .select('*')
           .eq('id', storeId)
           .single();
