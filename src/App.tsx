@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,19 +7,22 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { Skeleton } from "@/components/ui/skeleton";
 import { BackButtonHandler } from "@/components/BackButtonHandler";
 import { NetworkStatus } from "@/components/NetworkStatus";
 import { AppInitializer } from "@/components/AppInitializer";
 import { OnboardingCheck } from "@/components/OnboardingCheck";
-import { WebVitalsReporter } from "@/components/WebVitalsReporter";
 import { HelmetProvider } from 'react-helmet-async';
-import InstallBanner from "@/components/InstallBanner";
 
-// Eager load critical routes
+// Lazy load non-critical components
+const InstallBanner = lazy(() => import("@/components/InstallBanner"));
+const WebVitalsReporter = lazy(() => import("@/components/WebVitalsReporter").then(m => ({ default: m.WebVitalsReporter })));
+
+// Eager load only the home page for fastest FCP
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Search from "./pages/Search";
+
+// Lazy load Auth and Search - not needed on initial load
+const Auth = lazy(() => import("./pages/Auth"));
+const Search = lazy(() => import("./pages/Search"));
 
 // Lazy load non-critical routes with prefetch hints
 const MapView = lazy(() => import("./pages/MapView"));
@@ -59,14 +62,20 @@ const VendorScanQR = lazy(() => import("./pages/VendorScanQR"));
 // Lazy load heavy vendor components
 const AddProduct = lazy(() => import("./pages/AddProduct"));
 
-// Optimized loading fallback with skeleton dimensions matching content
+// Minimal loading fallback - uses CSS-only animation for performance
 const PageLoader = () => (
-  <div className="flex flex-col min-h-screen p-4 space-y-4" role="status" aria-label="Loading page">
-    <div className="h-12 w-full bg-muted animate-pulse rounded-lg" style={{ height: 48 }} />
-    <div className="h-64 w-full bg-muted animate-pulse rounded-lg" style={{ height: 256 }} />
-    <div className="h-32 w-full bg-muted animate-pulse rounded-lg" style={{ height: 128 }} />
+  <div className="flex flex-col min-h-screen p-4 space-y-4" role="status" aria-label="Loading">
+    <div className="h-12 w-full bg-muted/50 animate-pulse rounded-lg" />
+    <div className="h-64 w-full bg-muted/50 animate-pulse rounded-lg" />
   </div>
 );
+
+// Hook to mark app as loaded
+const useMarkLoaded = () => {
+  useEffect(() => {
+    document.body.classList.add('loaded');
+  }, []);
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +88,60 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppContent = () => {
+  useMarkLoaded();
+  
+  return (
+    <BrowserRouter>
+      <OnboardingCheck />
+      <BackButtonHandler />
+      <NetworkStatus />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/map" element={<MapView />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/store/:id" element={<StoreProfile />} />
+          <Route path="/scanner" element={<Scanner />} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/profile/manage" element={<ProtectedRoute><ProfileManagement /></ProtectedRoute>} />
+          <Route path="/lists" element={<ProtectedRoute><Lists /></ProtectedRoute>} />
+          <Route path="/lists/:id" element={<ProtectedRoute><ListDetails /></ProtectedRoute>} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/reserve/:id" element={<ProtectedRoute><Reserve /></ProtectedRoute>} />
+          <Route path="/onboarding/merchant" element={<ProtectedRoute><MerchantOnboarding /></ProtectedRoute>} />
+          <Route path="/dashboard/store/:storeId" element={<StoreDashboardRedirect />} />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin-setup" element={<AdminSetup />} />
+          <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+          <Route path="/compare/:id" element={<Compare />} />
+          <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+          <Route path="/profile/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+          <Route path="/profile/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+          <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+          <Route path="/profile/onboarding" element={<ProtectedRoute><ProfileOnboarding /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+          <Route path="/vendor-feed" element={<VendorFeed />} />
+          <Route path="/inventory/:storeId" element={<ProtectedRoute><LiveInventory /></ProtectedRoute>} />
+          <Route path="/vendor/dashboard" element={<ProtectedRoute><VendorDashboard /></ProtectedRoute>} />
+          <Route path="/vendor/dashboard/:storeId" element={<ProtectedRoute><VendorDashboard /></ProtectedRoute>} />
+          <Route path="/vendor/orders" element={<ProtectedRoute><VendorOrders /></ProtectedRoute>} />
+          <Route path="/vendor/earnings" element={<ProtectedRoute><VendorEarnings /></ProtectedRoute>} />
+          <Route path="/vendor/scan-qr" element={<ProtectedRoute><VendorScanQR /></ProtectedRoute>} />
+          <Route path="/add-product/:storeId" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
+          <Route path="/install" element={<Install />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+};
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
@@ -86,59 +149,14 @@ const App = () => (
         <LanguageProvider>
           <TooltipProvider>
             <AppInitializer />
-            <WebVitalsReporter />
-            <InstallBanner />
+            <Suspense fallback={null}>
+              <WebVitalsReporter />
+              <InstallBanner />
+            </Suspense>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
-            <OnboardingCheck />
-            <BackButtonHandler />
-            <NetworkStatus />
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/map" element={<MapView />} />
-              <Route path="/product/:id" element={<ProductDetails />} />
-              <Route path="/store/:id" element={<StoreProfile />} />
-              <Route path="/scanner" element={<Scanner />} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/profile/manage" element={<ProtectedRoute><ProfileManagement /></ProtectedRoute>} />
-              <Route path="/lists" element={<ProtectedRoute><Lists /></ProtectedRoute>} />
-              <Route path="/lists/:id" element={<ProtectedRoute><ListDetails /></ProtectedRoute>} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/reserve/:id" element={<ProtectedRoute><Reserve /></ProtectedRoute>} />
-              <Route path="/onboarding/merchant" element={<ProtectedRoute><MerchantOnboarding /></ProtectedRoute>} />
-              {/* Redirect old route to new unified dashboard */}
-              <Route path="/dashboard/store/:storeId" element={<StoreDashboardRedirect />} />
-              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-              <Route path="/admin-setup" element={<AdminSetup />} />
-              <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
-              <Route path="/wishlist" element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
-              <Route path="/compare/:id" element={<Compare />} />
-              <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
-              <Route path="/profile/achievements" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Achievements /></Suspense></ProtectedRoute>} />
-              <Route path="/profile/leaderboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Leaderboard /></Suspense></ProtectedRoute>} />
-              <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
-              <Route path="/profile/onboarding" element={<ProtectedRoute><ProfileOnboarding /></ProtectedRoute>} />
-              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-              <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
-              <Route path="/vendor-feed" element={<VendorFeed />} />
-              <Route path="/inventory/:storeId" element={<ProtectedRoute><LiveInventory /></ProtectedRoute>} />
-              <Route path="/vendor/dashboard" element={<ProtectedRoute><VendorDashboard /></ProtectedRoute>} />
-              <Route path="/vendor/dashboard/:storeId" element={<ProtectedRoute><VendorDashboard /></ProtectedRoute>} />
-              <Route path="/vendor/orders" element={<ProtectedRoute><VendorOrders /></ProtectedRoute>} />
-              <Route path="/vendor/earnings" element={<ProtectedRoute><VendorEarnings /></ProtectedRoute>} />
-              <Route path="/vendor/scan-qr" element={<ProtectedRoute><VendorScanQR /></ProtectedRoute>} />
-              <Route path="/add-product/:storeId" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
-              <Route path="/install" element={<Install />} />
-              <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
+            <AppContent />
+          </TooltipProvider>
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>

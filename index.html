@@ -6,15 +6,13 @@
     <title>Flowdux - Find Products in Local Stores</title>
     <meta name="description" content="Find products in local stores instantly. Search real-time inventory, compare prices, and navigate to retailers with items in stock." />
     <meta name="author" content="Flowdux" />
-    <meta name="theme-color" content="#1E3A5F" />
+    <meta name="theme-color" content="#6C5CE7" />
     
     <!-- Mobile App Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Flowdux" />
-    
-    <!-- Prevent text size adjustment on orientation change -->
     <meta name="format-detection" content="telephone=no" />
 
     <meta property="og:title" content="Flowdux - Find Products in Local Stores" />
@@ -26,7 +24,6 @@
     <meta name="twitter:site" content="@Flowdux" />
     <meta name="twitter:image" content="/icon-512.png" />
     
-    <!-- SEO: Sitemap and Canonical URL -->
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
     <link rel="canonical" href="https://app-spark-forge-69.lovable.app/" />
     
@@ -34,49 +31,54 @@
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     
-    <!-- Preload critical LCP image -->
-    <link rel="preload" as="image" href="/icon-192.png" fetchpriority="high" />
-    
-    <!-- Preconnect to critical origins for faster loading -->
+    <!-- Preconnect to critical origins BEFORE any resources -->
     <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" crossorigin />
-    <link rel="preconnect" href="https://maps.googleapis.com" crossorigin />
-    <link rel="dns-prefetch" href="https://maps.gstatic.com" />
+    <link rel="dns-prefetch" href="https://hmwunbhtulrgalqrcnbv.supabase.co" />
     
-    <!-- Fonts with preconnect and optimal loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
-    <!-- Critical CSS inline for font fallback -->
+    <!-- Inline critical CSS to reduce FCP -->
     <style>
-      /* Font fallback to prevent FOIT/FOUT and CLS */
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      }
-      /* Skeleton placeholder for LCP */
-      .lcp-placeholder {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-      }
-      @keyframes shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-      }
+      /* Critical CSS for initial render - prevents FOIT/FOUT */
+      *,*::before,*::after{box-sizing:border-box}
+      html{-webkit-text-size-adjust:100%;line-height:1.5}
+      body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#F8F9FE;color:#1A1A2E}
+      #root{min-height:100vh;display:flex;flex-direction:column}
+      /* Initial loading skeleton */
+      .initial-loader{display:flex;flex-direction:column;min-height:100vh;padding:1rem}
+      .skeleton{background:linear-gradient(90deg,#e8e8f3 25%,#d8d8e8 50%,#e8e8f3 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:0.75rem}
+      .skeleton-header{height:120px;margin-bottom:1rem;background:linear-gradient(135deg,#00D4FF,#6C5CE7);border-radius:0}
+      .skeleton-card{height:180px;margin-bottom:0.75rem}
+      @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+      /* Hide skeleton after app loads */
+      .loaded .initial-loader{display:none}
     </style>
     
-    <!-- Load fonts asynchronously to prevent render blocking -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+    <!-- Load fonts with font-display:swap - deferred for better FCP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    </noscript>
-    
-    <!-- Defer non-critical scripts -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Initial skeleton shown until React hydrates - prevents white screen -->
+      <div class="initial-loader" aria-label="Loading Flowdux">
+        <div class="skeleton skeleton-header"></div>
+        <div style="padding:1rem">
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Defer Razorpay completely - only load when needed -->
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Mark as loaded when React mounts
+      window.addEventListener('DOMContentLoaded', function() {
+        requestAnimationFrame(function() {
+          document.body.classList.add('loaded');
+        });
+      });
+    </script>
   </body>
 </html>

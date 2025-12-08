@@ -47,13 +47,17 @@ function sendToAnalytics(metric: Metric) {
 
 export const WebVitalsReporter = () => {
   useEffect(() => {
-    // Report all Web Vitals metrics
-    onCLS(sendToAnalytics);
-    onLCP(sendToAnalytics);
-    onFCP(sendToAnalytics);
-    onTTFB(sendToAnalytics);
-    onINP(sendToAnalytics); // Replaces FID in web-vitals v3+
+    // Only run in production for performance
+    if (process.env.NODE_ENV === 'production') {
+      onCLS(sendToAnalytics);
+      onLCP(sendToAnalytics);
+      onFCP(sendToAnalytics);
+      onTTFB(sendToAnalytics);
+      onINP(sendToAnalytics);
+    }
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 };
+
+export default WebVitalsReporter;
