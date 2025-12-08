@@ -5,7 +5,9 @@ import { User } from '@supabase/supabase-js';
 type UserRole = 'customer' | 'vendor' | 'admin' | null;
 
 export const useUserRole = () => {
-  // Initialize from localStorage cache to prevent flickering
+  // NOTE: This localStorage cache is ONLY for UI rendering to prevent flickering.
+  // All authorization decisions are enforced server-side via RLS policies using has_role().
+  // Never use this cached role for access control - it can be manipulated by users.
   const [role, setRole] = useState<UserRole>(() => {
     const cached = localStorage.getItem('userRole');
     return (cached as UserRole) || null;
@@ -24,7 +26,7 @@ export const useUserRole = () => {
       const userRole = data?.role as UserRole || null;
       setRole(userRole);
       
-      // Cache the role in localStorage
+      // Cache the role in localStorage for UI rendering only (not for authorization)
       if (userRole) {
         localStorage.setItem('userRole', userRole);
       } else {

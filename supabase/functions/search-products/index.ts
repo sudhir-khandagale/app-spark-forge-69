@@ -59,9 +59,11 @@ serve(async (req) => {
     
     const { query, latitude, longitude, maxDistance = 10 } = rawInput;
 
+    // Use anon key instead of service role key - RLS policies handle access control
+    // This prevents bypassing row-level security
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
     // Use AI to understand natural language and extract search intent
@@ -126,10 +128,6 @@ Examples:
     }
 
     // Search for products using expanded terms
-    const searchPattern = searchTerms.map(term => 
-      term.toLowerCase().replace(/[^a-z0-9\s]/g, '')
-    ).join('|');
-
     const { data: products, error: productsError } = await supabase
       .from('products')
       .select('id, name, description, category, image_url')
@@ -148,13 +146,14 @@ Examples:
       );
     }
 
-    // Get inventory for these products from approved stores
+    // Get inventory for these products from approved stores using the public view
+    // This ensures we don't expose sensitive banking information
     const productIds = products.map(p => p.id);
     const { data: inventory, error: inventoryError } = await supabase
       .from('inventory')
       .select(`
         *,
-        store:stores!inner(
+        store:stores_public!inner(
           id,
           name,
           address,
@@ -166,11 +165,80 @@ Examples:
         )
       `)
       .in('product_id', productIds)
-      .eq('in_stock', true)
-      .eq('store.status', 'approved');
+      .eq('in_stock', true);
 
     if (inventoryError) {
-      throw inventoryError;
+      console.error('Inventory error:', inventoryError);
+      // Fallback: query stores separately if the view join fails
+      const { data: storesData } = await supabase
+        .from('stores_public')
+        .select('id, name, address, latitude, longitude, rating, phone');
+      
+      const storesMap = new Map(storesData?.map(s => [s.id, s]) || []);
+      
+      const { data: inventoryData } = await supabase
+        .from('inventory')
+        .select('*')
+        .in('product_id', productIds)
+        .eq('in_stock', true);
+      
+      const results = inventoryData?.map((inv: any) => {
+        const store = storesMap.get(inv.store_id);
+        if (!store) return null;
+        
+        let distance = null;
+        if (latitude && longitude && store.latitude && store.longitude) {
+          const R = 6371;
+          const lat1 = latitude * Math.PI / 180;
+          const lat2 = store.latitude * Math.PI / 180;
+          const dLat = (store.latitude - latitude) * Math.PI / 180;
+          const dLon = (store.longitude - longitude) * Math.PI / 180;
+          const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1) * Math.cos(lat2) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          distance = R * c;
+        }
+
+        const product = products.find(p => p.id === inv.product_id);
+
+        return {
+          id: inv.product_id,
+          name: product?.name,
+          description: product?.description,
+          category: product?.category,
+          image_url: product?.image_url,
+          store_id: store.id,
+          store_name: store.name,
+          store_address: store.address,
+          store_rating: store.rating,
+          store_phone: store.phone,
+          price: inv.price,
+          quantity: inv.quantity,
+          in_stock: inv.in_stock,
+          distance: distance,
+          store_latitude: store.latitude,
+          store_longitude: store.longitude
+        };
+      }).filter(Boolean) || [];
+
+      const filteredResults = results.filter(r => 
+        !maxDistance || !r?.distance || r.distance <= maxDistance
+      );
+
+      filteredResults.sort((a: any, b: any) => {
+        if (a.distance && b.distance) return a.distance - b.distance;
+        return (b.store_rating || 0) - (a.store_rating || 0);
+      });
+
+      return new Response(
+        JSON.stringify({ 
+          results: filteredResults, 
+          searchTerms,
+          recommendations: recommendations.slice(0, 5)
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Calculate distances if location provided (in kilometers)
