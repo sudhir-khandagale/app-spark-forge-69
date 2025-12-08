@@ -53,7 +53,7 @@ const Index = () => {
     try {
       setLoadingTrending(true);
 
-      // Fetch inventory with products and stores (no nested filters)
+      // Fetch inventory with products - use stores_public view for RLS compatibility
       const { data: inventory, error: inventoryError } = await supabase
         .from('inventory')
         .select(`
@@ -70,7 +70,7 @@ const Index = () => {
             review_count,
             trending
           ),
-          stores (
+          stores_public (
             id,
             name,
             status
@@ -87,7 +87,7 @@ const Index = () => {
       // Client-side filter for trending products in approved stores
       const filtered = inventory?.filter((inv: any) => 
         inv.products?.trending === true && 
-        inv.stores?.status === 'approved'
+        inv.stores_public?.status === 'approved'
       ) || [];
 
       // Map unique products (take first store for each product)
@@ -95,7 +95,8 @@ const Index = () => {
       
       filtered.forEach((inv: any) => {
         const product = inv.products;
-        if (product && !productMap.has(product.id)) {
+        const store = inv.stores_public;
+        if (product && store && !productMap.has(product.id)) {
           productMap.set(product.id, {
             id: product.id,
             name: product.name,
@@ -103,7 +104,7 @@ const Index = () => {
             category: product.category,
             rating: product.rating,
             review_count: product.review_count,
-            store_name: inv.stores.name,
+            store_name: store.name,
             store_id: inv.store_id,
             price: inv.price,
             in_stock: inv.in_stock
