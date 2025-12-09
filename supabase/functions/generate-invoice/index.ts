@@ -18,10 +18,36 @@ serve(async (req) => {
       throw new Error('Order ID is required');
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Get the authorization header to verify the user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
+    // Create user-scoped client to get the authenticated user
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify the user is authenticated
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    if (userError || !user) {
+      console.error('Auth error:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Use service role client for data operations
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch order details with store info
     const { data: order, error: orderError } = await supabaseClient
@@ -33,14 +59,37 @@ serve(async (req) => {
           address, 
           phone, 
           email,
-          photo_urls
+          photo_urls,
+          owner_id
         )
       `)
       .eq('id', orderId)
       .single();
 
     if (orderError || !order) {
+      console.error('Order fetch error:', orderError);
       throw new Error('Order not found');
+    }
+
+    // AUTHORIZATION CHECK: Verify user is either the order owner or the store vendor
+    const isOrderOwner = order.user_id === user.id;
+    const isStoreVendor = order.stores?.owner_id === user.id;
+    
+    // Check if user is admin
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+    const isAdmin = !!roleData;
+
+    if (!isOrderOwner && !isStoreVendor && !isAdmin) {
+      console.error('Authorization failed: user', user.id, 'trying to access order', orderId);
+      return new Response(
+        JSON.stringify({ error: 'You do not have permission to access this invoice' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
     }
 
     // Generate receipt number if not exists
@@ -69,6 +118,8 @@ serve(async (req) => {
       sgst,
       deliveryCharges,
     });
+
+    console.log('Invoice generated successfully for order', orderId, 'by user', user.id);
 
     return new Response(
       JSON.stringify({

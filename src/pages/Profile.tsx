@@ -119,9 +119,10 @@ const Profile = () => {
 
   const fetchVendorStores = async () => {
     try {
+      // Explicitly select only needed columns - exclude banking data for security
       const { data, error } = await supabase
         .from('stores')
-        .select('*')
+        .select('id, name, address, phone, email, latitude, longitude, hours, description, rating, review_count, specialties, photo_urls, status, featured, offers_delivery, delivery_charges, cod_available, google_maps_link, owner_id, rejection_reason, commission_rate, created_at, updated_at')
         .eq('owner_id', user?.id);
 
       if (error) throw error;

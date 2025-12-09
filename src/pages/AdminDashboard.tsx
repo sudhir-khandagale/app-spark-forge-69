@@ -156,10 +156,14 @@ export default function AdminDashboard() {
   };
 
   const fetchStores = async () => {
+    // Define explicit columns for admin view - excludes sensitive banking details
+    // Banking info should only be accessed on dedicated payment/payout pages
+    const storeColumns = 'id, name, address, phone, email, latitude, longitude, hours, description, rating, review_count, specialties, photo_urls, status, featured, offers_delivery, delivery_charges, cod_available, google_maps_link, owner_id, rejection_reason, commission_rate, created_at, updated_at';
+    
     // Fetch pending stores
     const { data: pending, error: pendingError } = await supabase
       .from('stores')
-      .select('*')
+      .select(storeColumns)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
@@ -187,7 +191,7 @@ export default function AdminDashboard() {
     // Fetch rejected stores
     const { data: rejected, error: rejectedError } = await supabase
       .from('stores')
-      .select('*')
+      .select(storeColumns)
       .eq('status', 'rejected')
       .order('created_at', { ascending: false });
 
@@ -215,7 +219,7 @@ export default function AdminDashboard() {
     // Fetch all stores
     const { data: stores, error: storesError } = await supabase
       .from('stores')
-      .select('*')
+      .select(storeColumns)
       .order('created_at', { ascending: false });
 
     if (storesError) throw storesError;
