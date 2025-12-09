@@ -128,9 +128,10 @@ export default function StoreDashboard() {
       const isAdmin = roleData?.role === 'admin';
 
       // Fetch store - admins can access any store, vendors only their own
+      // Explicitly select columns - banking info needed for owner's dashboard
       const storeQuery = supabase
         .from('stores')
-        .select('*')
+        .select('id, name, address, phone, email, latitude, longitude, hours, description, rating, review_count, specialties, photo_urls, status, featured, offers_delivery, delivery_charges, cod_available, google_maps_link, owner_id, rejection_reason, commission_rate, created_at, updated_at, bank_account_name, bank_account_number, bank_ifsc_code, upi_id')
         .eq('id', storeId);
 
       if (!isAdmin) {
