@@ -53,7 +53,26 @@ const Index = () => {
     try {
       setLoadingTrending(true);
 
-      // Fetch inventory with products - use stores_public view for RLS compatibility
+      // Step 1: Fetch approved stores from the public view (RLS-compatible)
+      const { data: approvedStores, error: storesError } = await supabase
+        .from('stores_public')
+        .select('id, name, status')
+        .eq('status', 'approved');
+
+      if (storesError) {
+        console.error('Stores query error:', storesError);
+        throw storesError;
+      }
+
+      if (!approvedStores || approvedStores.length === 0) {
+        setTrendingProducts([]);
+        return;
+      }
+
+      const storeMap = new Map(approvedStores.map(s => [s.id, s.name]));
+      const storeIds = approvedStores.map(s => s.id);
+
+      // Step 2: Fetch inventory with products for approved stores only
       const { data: inventory, error: inventoryError } = await supabase
         .from('inventory')
         .select(`
@@ -69,34 +88,24 @@ const Index = () => {
             rating,
             review_count,
             trending
-          ),
-          stores_public (
-            id,
-            name,
-            status
           )
         `)
         .eq('in_stock', true)
+        .in('store_id', storeIds)
         .limit(50);
 
       if (inventoryError) {
-        console.error('Query error:', inventoryError);
+        console.error('Inventory query error:', inventoryError);
         throw inventoryError;
       }
 
-      // Client-side filter for trending products in approved stores
-      const filtered = inventory?.filter((inv: any) => 
-        inv.products?.trending === true && 
-        inv.stores_public?.status === 'approved'
-      ) || [];
-
-      // Map unique products (take first store for each product)
+      // Filter for trending products and map to display format
       const productMap = new Map<string, TrendingProduct>();
       
-      filtered.forEach((inv: any) => {
+      inventory?.forEach((inv: any) => {
         const product = inv.products;
-        const store = inv.stores_public;
-        if (product && store && !productMap.has(product.id)) {
+        const storeName = storeMap.get(inv.store_id);
+        if (product?.trending === true && storeName && !productMap.has(product.id)) {
           productMap.set(product.id, {
             id: product.id,
             name: product.name,
@@ -104,7 +113,7 @@ const Index = () => {
             category: product.category,
             rating: product.rating,
             review_count: product.review_count,
-            store_name: store.name,
+            store_name: storeName,
             store_id: inv.store_id,
             price: inv.price,
             in_stock: inv.in_stock
