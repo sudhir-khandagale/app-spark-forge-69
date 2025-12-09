@@ -231,6 +231,11 @@
   "logout": "Logout",
   "help": "Help",
   "contact_support": "Contact Support",
+  "not_logged_in": "Not Logged In",
+  "login_to_view_profile": "Please log in to view your profile",
+  "go_to_login": "Go to Login",
+  "complete_profile": "Complete Your Profile",
+  "complete_profile_desc": "Add a few more details to unlock all features",
   
   "_validation": "Validation Messages",
   "field_required": "This field is required",
