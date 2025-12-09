@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { translations } from '@/lib/translations';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en-IN', name: 'English', nativeName: 'English' },
@@ -36,72 +37,74 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
+// Get translations for a language code using static imports
+const getTranslationsForLanguage = (langCode: string): Record<string, string> => {
+  const code = langCode.split('-')[0] as keyof typeof translations;
+  return translations[code] || translations.en;
+};
+
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
-  const [language, setLanguageState] = useState<string>('en-IN');
-  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [language, setLanguageState] = useState<string>(() => {
+    // Initialize from localStorage synchronously to prevent flash
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('app_language') || 'en-IN';
+    }
+    return 'en-IN';
+  });
+
+  // Get translations synchronously using memoization
+  const currentTranslations = useMemo(() => {
+    return getTranslationsForLanguage(language);
+  }, [language]);
 
   useEffect(() => {
-    // Load from localStorage first
-    const saved = localStorage.getItem('app_language');
-    if (saved) {
-      setLanguageState(saved);
-    }
-
     // Load from user profile if authenticated
     const loadUserLanguage = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile) {
-          const userLang = (profile as any).language || 'en-IN';
-          setLanguageState(userLang);
-          localStorage.setItem('app_language', userLang);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile) {
+            const userLang = (profile as any).language || 'en-IN';
+            if (userLang !== language) {
+              setLanguageState(userLang);
+              localStorage.setItem('app_language', userLang);
+            }
+          }
         }
+      } catch (error) {
+        console.error('Failed to load user language:', error);
       }
     };
 
     loadUserLanguage();
   }, []);
 
-  useEffect(() => {
-    // Load translations for the selected language
-    const loadTranslations = async () => {
-      try {
-        const langCode = language.split('-')[0]; // Extract 'en' from 'en-IN'
-        const module = await import(`@/lib/translations/${langCode}.json`);
-        setTranslations(module.default);
-      } catch (error) {
-        console.error('Failed to load translations:', error);
-        // Fallback to English
-        const module = await import(`@/lib/translations/en.json`);
-        setTranslations(module.default);
-      }
-    };
-
-    loadTranslations();
-  }, [language]);
-
   const setLanguage = async (lang: string) => {
     setLanguageState(lang);
     localStorage.setItem('app_language', lang);
 
     // Update user profile if authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase
-        .from('profiles')
-        .update({ language: lang } as any)
-        .eq('id', user.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ language: lang } as any)
+          .eq('id', user.id);
+      }
+    } catch (error) {
+      console.error('Failed to update user language:', error);
     }
   };
 
   const t = (key: string): string => {
-    return translations[key] || key;
+    return currentTranslations[key] || key;
   };
 
   return (

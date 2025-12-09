@@ -159,8 +159,7 @@ const Index = () => {
               alt="Flowdux Logo" 
               width={40} 
               height={40} 
-              className="h-10 w-10 rounded-xl shadow-lg" 
-              fetchPriority="high"
+              className="h-10 w-10 rounded-xl shadow-lg"
             />
             <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
               <MapPin className="w-4 h-4 mr-2" />
