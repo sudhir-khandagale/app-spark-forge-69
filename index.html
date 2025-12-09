@@ -31,8 +31,9 @@
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     
-    <!-- Preconnect to critical origins BEFORE any resources -->
-    <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" crossorigin />
+    <!-- Preconnect to critical origins - MUST be early in <head> -->
+    <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" />
+    <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" crossorigin="anonymous" />
     <link rel="dns-prefetch" href="https://hmwunbhtulrgalqrcnbv.supabase.co" />
     
     <!-- Inline critical CSS to reduce FCP -->
