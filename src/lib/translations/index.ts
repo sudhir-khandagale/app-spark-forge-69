@@ -8,8 +8,8 @@ import gu from './gu.json';
 import kn from './kn.json';
 import ml from './ml.json';
 import pa from './pa.json';
-import or from './or.json';
-import as from './as.json';
+import oriya from './or.json';
+import assamese from './as.json';
 
 export const translations = {
   en,
@@ -22,8 +22,8 @@ export const translations = {
   kn,
   ml,
   pa,
-  or,
-  as,
+  or: oriya,
+  as: assamese,
 };
 
 export type TranslationKey = keyof typeof en;
