@@ -2,6 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Preconnect hints MUST be first for maximum effect -->
+    <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" />
+    <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://hmwunbhtulrgalqrcnbv.supabase.co" />
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <title>Flowdux - Find Products in Local Stores</title>
     <meta name="description" content="Find products in local stores instantly. Search real-time inventory, compare prices, and navigate to retailers with items in stock." />
@@ -25,16 +33,11 @@
     <meta name="twitter:image" content="/icon-512.png" />
     
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
-    <link rel="canonical" href="https://app-spark-forge-69.lovable.app/" />
+    <link rel="canonical" href="https://flowdux.lovable.app/" />
     
     <!-- Icons -->
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    
-    <!-- Preconnect to critical origins - MUST be early in <head> -->
-    <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" />
-    <link rel="preconnect" href="https://hmwunbhtulrgalqrcnbv.supabase.co" crossorigin="anonymous" />
-    <link rel="dns-prefetch" href="https://hmwunbhtulrgalqrcnbv.supabase.co" />
     
     <!-- Inline critical CSS to reduce FCP -->
     <style>
@@ -53,9 +56,7 @@
       .loaded .initial-loader{display:none}
     </style>
     
-    <!-- Load fonts with font-display:swap - deferred for better FCP -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Load fonts deferred for better FCP -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
   </head>
