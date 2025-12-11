@@ -39,8 +39,13 @@ interface LanguageProviderProps {
 
 // Get translations for a language code using static imports
 const getTranslationsForLanguage = (langCode: string): Record<string, string> => {
-  const code = langCode.split('-')[0] as keyof typeof translations;
-  return translations[code] || translations.en;
+  try {
+    const code = langCode.split('-')[0];
+    return translations[code] || translations['en'] || {};
+  } catch (error) {
+    console.error('Translation loading error:', error);
+    return {};
+  }
 };
 
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
