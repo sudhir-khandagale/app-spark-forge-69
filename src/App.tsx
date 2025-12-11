@@ -12,6 +12,7 @@ import { NetworkStatus } from "@/components/NetworkStatus";
 import { AppInitializer } from "@/components/AppInitializer";
 import { OnboardingCheck } from "@/components/OnboardingCheck";
 import { HelmetProvider } from 'react-helmet-async';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Lazy load non-critical components
 const InstallBanner = lazy(() => import("@/components/InstallBanner"));
@@ -143,24 +144,26 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
-        <LanguageProvider>
-          <TooltipProvider>
-            <AppInitializer />
-            <Suspense fallback={null}>
-              <WebVitalsReporter />
-              <InstallBanner />
-            </Suspense>
-            <Toaster />
-            <Sonner />
-            <AppContent />
-          </TooltipProvider>
-        </LanguageProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </HelmetProvider>
+  <ErrorBoundary>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="system" storageKey="flowdux-theme">
+          <LanguageProvider>
+            <TooltipProvider>
+              <AppInitializer />
+              <Suspense fallback={null}>
+                <WebVitalsReporter />
+                <InstallBanner />
+              </Suspense>
+              <Toaster />
+              <Sonner />
+              <AppContent />
+            </TooltipProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
+  </ErrorBoundary>
 );
 
 export default App;
