@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Trash2 } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -9,6 +9,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  errorInfo?: ErrorInfo;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -21,11 +22,52 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log error details - these won't be dropped in production with our updated config
+    console.error('ErrorBoundary caught an error:', error);
+    console.error('Error info:', errorInfo);
+    console.error('Component stack:', errorInfo.componentStack);
+    
+    this.setState({ errorInfo });
   }
 
   private handleReload = () => {
     window.location.reload();
+  };
+
+  private handleClearCacheAndReload = async () => {
+    try {
+      // Clear all caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+        console.log('Cleared caches:', cacheNames);
+      }
+      
+      // Unregister service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+        console.log('Unregistered service workers:', registrations.length);
+      }
+      
+      // Clear local storage (preserve auth if possible)
+      const authKey = Object.keys(localStorage).find(key => key.includes('supabase.auth'));
+      const authValue = authKey ? localStorage.getItem(authKey) : null;
+      localStorage.clear();
+      if (authKey && authValue) {
+        localStorage.setItem(authKey, authValue);
+      }
+      
+      // Clear session storage
+      sessionStorage.clear();
+      
+      // Force reload
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to clear cache:', error);
+      // Fallback to simple reload
+      window.location.reload();
+    }
   };
 
   public render() {
@@ -40,12 +82,41 @@ export class ErrorBoundary extends Component<Props, State> {
               Something went wrong
             </h1>
             <p className="text-muted-foreground text-sm">
-              We're sorry, but something unexpected happened. Please try refreshing the page.
+              We're sorry, but something unexpected happened. This might be due to cached data or a temporary issue.
             </p>
-            <Button onClick={this.handleReload} className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Refresh Page
-            </Button>
+            
+            {/* Show error details in development or for debugging */}
+            {this.state.error && (
+              <details className="text-left bg-muted/50 rounded-lg p-3 text-xs">
+                <summary className="cursor-pointer text-muted-foreground font-medium">
+                  Error Details
+                </summary>
+                <pre className="mt-2 overflow-auto max-h-32 text-destructive whitespace-pre-wrap">
+                  {this.state.error.message}
+                  {this.state.error.stack && (
+                    <>
+                      {'\n\n'}
+                      {this.state.error.stack}
+                    </>
+                  )}
+                </pre>
+              </details>
+            )}
+            
+            <div className="flex flex-col gap-2 pt-2">
+              <Button onClick={this.handleClearCacheAndReload} className="gap-2 w-full">
+                <Trash2 className="w-4 h-4" />
+                Clear Cache & Reload
+              </Button>
+              <Button variant="outline" onClick={this.handleReload} className="gap-2 w-full">
+                <RefreshCw className="w-4 h-4" />
+                Simple Reload
+              </Button>
+            </div>
+            
+            <p className="text-muted-foreground text-xs pt-2">
+              If the problem persists, try opening the app in an incognito/private window.
+            </p>
           </div>
         </div>
       );
