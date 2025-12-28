@@ -3,7 +3,7 @@ import App from "./App.tsx";
 import "./index.css";
 
 // App version for cache busting - update this on each deployment
-const APP_VERSION = '1.0.0';
+const APP_VERSION = __FLOWDUX_BUILD_ID__;
 const VERSION_KEY = 'flowdux_app_version';
 
 // Function to clear all caches
@@ -178,8 +178,11 @@ async function initializeApp(): Promise<void> {
     const versionChanged = await checkVersionAndClearCache();
     
     if (versionChanged) {
-      console.log('[Init] Version changed, reloading...');
-      window.location.reload();
+      console.log('[Init] Version changed, hard reloading...');
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', APP_VERSION);
+      url.searchParams.set('t', String(Date.now()));
+      window.location.replace(url.toString());
       return;
     }
     

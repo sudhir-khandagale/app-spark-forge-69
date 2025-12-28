@@ -6,6 +6,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // Build identifier for automatic cache-busting (changes every production build)
+  define: {
+    __FLOWDUX_BUILD_ID__: JSON.stringify(
+      mode === 'production' ? new Date().toISOString() : 'dev'
+    ),
+  },
   server: {
     host: "::",
     port: 8080,
