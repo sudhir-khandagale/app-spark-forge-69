@@ -201,11 +201,13 @@ export default defineConfig(({ mode }) => ({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: mode === 'production',
+        // TEMPORARILY DISABLED: Keep console logs for debugging white screen issue
+        drop_console: false,
         drop_debugger: mode === 'production',
         // Additional compression for smaller bundles
         passes: 3,
-        pure_funcs: mode === 'production' ? ['console.log', 'console.info', 'console.debug', 'console.warn'] : [],
+        // TEMPORARILY DISABLED: Keep console functions for debugging
+        pure_funcs: [],
         dead_code: true,
         unused: true,
       },
