@@ -62,6 +62,34 @@
   </head>
 
   <body>
+    <!-- CRITICAL: Cache bypass script runs BEFORE anything else -->
+    <script>
+      (function() {
+        // Force clear stale service workers immediately
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            registrations.forEach(function(registration) {
+              registration.unregister();
+              console.log('[CacheFix] Service worker unregistered');
+            });
+          });
+        }
+        
+        // Clear all caches
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            names.forEach(function(name) {
+              caches.delete(name);
+              console.log('[CacheFix] Cache deleted:', name);
+            });
+          });
+        }
+        
+        // Set flag that cache was cleared this session
+        sessionStorage.setItem('flowdux_cache_cleared', Date.now().toString());
+      })();
+    </script>
+
     <div id="root">
       <!-- Initial skeleton shown until React hydrates - prevents white screen -->
       <div class="initial-loader" aria-label="Loading Flowdux">
@@ -70,17 +98,64 @@
           <div class="skeleton skeleton-card"></div>
           <div class="skeleton skeleton-card"></div>
         </div>
+        
+        <!-- Fallback recovery buttons - shown after 8 seconds if React fails -->
+        <div id="recovery-panel" style="display:none;text-align:center;padding:2rem">
+          <p style="color:#666;margin-bottom:1rem">Taking too long? Try these options:</p>
+          <button onclick="location.reload(true)" style="background:#6C5CE7;color:white;border:none;padding:12px 24px;border-radius:8px;margin:8px;cursor:pointer;font-size:16px">
+            Reload Page
+          </button>
+          <button onclick="clearAndReload()" style="background:#00D4FF;color:white;border:none;padding:12px 24px;border-radius:8px;margin:8px;cursor:pointer;font-size:16px">
+            Clear Cache & Reload
+          </button>
+        </div>
       </div>
     </div>
-    <!-- Defer Razorpay completely - only load when needed -->
+
     <script type="module" src="/src/main.tsx"></script>
+    
     <script>
+      // Recovery timeout - show buttons if React doesn't load in 8 seconds
+      var recoveryTimeout = setTimeout(function() {
+        var panel = document.getElementById('recovery-panel');
+        if (panel && !document.body.classList.contains('loaded')) {
+          panel.style.display = 'block';
+          console.log('[Recovery] Showing recovery panel - React did not load');
+        }
+      }, 8000);
+      
+      // Clear and reload function
+      window.clearAndReload = function() {
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            return Promise.all(names.map(function(name) { return caches.delete(name); }));
+          }).then(function() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = window.location.pathname + '?cleared=' + Date.now();
+          });
+        } else {
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = window.location.pathname + '?cleared=' + Date.now();
+        }
+      };
+      
       // Mark as loaded when React mounts
       window.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(function() {
           document.body.classList.add('loaded');
+          clearTimeout(recoveryTimeout);
         });
       });
+      
+      // Also mark loaded when app signals ready
+      window.markAppLoaded = function() {
+        document.body.classList.add('loaded');
+        clearTimeout(recoveryTimeout);
+        var panel = document.getElementById('recovery-panel');
+        if (panel) panel.style.display = 'none';
+      };
     </script>
   </body>
 </html>

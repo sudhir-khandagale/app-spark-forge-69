@@ -178,24 +178,24 @@ async function initializeApp(): Promise<void> {
     const versionChanged = await checkVersionAndClearCache();
     
     if (versionChanged) {
-      console.log('[Init] Version changed, hard reloading...');
-      const url = new URL(window.location.href);
-      url.searchParams.set('v', APP_VERSION);
-      url.searchParams.set('t', String(Date.now()));
-      window.location.replace(url.toString());
-      return;
+      console.log('[Init] Version changed, clearing and continuing...');
+      // Don't reload, just continue with fresh state
     }
     
     // Setup loading timeout detection
     setupLoadingTimeout();
     
-    // Update service worker
+    // Force unregister all service workers (aggressive cleanup)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach(registration => {
-          registration.update();
-        });
-      });
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+          console.log('[SW] Force unregistered service worker');
+        }
+      } catch (e) {
+        console.warn('[SW] Could not unregister service workers:', e);
+      }
     }
     
     // Get root element
@@ -217,6 +217,11 @@ async function initializeApp(): Promise<void> {
     console.log('[Init] Rendering app...');
     createRoot(rootElement).render(<App />);
     console.log('[Init] App rendered successfully');
+    
+    // Signal to HTML that app loaded (for recovery panel)
+    if (typeof (window as any).markAppLoaded === 'function') {
+      (window as any).markAppLoaded();
+    }
     
   } catch (error) {
     console.error('[Init] Failed to initialize app:', error);
