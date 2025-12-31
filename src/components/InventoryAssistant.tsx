@@ -10,43 +10,52 @@ import { VoiceChatInput } from './VoiceChatInput';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/hooks/useTranslation';
-
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   action?: string;
   result?: string;
 }
-
 interface InventoryAssistantProps {
   storeId: string;
   onInventoryUpdate?: () => void;
   inline?: boolean;
 }
-
-export const InventoryAssistant = ({ storeId, onInventoryUpdate, inline = false }: InventoryAssistantProps) => {
+export const InventoryAssistant = ({
+  storeId,
+  onInventoryUpdate,
+  inline = false
+}: InventoryAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: "Hi! I'm your AI inventory assistant. I can help you update stock, check low inventory, analyze products, and more. Just ask me anything!"
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([{
+    role: 'assistant',
+    content: "Hi! I'm your AI inventory assistant. I can help you update stock, check low inventory, analyze products, and more. Just ask me anything!"
+  }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-  const { language } = useLanguage();
-  const { t } = useTranslation();
-  const { speak, stop, isSpeaking } = useSpeechSynthesis({ language });
-
+  const {
+    toast
+  } = useToast();
+  const {
+    language
+  } = useLanguage();
+  const {
+    t
+  } = useTranslation();
+  const {
+    speak,
+    stop,
+    isSpeaking
+  } = useSpeechSynthesis({
+    language
+  });
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
   useEffect(() => {
     if (autoSpeak && messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
@@ -55,43 +64,40 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate, inline = false 
       }
     }
   }, [messages, autoSpeak, speak]);
-
   const handleVoiceTranscript = (transcript: string) => {
     setInput(transcript);
   };
-
-  const suggestions = [
-    t('update_maggi_stock'),
-    t('show_low_stock'),
-    t('update_price'),
-  ];
-
+  const suggestions = [t('update_maggi_stock'), t('show_low_stock'), t('update_price')];
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || input.trim();
     if (!textToSend || loading) return;
-
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: textToSend }]);
+    setMessages(prev => [...prev, {
+      role: 'user',
+      content: textToSend
+    }]);
     setLoading(true);
-
     try {
-      const { data, error } = await supabase.functions.invoke('inventory-assistant', {
-        body: { message: textToSend, storeId, language }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('inventory-assistant', {
+        body: {
+          message: textToSend,
+          storeId,
+          language
+        }
       });
-
       if (error) throw error;
-
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.message,
         action: data.action,
         result: data.result
       }]);
-
       if (data.action && onInventoryUpdate) {
         onInventoryUpdate();
       }
-
     } catch (error: any) {
       console.error('Error:', error);
       toast({
@@ -107,11 +113,9 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate, inline = false 
       setLoading(false);
     }
   };
-
   if (!isOpen) {
     if (inline) {
-      return (
-        <Card className="w-full border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 transition-all cursor-pointer animate-pulse" onClick={() => setIsOpen(true)}>
+      return <Card className="w-full border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5 hover:from-primary/10 hover:to-accent/10 transition-all cursor-pointer animate-pulse" onClick={() => setIsOpen(true)}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -123,60 +127,36 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate, inline = false 
                   <p className="text-sm text-muted-foreground">Ask me anything about your inventory</p>
                 </div>
               </div>
-              {autoSpeak && (
-                <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse" />
-              )}
+              {autoSpeak && <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse" />}
             </div>
           </CardContent>
-        </Card>
-      );
+        </Card>;
     }
-    
-    return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-[88px] right-4 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-accent hover:scale-110 transition-transform z-[60] relative animate-pulse"
-        size="icon"
-      >
+    return <Button onClick={() => setIsOpen(true)} size="icon" className="fixed bottom-[88px] right-4 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-accent hover:scale-110 transition-transform z-[60] relative animate-pulse text-right">
         <Sparkles className="h-6 w-6" />
-        {autoSpeak && (
-          <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse" />
-        )}
-      </Button>
-    );
+        {autoSpeak && <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full animate-pulse" />}
+      </Button>;
   }
-
   if (inline) {
-    return (
-      <Card className="w-full border-primary/20">
+    return <Card className="w-full border-primary/20">
         <div className="bg-gradient-to-r from-primary to-accent p-4 rounded-t-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-white" />
             <span className="font-semibold text-white">{t('ai_assistant')}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setAutoSpeak(!autoSpeak);
-                if (!autoSpeak) {
-                  toast({
-                    title: t('voice_chat_enabled'),
-                    description: t('auto_read_responses'),
-                  });
-                }
-              }}
-              className="h-8 w-8 text-white hover:bg-white/20"
-            >
+            <Button variant="ghost" size="icon" onClick={() => {
+            setAutoSpeak(!autoSpeak);
+            if (!autoSpeak) {
+              toast({
+                title: t('voice_chat_enabled'),
+                description: t('auto_read_responses')
+              });
+            }
+          }} className="h-8 w-8 text-white hover:bg-white/20">
               {autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
             </Button>
-            <Button
-              onClick={() => setIsOpen(false)}
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-white hover:bg-white/20"
-            >
+            <Button onClick={() => setIsOpen(false)} variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -184,120 +164,64 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate, inline = false 
 
         <ScrollArea ref={scrollRef} className="h-[400px] p-4">
           <div className="space-y-4">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                    msg.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
+            {messages.map((msg, idx) => <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`rounded-lg px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                  {msg.result && (
-                    <p className="text-xs mt-2 opacity-80 font-medium">
+                  {msg.result && <p className="text-xs mt-2 opacity-80 font-medium">
                       ✓ {msg.result}
-                    </p>
-                  )}
+                    </p>}
                 </div>
-              </div>
-            ))}
-            {loading && (
-              <div className="flex justify-start">
+              </div>)}
+            {loading && <div className="flex justify-start">
                 <div className="bg-muted rounded-lg px-4 py-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
-              </div>
-            )}
+              </div>}
           </div>
         </ScrollArea>
 
-        {messages.length === 1 && (
-          <div className="px-4 pb-2">
+        {messages.length === 1 && <div className="px-4 pb-2">
             <p className="text-xs text-muted-foreground mb-2">{t('suggestions')}:</p>
             <div className="flex flex-wrap gap-2">
-              {suggestions.map((suggestion, idx) => (
-                <Button
-                  key={idx}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-auto py-1"
-                  onClick={() => sendMessage(suggestion)}
-                >
+              {suggestions.map((suggestion, idx) => <Button key={idx} variant="outline" size="sm" className="text-xs h-auto py-1" onClick={() => sendMessage(suggestion)}>
                   {suggestion}
-                </Button>
-              ))}
+                </Button>)}
             </div>
-          </div>
-        )}
+          </div>}
 
         <div className="p-4 border-t space-y-2">
           <div className="flex gap-2">
             <VoiceChatInput onTranscript={handleVoiceTranscript} />
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder={t('ask_me_anything')}
-              disabled={loading}
-              className="flex-1"
-            />
-            <Button
-              onClick={() => sendMessage()}
-              disabled={loading || !input.trim()}
-              size="icon"
-            >
+            <Input value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && sendMessage()} placeholder={t('ask_me_anything')} disabled={loading} className="flex-1" />
+            <Button onClick={() => sendMessage()} disabled={loading || !input.trim()} size="icon">
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          {isSpeaking && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={stop}
-              className="w-full"
-            >
+          {isSpeaking && <Button variant="outline" size="sm" onClick={stop} className="w-full">
               {t('stop_speaking')}
-            </Button>
-          )}
+            </Button>}
         </div>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card className="fixed bottom-[88px] right-4 w-[calc(100vw-2rem)] max-w-96 h-[500px] flex flex-col shadow-2xl z-[60] border-primary/20">
+  return <Card className="fixed bottom-[88px] right-4 w-[calc(100vw-2rem)] max-w-96 h-[500px] flex flex-col shadow-2xl z-[60] border-primary/20">
       <div className="bg-gradient-to-r from-primary to-accent p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-white" />
           <span className="font-semibold text-white">{t('ai_assistant')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setAutoSpeak(!autoSpeak);
-              if (!autoSpeak) {
-                toast({
-                  title: t('voice_chat_enabled'),
-                  description: t('auto_read_responses'),
-                });
-              }
-            }}
-            className="h-8 w-8 text-white hover:bg-white/20"
-          >
+          <Button variant="ghost" size="icon" onClick={() => {
+          setAutoSpeak(!autoSpeak);
+          if (!autoSpeak) {
+            toast({
+              title: t('voice_chat_enabled'),
+              description: t('auto_read_responses')
+            });
+          }
+        }} className="h-8 w-8 text-white hover:bg-white/20">
             {autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
-          <Button
-            onClick={() => setIsOpen(false)}
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-white hover:bg-white/20"
-          >
+          <Button onClick={() => setIsOpen(false)} variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -305,86 +229,42 @@ export const InventoryAssistant = ({ storeId, onInventoryUpdate, inline = false 
 
       <ScrollArea ref={scrollRef} className="flex-1 p-4">
         <div className="space-y-4">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                  msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
-                }`}
-              >
+          {messages.map((msg, idx) => <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`rounded-lg px-4 py-2 max-w-[80%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                {msg.result && (
-                  <p className="text-xs mt-2 opacity-80 font-medium">
+                {msg.result && <p className="text-xs mt-2 opacity-80 font-medium">
                     ✓ {msg.result}
-                  </p>
-                )}
+                  </p>}
               </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
+            </div>)}
+          {loading && <div className="flex justify-start">
               <div className="bg-muted rounded-lg px-4 py-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
-            </div>
-          )}
+            </div>}
         </div>
       </ScrollArea>
 
-      {messages.length === 1 && (
-        <div className="px-4 pb-2">
+      {messages.length === 1 && <div className="px-4 pb-2">
           <p className="text-xs text-muted-foreground mb-2">{t('suggestions')}:</p>
           <div className="flex flex-wrap gap-2">
-            {suggestions.map((suggestion, idx) => (
-              <Button
-                key={idx}
-                variant="outline"
-                size="sm"
-                className="text-xs h-auto py-1"
-                onClick={() => sendMessage(suggestion)}
-              >
+            {suggestions.map((suggestion, idx) => <Button key={idx} variant="outline" size="sm" className="text-xs h-auto py-1" onClick={() => sendMessage(suggestion)}>
                 {suggestion}
-              </Button>
-            ))}
+              </Button>)}
           </div>
-        </div>
-      )}
+        </div>}
 
       <div className="p-4 border-t space-y-2">
         <div className="flex gap-2">
           <VoiceChatInput onTranscript={handleVoiceTranscript} />
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder={t('ask_me_anything')}
-            disabled={loading}
-            className="flex-1"
-          />
-          <Button
-            onClick={() => sendMessage()}
-            disabled={loading || !input.trim()}
-            size="icon"
-          >
+          <Input value={input} onChange={e => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && sendMessage()} placeholder={t('ask_me_anything')} disabled={loading} className="flex-1" />
+          <Button onClick={() => sendMessage()} disabled={loading || !input.trim()} size="icon">
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        {isSpeaking && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={stop}
-            className="w-full"
-          >
+        {isSpeaking && <Button variant="outline" size="sm" onClick={stop} className="w-full">
             {t('stop_speaking')}
-          </Button>
-        )}
+          </Button>}
       </div>
-    </Card>
-  );
+    </Card>;
 };
