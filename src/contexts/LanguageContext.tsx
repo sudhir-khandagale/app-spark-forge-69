@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { translations } from '@/lib/translations';
+import { safeStorage } from '@/lib/safeStorage';
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en-IN', name: 'English', nativeName: 'English' },
@@ -52,7 +53,7 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   const [language, setLanguageState] = useState<string>(() => {
     // Initialize from localStorage synchronously to prevent flash
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('app_language') || 'en-IN';
+      return safeStorage.getItem('app_language') || 'en-IN';
     }
     return 'en-IN';
   });
@@ -78,7 +79,7 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
             const userLang = (profile as any).language || 'en-IN';
             if (userLang !== language) {
               setLanguageState(userLang);
-              localStorage.setItem('app_language', userLang);
+              safeStorage.setItem('app_language', userLang);
             }
           }
         }
@@ -92,7 +93,7 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
 
   const setLanguage = async (lang: string) => {
     setLanguageState(lang);
-    localStorage.setItem('app_language', lang);
+    safeStorage.setItem('app_language', lang);
 
     // Update user profile if authenticated
     try {
@@ -109,7 +110,11 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   };
 
   const t = (key: string): string => {
-    return currentTranslations[key] || key;
+    const value = currentTranslations[key];
+    if (!value && import.meta.env.DEV) {
+      console.warn(`[i18n] Missing translation key: "${key}" for language: ${language}`);
+    }
+    return value || key;
   };
 
   return (

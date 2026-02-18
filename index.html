@@ -141,13 +141,20 @@
         }
       };
       
-      // Mark as loaded when React mounts
-      window.addEventListener('DOMContentLoaded', function() {
-        requestAnimationFrame(function() {
-          document.body.classList.add('loaded');
-          clearTimeout(recoveryTimeout);
+      // Detect when React actually renders content using MutationObserver
+      var rootEl = document.getElementById('root');
+      if (rootEl) {
+        var observer = new MutationObserver(function(mutations) {
+          // Check if React has rendered real content (not just the skeleton)
+          var hasReactContent = rootEl.querySelector('[data-reactroot], [data-testid], nav, main, header, .min-h-screen');
+          if (hasReactContent || (rootEl.children.length > 1) || (rootEl.children.length === 1 && !rootEl.querySelector('.initial-loader'))) {
+            document.body.classList.add('loaded');
+            clearTimeout(recoveryTimeout);
+            observer.disconnect();
+          }
         });
-      });
+        observer.observe(rootEl, { childList: true, subtree: true });
+      }
       
       // Also mark loaded when app signals ready
       window.markAppLoaded = function() {
