@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Geolocation } from '@capacitor/geolocation';
+import { safeStorage } from '@/lib/safeStorage';
 
 interface GeolocationState {
   latitude: number | null;
@@ -11,7 +12,7 @@ interface GeolocationState {
 export const useGeolocation = () => {
   // Load cached location immediately (synchronous)
   const getCachedLocation = () => {
-    const cached = localStorage.getItem('userLocation');
+    const cached = safeStorage.getItem('userLocation');
     if (cached) {
       try {
         return JSON.parse(cached);
@@ -62,7 +63,7 @@ export const useGeolocation = () => {
         };
 
         setLocation(newLocation);
-        localStorage.setItem('userLocation', JSON.stringify({
+        safeStorage.setItem('userLocation', JSON.stringify({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         }));
@@ -88,7 +89,7 @@ export const useGeolocation = () => {
               };
 
               setLocation(newLocation);
-              localStorage.setItem('userLocation', JSON.stringify({
+              safeStorage.setItem('userLocation', JSON.stringify({
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
               }));
@@ -111,7 +112,7 @@ export const useGeolocation = () => {
       }
     } catch (error: any) {
       // Silent fail - use cached location if available
-      const cached = localStorage.getItem('userLocation');
+      const cached = safeStorage.getItem('userLocation');
       if (cached) {
         try {
           const { latitude, longitude } = JSON.parse(cached);

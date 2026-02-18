@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { safeStorage } from "./lib/safeStorage";
 
 // App version for cache busting - update this on each deployment
 const APP_VERSION = __FLOWDUX_BUILD_ID__;
@@ -38,7 +39,7 @@ async function unregisterServiceWorkers(): Promise<void> {
 // Check for version mismatch and clear caches if needed
 async function checkVersionAndClearCache(): Promise<boolean> {
   try {
-    const storedVersion = localStorage.getItem(VERSION_KEY);
+    const storedVersion = safeStorage.getItem(VERSION_KEY);
     
     if (storedVersion !== APP_VERSION) {
       console.log('[Version] Detected version change:', storedVersion, '->', APP_VERSION);
@@ -48,7 +49,7 @@ async function checkVersionAndClearCache(): Promise<boolean> {
       await clearAllCaches();
       
       // Update stored version
-      localStorage.setItem(VERSION_KEY, APP_VERSION);
+      safeStorage.setItem(VERSION_KEY, APP_VERSION);
       
       // Return true to indicate a reload might be needed
       return true;
